@@ -2,8 +2,10 @@
 import { Button } from "./ui/Button";
 import { ArrowRight, PlayCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
+  const router = useRouter();
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center pt-24 px-6 sm:px-12 md:px-24 bg-background overflow-hidden text-center">
       {/* Decorative Blur and Grid */}
@@ -49,10 +51,13 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 py-4"
         >
-          <Button size="lg" className="w-full sm:w-auto h-14 group">
+          <Button size="lg" className="w-full sm:w-auto h-14 group" onClick={() => router.push('/login')}>
             Get Started <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <Button variant="outline" size="lg" className="w-full sm:w-auto h-14">
+          <Button variant="outline" size="lg" className="w-full sm:w-auto h-14" onClick={() => {
+            const portfolioSection = document.getElementById('portfolio');
+            portfolioSection?.scrollIntoView({ behavior: 'smooth' });
+          }}>
             View Portfolio <PlayCircle className="ml-2" />
           </Button>
         </motion.div>

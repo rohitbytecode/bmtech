@@ -61,7 +61,7 @@ export default function Home() {
              <a href="#contact" className="hover:text-accent-blue transition-colors">Contact</a>
           </div>
           
-          <p className="text-text-secondary text-sm">© 2026 BMTech. All rights reserved.</p>
+          <p className="text-text-secondary text-sm">© 2026 Brothers Mediatech. All rights reserved.</p>
         </div>
       </footer>
     </main>
