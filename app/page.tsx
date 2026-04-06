@@ -1,5 +1,3 @@
-"use client";
-import React from "react";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import Portfolio from "@/components/Portfolio";
@@ -9,7 +7,35 @@ import Process from "@/components/Process";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 
+const requiredEnv = [
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+];
+
+function isEnvLoaded() {
+  return requiredEnv.every(Boolean);
+}
+
 export default function Home() {
+  if (!isEnvLoaded()) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
+        <div className="max-w-xl rounded-3xl border border-red-500 bg-slate-900/90 p-10 shadow-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-red-400 mb-4">Configuration Required</h1>
+          <p className="text-sm text-slate-300 leading-relaxed mb-6">
+            The homepage is unavailable because the required environment variables are not loaded.
+            Please create a <code className="rounded bg-slate-800 px-1.5 py-0.5 text-xs">.env</code> file with the following keys:
+          </p>
+          <ul className="mb-6 list-disc pl-5 space-y-2 text-slate-300">
+            <li><code>NEXT_PUBLIC_SUPABASE_URL</code></li>
+            <li><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
+          </ul>
+          <p className="text-sm text-slate-400">Reload the page after adding the values to restore access.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex flex-col min-h-screen">
       <Hero />
