@@ -1,14 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import PricingCard from "./PricingCard";
-import { getPackages, Package } from "@/lib/data";
+import { Package } from "@/services/dataService";
+import { useData } from "@/hooks/useData";
 
 export default function Packages() {
-  const [packages, setPackages] = useState<Package[]>([]);
-
-  useEffect(() => {
-    getPackages().then(setPackages);
-  }, []);
+  const { data: packages, loading, error } = useData<Package>('packages');
 
   return (
     <section id="packages" className="py-24 px-6 sm:px-12 md:px-24 bg-background">
@@ -20,17 +17,30 @@ export default function Packages() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {packages.map((pkg) => (
-            <PricingCard
-              key={pkg.id}
-              name={pkg.name}
-              price={pkg.price}
-              features={pkg.features}
-              highlighted={pkg.highlighted}
-            />
-          ))}
-        </div>
+        {loading && <p className="text-center text-text-secondary">Loading packages...</p>}
+        {error && <p className="text-center text-red-500">Error: {error}</p>}
+        
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {packages.map((pkg) => {
+              // Parse features if it's a JSON string
+              let parsedFeatures = pkg.features;
+              if (typeof parsedFeatures === 'string') {
+                try { parsedFeatures = JSON.parse(parsedFeatures); } 
+                catch (e) { parsedFeatures = []; }
+              }
+              return (
+                <PricingCard
+                  key={pkg.id}
+                  name={pkg.name}
+                  price={pkg.price}
+                  features={parsedFeatures as string[]}
+                  highlighted={pkg.highlighted}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

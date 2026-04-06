@@ -1,14 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import ServiceCard from "./ServiceCard";
-import { getServices, Service } from "@/lib/data";
+import { Service } from "@/services/dataService";
+import { useData } from "@/hooks/useData";
 
 export default function Services() {
-  const [services, setServices] = useState<Service[]>([]);
-
-  useEffect(() => {
-    getServices().then(setServices);
-  }, []);
+  const { data: services, loading, error } = useData<Service>('services');
 
   return (
     <section id="services" className="py-24 px-6 sm:px-12 md:px-24 bg-background">
@@ -20,16 +17,21 @@ export default function Services() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {services.map((service) => (
-            <ServiceCard
-              key={service.id}
-              title={service.title}
-              description={service.description}
-              iconName={service.icon}
-            />
-          ))}
-        </div>
+        {loading && <p className="text-center text-text-secondary">Loading services...</p>}
+        {error && <p className="text-center text-red-500">Error: {error}</p>}
+        
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {services.map((service) => (
+              <ServiceCard
+                key={service.id}
+                title={service.title || service.name}
+                description={service.description}
+                iconName={service.icon}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

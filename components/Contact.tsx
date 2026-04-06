@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "./ui/Button";
-import { submitLead } from "@/lib/data";
+import { dataService } from "@/services/dataService";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", phone: "", message: "" });
@@ -11,7 +11,7 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    submitLead(formData).then(() => {
+    dataService.submitLead({ name: formData.name, email: formData.phone, message: formData.message }).then(() => {
       setLoading(false);
       setSuccess(true);
       setFormData({ name: "", phone: "", message: "" });

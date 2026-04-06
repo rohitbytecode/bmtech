@@ -1,14 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import ProjectCard from "./ProjectCard";
-import { getProjects, Project } from "@/lib/data";
+import { Project } from "@/services/dataService";
+import { useData } from "@/hooks/useData";
 
 export default function Portfolio() {
-  const [projects, setProjects] = useState<Project[]>([]);
-
-  useEffect(() => {
-    getProjects().then(setProjects);
-  }, []);
+  const { data: projects, loading, error } = useData<Project>('projects');
 
   return (
     <section id="portfolio" className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50 border-y border-border">
@@ -20,17 +17,22 @@ export default function Portfolio() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              title={project.title}
-              category={project.category}
-              image={project.image}
-              link={project.link}
-            />
-          ))}
-        </div>
+        {loading && <p className="text-center text-text-secondary">Loading projects...</p>}
+        {error && <p className="text-center text-red-500">Error: {error}</p>}
+        
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                title={project.title}
+                category={project.category}
+                image={project.image}
+                link={project.link}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

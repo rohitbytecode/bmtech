@@ -1,14 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import PricingCard from "./PricingCard";
-import { getMaintenancePlans, MaintenancePlan } from "@/lib/data";
+import { MaintenancePlan } from "@/services/dataService";
+import { useData } from "@/hooks/useData";
 
 export default function Maintenance() {
-  const [plans, setPlans] = useState<MaintenancePlan[]>([]);
-
-  useEffect(() => {
-    getMaintenancePlans().then(setPlans);
-  }, []);
+  const { data: plans, loading, error } = useData<MaintenancePlan>('maintenancePlans');
 
   return (
     <section id="maintenance" className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50">
@@ -20,16 +17,29 @@ export default function Maintenance() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan) => (
-            <PricingCard
-              key={plan.id}
-              name={plan.name}
-              price={plan.price}
-              features={plan.features}
-            />
-          ))}
-        </div>
+        {loading && <p className="text-center text-text-secondary">Loading plans...</p>}
+        {error && <p className="text-center text-red-500">Error: {error}</p>}
+        
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {plans.map((plan) => {
+              // Parse features if it's a JSON string
+              let parsedFeatures = plan.features;
+              if (typeof parsedFeatures === 'string') {
+                try { parsedFeatures = JSON.parse(parsedFeatures); } 
+                catch (e) { parsedFeatures = []; }
+              }
+              return (
+                <PricingCard
+                  key={plan.id}
+                  name={plan.name}
+                  price={plan.price}
+                  features={parsedFeatures as string[]}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
