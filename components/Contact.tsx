@@ -7,15 +7,36 @@ export default function Contact() {
   const [formData, setFormData] = useState({ name: "", phone: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    dataService.submitLead({ name: formData.name, email: formData.phone, message: formData.message }).then(() => {
-      setLoading(false);
+    setError(null);
+
+    try {
+      const result = await dataService.submitLead({
+        name: formData.name,
+        email: formData.phone,
+        message: formData.message,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Unable to submit lead.");
+      }
+
       setSuccess(true);
       setFormData({ name: "", phone: "", message: "" });
-    });
+    } catch (submitError) {
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : String(submitError ?? "Unknown error");
+      console.error("Lead submission failed:", message);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,6 +80,11 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {error ? (
+                  <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+                    {error}
+                  </div>
+                ) : null}
                 <div>
                   <label className="block text-sm font-bold text-text-secondary uppercase mb-2">Name</label>
                   <input

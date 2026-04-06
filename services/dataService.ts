@@ -109,17 +109,37 @@ export const dataService = {
 
   async submitLead({ name, email, message, service_id }: LeadPayload) {
     try {
-      const { data, error } = await supabase
-        .from('leads')
-        .insert([{ name, email, message, service_id: service_id || null }])
-        .select()
-        .single();
+      const response = await fetch('/api/submit-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message, service_id }),
+      });
 
-      if (error) throw error;
-      return { success: true, data, error: null };
+      const contentType = response.headers.get('content-type') || '';
+      let result: any = null;
+
+      if (contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text || 'Unexpected non-JSON response from /api/submit-lead');
+      }
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.error || 'Unable to submit lead.');
+      }
+
+      return { success: true, data: result.data, error: null };
     } catch (error) {
-      console.error(error);
-      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as any).message)
+          : String(error ?? 'Unknown error');
+
+      console.error('submitLead failed:', errorMessage);
+      return { success: false, data: null, error: errorMessage };
     }
   }
 };
