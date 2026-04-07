@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sora, Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import Header from "../components/Header";
 
@@ -20,18 +21,20 @@ export const metadata: Metadata = {
   description: "Digital agency specializing in Graphics, Video, IT Services, and Social Media.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const isMaintenance = headersList.get("x-maintenance-mode") === "true";
+
   return (
     <html lang="en" className={`${sora.variable} ${inter.variable} antialiased`}>
       <body className="font-body bg-background text-foreground overflow-x-hidden">
-        <Header />
+        {!isMaintenance && <Header />}
         {children}
       </body>
     </html>
   );
 }
-

@@ -32,29 +32,29 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl shadow-blue-900/5">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-surface p-8 shadow-xl shadow-black/20 border border-border">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900">
+          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-text-primary">
             Welcome back
           </h2>
-          <p className="mt-2 text-center text-sm text-slate-600">
+          <p className="mt-2 text-center text-sm text-text-secondary">
             Sign in to access your dashboard
           </p>
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
+          <div className="rounded-md bg-red-900/30 p-4 border border-red-500/40">
             <div className="flex">
-              <div className="text-sm text-red-700">{error}</div>
+              <div className="text-sm text-red-400">{error}</div>
             </div>
           </div>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4 rounded-md shadow-sm">
+          <div className="space-y-4 rounded-md">
             <div>
-              <label className="block text-sm font-medium text-slate-700" htmlFor="email-address">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="email-address">
                 Email address
               </label>
               <input
@@ -65,12 +65,12 @@ export default function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full appearance-none rounded-lg border border-slate-300 px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-blue-600 sm:text-sm transition-colors"
+                className="mt-1 block w-full appearance-none rounded-lg border border-border bg-background px-3 py-2 text-text-primary placeholder-text-secondary focus:border-accent-blue focus:outline-none focus:ring-accent-blue sm:text-sm transition-colors"
                 placeholder="you@example.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700" htmlFor="password">
+              <label className="block text-sm font-medium text-text-secondary" htmlFor="password">
                 Password
               </label>
               <input
@@ -81,7 +81,7 @@ export default function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full appearance-none rounded-lg border border-slate-300 px-3 py-2 text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-blue-600 sm:text-sm transition-colors"
+                className="mt-1 block w-full appearance-none rounded-lg border border-border bg-background px-3 py-2 text-text-primary placeholder-text-secondary focus:border-accent-blue focus:outline-none focus:ring-accent-blue sm:text-sm transition-colors"
                 placeholder="••••••••"
               />
             </div>
@@ -91,16 +91,16 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all disabled:opacity-70"
+              className="group relative flex w-full justify-center rounded-lg bg-accent-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 focus:ring-offset-background transition-all disabled:opacity-70"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
         </form>
 
-        <p className="mt-4 text-center text-sm text-slate-600">
+        <p className="mt-4 text-center text-sm text-text-secondary">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+          <Link href="/signup" className="font-medium text-accent-blue hover:text-blue-400 transition-colors">
             Sign up now
           </Link>
         </p>
