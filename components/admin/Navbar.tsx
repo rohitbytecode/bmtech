@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
-import { User, Search, Bell } from "lucide-react";
+import { User as UserIcon, Search, Bell, Loader2 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Navbar() {
   const pathname = usePathname();
+  const { user, role, loading } = useAuth();
   const pageTitle = pathname.split("/").pop() || "Dashboard";
   const formattedTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
 
@@ -32,11 +34,21 @@ export function Navbar() {
 
         <div className="flex items-center gap-3 pl-4 border-l border-border h-10">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-text-primary">Admin User</p>
-            <p className="text-xs text-text-secondary">Administrator</p>
+            {loading ? (
+              <div className="flex items-center justify-end">
+                <Loader2 size={14} className="animate-spin text-text-secondary" />
+              </div>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-text-primary">
+                  {user?.email?.split('@')[0] || "Admin User"}
+                </p>
+                <p className="text-xs text-text-secondary capitalize">{role}</p>
+              </>
+            )}
           </div>
           <div className="h-10 w-10 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center text-accent-blue cursor-pointer hover:bg-accent-blue/20 transition-colors">
-            <User size={20} />
+            <UserIcon size={20} />
           </div>
         </div>
       </div>

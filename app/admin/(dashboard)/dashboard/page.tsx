@@ -1,72 +1,138 @@
 "use client";
 
-import React from "react";
-import { Users, Briefcase, Package, ArrowUpRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Users, Briefcase, Package, ArrowUpRight, Loader2 } from "lucide-react";
 import { StatCard } from "@/components/admin/StatCard";
 import { DataTable, Column } from "@/components/admin/DataTable";
-
-interface Lead {
-  id: string;
-  name: string;
-  phone: string;
-  message: string;
-  timestamp: string;
-  status: "new" | "contacted";
-}
-
-const mockLeads: Lead[] = [
-  { id: "1", name: "Ahmed Khan", phone: "+92 300 1234567", message: "Interested in web development services.", timestamp: "2 hours ago", status: "new" },
-  { id: "2", name: "John Doe", phone: "+1 555 0199", message: "Need a quote for graphic design package.", timestamp: "5 hours ago", status: "new" },
-  { id: "3", name: "Sara Malik", phone: "+92 321 7654321", message: "Hi, I have a project inquiry.", timestamp: "Yesterday", status: "contacted" },
-];
+import Link from "next/link";
+import { dataService, Lead } from "@/services/dataService";
 
 const leadsColumns: Column<Lead>[] = [
   { header: "Name", accessor: "name" },
-  { header: "Phone", accessor: "phone" },
-  { 
-    header: "Status", 
+  { header: "Email", accessor: "email" },
+  {
+    header: "Message",
     accessor: (lead) => (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-        lead.status === "new" ? "bg-accent-blue/10 text-accent-blue" : "bg-emerald-400/10 text-emerald-400"
-      }`}>
+      <div className="max-w-xs truncate text-text-secondary font-normal" title={lead.message}>
+        {lead.message}
+      </div>
+    )
+  },
+  {
+    header: "Status",
+    accessor: (lead) => (
+      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${lead.status === "new" ? "bg-accent-blue/10 text-accent-blue" : "bg-emerald-400/10 text-emerald-400"
+        }`}>
         {lead.status.toUpperCase()}
       </span>
     )
   },
-  { header: "Date", accessor: "timestamp" },
+  {
+    header: "Date",
+    accessor: (lead) => {
+      const date = new Date(lead.created_at);
+      const now = new Date();
+      const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+      if (diffInHours < 1) return "Just now";
+      if (diffInHours < 24) return `${diffInHours} hours ago`;
+      if (diffInHours < 48) return "Yesterday";
+      return date.toLocaleDateString();
+    }
+  },
 ];
 
 export default function Dashboard() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [stats, setStats] = useState({
+    totalLeads: 0,
+    totalProjects: 0,
+    totalPackages: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        setLoading(true);
+        const [leadsRes, statsRes] = await Promise.all([
+          dataService.getLeads(),
+          dataService.getDashboardStats()
+        ]);
+
+        if (leadsRes.error) throw new Error(leadsRes.error);
+        if (statsRes.error) throw new Error(statsRes.error);
+
+        setLeads(leadsRes.data || []);
+        setStats(statsRes.data || { totalLeads: 0, totalProjects: 0, totalPackages: 0 });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        <span className="ml-3 text-lg font-medium text-text-secondary">Loading dashboard...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-red-500/10 p-6 text-center text-red-500 border border-red-500/20">
+        <h3 className="text-lg font-bold mb-2">Error Loading Dashboard</h3>
+        <p>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <StatCard 
-          label="Total Leads" 
-          value={42} 
-          icon={Users} 
-          trend={{ value: "12%", isUp: true }} 
+        <StatCard
+          label="Total Leads"
+          value={stats.totalLeads}
+          icon={Users}
+          trend={{ value: "Live", isUp: true }}
         />
-        <StatCard 
-          label="Total Projects" 
-          value={18} 
-          icon={Briefcase} 
-          trend={{ value: "4%", isUp: true }} 
+        <StatCard
+          label="Total Projects"
+          value={stats.totalProjects}
+          icon={Briefcase}
+          trend={{ value: "Live", isUp: true }}
         />
-        <StatCard 
-          label="Active Packages" 
-          value={6} 
-          icon={Package} 
+        <StatCard
+          label="Active Packages"
+          value={stats.totalPackages}
+          icon={Package}
         />
       </div>
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-primary tracking-tight">Recent Leads</h2>
-          <button className="text-accent-blue hover:text-accent-blue/80 text-sm font-semibold flex items-center gap-1 transition-colors">
+          <Link
+            href="/admin/leads"
+            className="text-accent-blue hover:text-accent-blue/80 text-sm font-semibold flex items-center gap-1 transition-colors"
+          >
             View All <ArrowUpRight size={16} />
-          </button>
+          </Link>
         </div>
-        <DataTable data={mockLeads} columns={leadsColumns} />
+        <DataTable data={leads.slice(0, 5)} columns={leadsColumns} />
       </div>
     </div>
   );

@@ -30,13 +30,22 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
+import { authService } from "@/services/authService";
+
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Simulate clearing auth
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    try {
+      const { error } = await authService.signOut();
+      if (error) throw new Error(error);
+      router.push("/admin/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Fallback redirect
+      router.push("/admin/login");
+    }
   };
 
   return (

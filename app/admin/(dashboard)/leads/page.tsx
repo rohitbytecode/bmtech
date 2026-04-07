@@ -1,26 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, Filter, Trash2, Mail, Phone, Calendar } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Mail, Phone, Calendar, Loader2 } from "lucide-react";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-
-interface Lead {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  message: string;
-  status: "new" | "contacted" | "archived";
-  timestamp: string;
-}
-
-const mockLeads: Lead[] = [
-  { id: "1", name: "Ahmed Khan", phone: "+92 300 1234567", email: "ahmed@example.com", message: "Interested in web development services for my startup.", status: "new", timestamp: "2024-04-05 14:30" },
-  { id: "2", name: "Sarah Malik", phone: "+92 321 7654321", email: "sarah.m@design.co", message: "Looking for a brand identity package.", status: "contacted", timestamp: "2024-04-05 10:15" },
-  { id: "3", name: "John Doe", phone: "+1 555 0123", email: "j.doe@tech.com", message: "Budget inquiry for social media management.", status: "new", timestamp: "2024-04-04 18:45" },
-];
+import { dataService, Lead } from "@/services/dataService";
 
 const leadsColumns: Column<Lead>[] = [
   { 
@@ -33,9 +18,11 @@ const leadsColumns: Column<Lead>[] = [
     )
   },
   { 
-    header: "Contact", 
+    header: "Message", 
     accessor: (lead) => (
-      <span className="text-sm font-medium flex items-center gap-2"><Phone size={14} className="text-accent-blue" /> {lead.phone}</span>
+      <div className="max-w-md text-sm text-text-secondary line-clamp-2 italic" title={lead.message}>
+        "{lead.message}"
+      </div>
     )
   },
   { 
@@ -44,8 +31,7 @@ const leadsColumns: Column<Lead>[] = [
       <span className={cn(
         "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
         lead.status === "new" ? "bg-accent-blue text-white" : 
-        lead.status === "contacted" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : 
-        "bg-border/40 text-text-secondary"
+        "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
       )}>
         {lead.status}
       </span>
@@ -54,19 +40,81 @@ const leadsColumns: Column<Lead>[] = [
   { 
     header: "Received", 
     accessor: (lead) => (
-      <div className="flex items-center gap-2 text-text-secondary text-sm italic">
-        <Calendar size={14} /> {lead.timestamp}
+      <div className="flex items-center gap-2 text-text-secondary text-sm">
+        <Calendar size={14} /> {new Date(lead.created_at).toLocaleDateString()}
       </div>
     )
   },
 ];
 
 export default function LeadsPage() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [stats, setStats] = useState({
+    total: 0,
+    new: 0,
+    contacted: 0
+  });
+
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await dataService.getLeads();
+      if (error) throw new Error(error);
+      
+      const leadsList = data || [];
+      setLeads(leadsList);
+      
+      // Calculate stats
+      setStats({
+        total: leadsList.length,
+        new: leadsList.filter(l => l.status === 'new').length,
+        contacted: leadsList.filter(l => l.status === 'contacted').length
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load leads");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const handleDelete = async (lead: Lead) => {
+    if (!confirm(`Are you sure you want to delete the inquiry from ${lead.name}?`)) return;
+    
+    const { success, error } = await dataService.deleteLead(lead.id);
+    if (!success) {
+      alert(`Error deleting lead: ${error}`);
+      return;
+    }
+    
+    // Refresh data
+    fetchLeads();
+  };
 
   const handleViewDetails = (lead: Lead) => {
-    alert(`Message from ${lead.name}:\n\n${lead.message}`);
+    alert(`Lead Details:\n\nName: ${lead.name}\nEmail: ${lead.email}\n\nMessage:\n${lead.message}`);
   };
+
+  const filteredLeads = leads.filter(lead => 
+    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lead.message.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading && leads.length === 0) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        <span className="ml-3 text-lg font-medium text-text-secondary">Loading leads...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -87,7 +135,7 @@ export default function LeadsPage() {
               className="w-full h-12 pl-12 pr-4 bg-surface border border-border rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue/40 transition-all"
             />
           </div>
-          <Button variant="secondary" className="h-12 w-12 p-0 rounded-xl">
+          <Button variant="secondary" className="h-12 w-12 p-0 rounded-xl" onClick={fetchLeads}>
             <Filter size={20} />
           </Button>
         </div>
@@ -96,10 +144,11 @@ export default function LeadsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3">
           <DataTable 
-            data={mockLeads} 
+            data={filteredLeads} 
             columns={leadsColumns} 
             onView={handleViewDetails}
-            onDelete={(lead) => confirm(`Remove inquiry from ${lead.name}?`)}
+            onDelete={handleDelete}
+            isLoading={loading && leads.length === 0}
           />
         </div>
 
@@ -109,15 +158,21 @@ export default function LeadsPage() {
             <div className="space-y-6 pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-text-secondary text-sm font-medium">New Leads</span>
-                <span className="text-text-primary font-bold bg-accent-blue/10 px-2.5 py-1 rounded-lg text-xs">08</span>
+                <span className="text-text-primary font-bold bg-accent-blue/10 px-2.5 py-1 rounded-lg text-xs">
+                  {stats.new.toString().padStart(2, '0')}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-text-secondary text-sm font-medium">Total inquiries</span>
-                <span className="text-text-primary font-bold bg-surface border border-border px-2.5 py-1 rounded-lg text-xs">124</span>
+                <span className="text-text-secondary text-sm font-medium">Total Inquiries</span>
+                <span className="text-text-primary font-bold bg-surface border border-border px-2.5 py-1 rounded-lg text-xs">
+                  {stats.total.toString().padStart(2, '0')}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-text-secondary text-sm font-medium">Conv. Rate</span>
-                <span className="text-emerald-400 font-bold text-xs">+15.4%</span>
+                <span className="text-text-secondary text-sm font-medium">Contacted</span>
+                <span className="text-emerald-400 font-bold text-xs">
+                  {stats.contacted}
+                </span>
               </div>
             </div>
           </div>
