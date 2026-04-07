@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sora, Inter } from "next/font/google";
 import "./globals.css";
+import Header from "../components/Header";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sora.variable} ${inter.variable} antialiased`}>
       <body className="font-body bg-background text-foreground overflow-x-hidden">
+        <Header />
         {children}
       </body>
     </html>

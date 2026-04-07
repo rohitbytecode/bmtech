@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import AuthGuard from '../../components/AuthGuard';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubmissions } from '../../hooks/useSubmissions';
 import { authService } from '../../services/authService';
 import { useRouter } from 'next/navigation';
-import { Mail, LogOut, User, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, LogOut, User, CheckCircle, AlertCircle, Send, Clock, FileText } from 'lucide-react';
 
 export default function ClientDashboardPage() {
-  const { user, emailVerified, loading } = useAuth();
+  const { user, emailVerified, loading: authLoading } = useAuth();
+  const { submissions, submissionCount, loading: submissionsLoading } = useSubmissions();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'profile' | 'submissions'>('profile');
 
@@ -17,7 +19,7 @@ export default function ClientDashboardPage() {
     router.push('/login');
   };
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="space-y-4 text-center">
@@ -32,7 +34,7 @@ export default function ClientDashboardPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Navigation */}
-        <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <nav className="sticky top-16 z-50 bg-white border-b border-slate-200 shadow-sm">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between items-center">
               <div className="flex items-center gap-2">
@@ -77,25 +79,30 @@ export default function ClientDashboardPage() {
           <div className="mb-6 flex gap-4 border-b border-slate-200">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === 'profile'
                   ? 'text-blue-600 border-blue-600'
                   : 'text-slate-600 border-transparent hover:text-slate-900'
               }`}
             >
-              <User size={16} className="inline-block mr-2" />
+              <User size={16} />
               Account Profile
             </button>
             <button
               onClick={() => setActiveTab('submissions')}
-              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              className={`px-4 py-3 font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === 'submissions'
                   ? 'text-blue-600 border-blue-600'
                   : 'text-slate-600 border-transparent hover:text-slate-900'
               }`}
             >
-              <Mail size={16} className="inline-block mr-2" />
+              <Mail size={16} />
               My Submissions
+              {submissionCount > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 rounded-full">
+                  {submissionCount}
+                </span>
+              )}
             </button>
           </div>
 
@@ -173,26 +180,90 @@ export default function ClientDashboardPage() {
                     </div>
                   </div>
                 </div>
+
+                <div className="rounded-xl bg-purple-50 border border-purple-200 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-purple-800">Total Submissions</p>
+                      {submissionsLoading ? (
+                        <div className="h-8 w-12 bg-purple-200 rounded mt-2 animate-pulse"></div>
+                      ) : (
+                        <p className="text-2xl font-bold text-purple-900 mt-1">{submissionCount}</p>
+                      )}
+                    </div>
+                    <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                      <Send className="text-purple-600" size={24} />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Submissions Tab */}
           {activeTab === 'submissions' && (
-            <div className="rounded-xl bg-white shadow-sm border border-slate-200 p-8">
-              <div className="text-center py-12">
-                <Mail size={48} className="mx-auto text-slate-400 mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">No Submissions Yet</h3>
-                <p className="text-slate-600 mb-6">
-                  You haven't submitted any inquiries or requests yet.
-                </p>
-                <a
-                  href="/#contact"
-                  className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                >
-                  Submit Your First Request
-                </a>
-              </div>
+            <div className="rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden">
+              {submissionsLoading ? (
+                <div className="p-8 text-center">
+                  <div className="space-y-4">
+                    <div className="h-8 w-full bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-8 w-full bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-8 w-full bg-slate-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              ) : submissionCount === 0 ? (
+                <div className="text-center py-12 px-8">
+                  <FileText size={48} className="mx-auto text-slate-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No Submissions Yet</h3>
+                  <p className="text-slate-600 mb-6">
+                    You haven't submitted any inquiries or requests yet.
+                  </p>
+                  <a
+                    href="/#contact"
+                    className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  >
+                    Submit Your First Request
+                  </a>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">Service</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">Message</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {submissions.map((submission, index) => (
+                        <tr key={submission.id} className={index !== submissions.length - 1 ? 'border-b border-slate-200' : ''}>
+                          <td className="px-6 py-4 text-sm text-slate-900">{submission.name}</td>
+                          <td className="px-6 py-4 text-sm text-slate-600">{submission.service_id || 'General'}</td>
+                          <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">{submission.message}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                              submission.status === 'new'
+                                ? 'bg-blue-100 text-blue-700'
+                                : submission.status === 'contacted'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}>
+                              {submission.status || 'new'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-600 flex items-center gap-1">
+                            <Clock size={14} />
+                            {submission.created_at ? new Date(submission.created_at).toLocaleDateString() : 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
