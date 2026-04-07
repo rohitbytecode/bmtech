@@ -4,7 +4,7 @@ import { Button } from "./ui/Button";
 import { dataService } from "@/services/dataService";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: "", phone: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export default function Contact() {
     try {
       const result = await dataService.submitLead({
         name: formData.name,
-        email: formData.phone,
+        email: formData.email,
         message: formData.message,
       });
 
@@ -26,7 +26,7 @@ export default function Contact() {
       }
 
       setSuccess(true);
-      setFormData({ name: "", phone: "", message: "" });
+      setFormData({ name: "", email: "", message: "" });
     } catch (submitError) {
       const message =
         submitError instanceof Error
@@ -97,14 +97,14 @@ export default function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">Phone</label>
+                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">Email</label>
                   <input
                     required
-                    type="tel"
+                    type="email"
                     className="w-full bg-[#0B0F19] border border-border rounded-lg h-12 px-4 focus:outline-none focus:border-accent-blue transition-colors text-white"
-                    placeholder="Enter your phone number"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Enter your email address"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
                 <div>

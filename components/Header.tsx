@@ -4,10 +4,16 @@ import { useAuth } from '../hooks/useAuth';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const { user, isAuthenticated, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-slate-900/30 backdrop-blur-lg border-b border-slate-700/30 shadow-lg">

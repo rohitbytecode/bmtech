@@ -34,7 +34,7 @@ export default function ClientDashboardPage() {
     <AuthGuard>
       <div className="min-h-screen bg-background">
         {/* Navigation */}
-        <nav className="sticky top-16 z-50 bg-surface border-b border-border shadow-sm shadow-black/10">
+        <nav className="sticky top-0 z-50 bg-surface border-b border-border shadow-sm shadow-black/10">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between items-center">
               <div className="flex items-center gap-2">
