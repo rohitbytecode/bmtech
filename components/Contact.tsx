@@ -56,7 +56,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs uppercase font-bold text-text-secondary tracking-widest leading-none mb-1">CALL US</p>
-                  <p className="text-lg font-bold text-white leading-none">+91 95124-18859</p>
+                  <p className="text-lg font-bold text-white leading-none">+91 77788-64972</p>
                 </div>
               </div>
               <div className="flex items-center space-x-6">
@@ -65,7 +65,7 @@ export default function Contact() {
                  </div>
                  <div>
                    <p className="text-xs uppercase font-bold text-text-secondary tracking-widest leading-none mb-1">EMAIL US</p>
-                   <p className="text-lg font-bold text-white leading-none">rohitmore.dev@gmail.com</p>
+                   <p className="text-lg font-bold text-white leading-none">brothersmediatech@gmail.com</p>
                  </div>
                </div>
             </div>
