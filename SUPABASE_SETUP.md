@@ -1,5 +1,15 @@
 # SUPABASE_SETUP.md
 
+## 📚 Important: Read These Guides First
+
+Before you start, familiarize yourself with:
+- **[SUPABASE_INTEGRATION.md](SUPABASE_INTEGRATION.md)** - Complete integration architecture and best practices
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Production deployment and configuration
+
+This document covers the quick SQL setup. For detailed configuration, authentication, and RLS policies, see the guides above.
+
+---
+
 ## 🧱 Project Setup
 
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
@@ -7,14 +17,24 @@
 3. Copy your project credentials:
    - **Project URL**
    - **Anon Public Key**
+   - **Service Role Key**
 
 ---
 
 ## 🔐 Authentication Setup
 
-Enable the following providers in **Authentication -> Providers**:
-* Email/Password login (Enabled by default)
-* (Optional) Google OAuth
+### Email Verification (Critical!)
+
+**Important**: Configure redirect URLs BEFORE testing email verification.
+
+1. Go to **Authentication → URL Configuration**
+2. Add your redirect URLs:
+   - **Development**: `http://localhost:3000/auth/callback`
+   - **Production**: `https://yourdomain.com/auth/callback`
+3. Enable **Email** provider (enabled by default)
+4. Ensure **Email Confirmations** is enabled
+
+See [Email Verification Troubleshooting](SUPABASE_INTEGRATION.md#email-verification--redirects) for details.
 
 ---
 
