@@ -2,11 +2,15 @@
 
 import AuthGuard from '../../components/AuthGuard';
 import { useAuth } from '../../hooks/useAuth';
+import { useData } from '../../hooks/useData';
 import { authService } from '../../services/authService';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { user, role } = useAuth();
+  const { data: services } = useData('services');
+  const { data: leads } = useData('projects');
+  const { data: projects } = useData('packages');
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -49,17 +53,17 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="overflow-hidden rounded-xl border border-blue-100 bg-blue-50/50 p-6">
                     <dt className="truncate text-sm font-medium text-blue-800">Total Services</dt>
-                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-blue-900">0</dd>
+                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-blue-900">{services?.length || 0}</dd>
                   </div>
                   
                   <div className="overflow-hidden rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
                     <dt className="truncate text-sm font-medium text-slate-500">Active Leads</dt>
-                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">0</dd>
+                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{leads?.length || 0}</dd>
                   </div>
                   
                   <div className="overflow-hidden rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
                     <dt className="truncate text-sm font-medium text-slate-500">Projects Setup</dt>
-                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">0</dd>
+                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{projects?.length || 0}</dd>
                   </div>
                 </div>
 
