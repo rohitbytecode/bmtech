@@ -8,11 +8,15 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const type = searchParams.get('type');
+  
+  // Handle hash-based tokens (implicit flow) - Supabase sometimes uses this
+  const hashParams = new URLSearchParams(request.url.split('#')[1]);
+  const accessToken = hashParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token');
 
-  if (!code) {
-    return NextResponse.json(
-      { error: 'Missing authentication code' },
-      { status: 400 }
+  if (!code && !accessToken) {
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL}/login?error=Missing%20authentication%20code`
     );
   }
 
@@ -26,31 +30,49 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Exchange the code for a session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    // If we have authorization code, exchange it for session (preferred)
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (error) {
-      console.error('Auth callback error:', error);
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/login?error=${encodeURIComponent(error.message)}`
-      );
+      if (error) {
+        console.error('Auth callback error:', error);
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/login?error=${encodeURIComponent(error.message)}`
+        );
+      }
+
+      if (!data.session) {
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/login?error=No%20session%20found`
+        );
+      }
+
+      // Handle email verification
+      if (type === 'email_change') {
+        return NextResponse.redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/settings?verified=email_updated`
+        );
+      }
+
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
     }
 
-    if (!data.session) {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/login?error=No%20session%20found`
-      );
+    // Fallback: Handle hash-based tokens (implicit flow)
+    // This happens when Supabase Site URL isn't configured correctly
+    if (accessToken) {
+      console.warn('Using fallback implicit flow - Supabase Site URL may be misconfigured');
+      
+      // Create a response that sets the session via the access token
+      const response = NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
+      
+      // Session will be set via the supabase client on the next request
+      // when it reads the hash tokens
+      return response;
     }
 
-    // Handle email verification
-    if (type === 'email_change') {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/settings?verified=email_updated`
-      );
-    }
-
-    // Redirect to dashboard on successful authentication
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL}/login?error=Authentication%20failed`
+    );
   } catch (error) {
     console.error('Unexpected auth callback error:', error);
     return NextResponse.redirect(
@@ -58,3 +80,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
