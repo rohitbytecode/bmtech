@@ -26,8 +26,16 @@ export async function POST(request: Request) {
       .select('credential_id, transports')
       .eq('user_id', user.id);
 
+    // Temporarily disabled BMTECH_2026
+    // if (dbError || !credentials || credentials.length === 0) {
+    //   return NextResponse.json({ error: 'No hardware keys registered for this account' }, { status: 403 });
+    // }
+
+    // Temporary auth
     if (dbError || !credentials || credentials.length === 0) {
-      return NextResponse.json({ error: 'No hardware keys registered for this account' }, { status: 403 });
+      return NextResponse.json({
+        webauthnAvailable: false
+      }, { status: 200 });
     }
 
     // 2. Generate Authentication Options

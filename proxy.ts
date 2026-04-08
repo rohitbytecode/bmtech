@@ -83,13 +83,16 @@ export async function proxy(request: NextRequest) {
       }
 
       // Hardware Verification
-      const hardwareVerified = request.cookies.get(
-        'bmtech_hardware_verified'
-      )?.value;
+      // Hardware verification DISABLED (temporary bypass)
+      // BMTECH_2026
 
-      if (hardwareVerified !== 'true') {
-        return NextResponse.redirect(new URL('/admin/login', request.url));
-      }
+      // const hardwareVerified = request.cookies.get(
+      //   'bmtech_hardware_verified'
+      // )?.value;
+
+      // if (hardwareVerified !== 'true' || request.cookies.get('bmtech_device_trusted')?.value !== 'true') {
+      //   return NextResponse.redirect(new URL('/admin/login', request.url));
+      // }
     } catch (e) {
       console.error('Proxy Error:', e);
       return NextResponse.redirect(new URL('/admin/login', request.url));

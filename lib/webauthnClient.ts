@@ -44,12 +44,28 @@ export const webauthnClient = {
         body: JSON.stringify({ email }),
       });
 
+      //Temporary disabled BMTech2026
+      // const options = await res.json();
+      // if (options.error) throw new Error(options.error);
+
+      // // Start the WebAuthn authentication (triggers TPM/Biometrics)
+      // const assertion = await startAuthentication({ optionsJSON: options });
+
       const options = await res.json();
-      if (options.error) throw new Error(options.error);
 
-      // Start the WebAuthn authentication (triggers TPM/Biometrics)
+      if (options.webauthnAvailable === false) {
+        return { fallback: true };
+      }
+
+      if (options.error) {
+        throw new Error(options.error);
+      }
+
+      if (!options.challenge) {
+        throw new Error("Invalid WebAuthn options received");
+      }
+
       const assertion = await startAuthentication({ optionsJSON: options });
-
       // Send the assertion back to server for verification
       const verifyRes = await fetch('/api/auth/webauthn/login/verify', {
         method: 'POST',

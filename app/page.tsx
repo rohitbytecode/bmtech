@@ -49,11 +49,11 @@ export default function Home() {
       <Services />
       <Portfolio />
       <Packages />
-      <Maintenance />
+      {/* <Maintenance /> */}
       <Process />
       <About />
       <Contact />
-      
+
       {/* Mini Footer */}
       <footer className="py-12 border-t border-border bg-background px-6 sm:px-12 md:px-24">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
@@ -69,13 +69,13 @@ export default function Home() {
             </h2>
             <p className="text-text-secondary text-sm max-w-sm">Premium digital agency for modern brands.</p>
           </div>
-          
+
           <div className="text-text-secondary text-xs font-medium space-x-6 uppercase tracking-wider">
-             <a href="#services" className="hover:text-accent-blue transition-colors">Services</a>
-             <a href="#portfolio" className="hover:text-accent-blue transition-colors">Portfolio</a>
-             <a href="#contact" className="hover:text-accent-blue transition-colors">Contact</a>
+            <a href="#services" className="hover:text-accent-blue transition-colors">Services</a>
+            <a href="#portfolio" className="hover:text-accent-blue transition-colors">Portfolio</a>
+            <a href="#contact" className="hover:text-accent-blue transition-colors">Contact</a>
           </div>
-          
+
           <p className="text-text-secondary text-sm">© 2026 {s?.agency_name || "Brothers Mediatech"}. All rights reserved.</p>
         </div>
       </footer>

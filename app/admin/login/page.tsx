@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import { Lock, Mail, ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { InputField } from "@/components/admin/FormFields";
-
 import { authorizeCurrentDevice, isDeviceAuthorized, getDeviceFingerprint } from "@/lib/device";
 import { authService } from "@/services/authService";
 import { webauthnClient } from "@/lib/webauthnClient";
@@ -27,22 +26,44 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      // 1. Hardware-First Authentication
-      // This will trigger the browser's biometrics/PIN prompt
-      // and verify the hardware signature + password on the server in one go
-      const result = await webauthnClient.authenticate(email, password);
+      // Step 1: Try WebAuthn first
+      let result;
 
-      if (result.success) {
-        // Log details about the hardware signature if available
-        console.info("Hardware signature verified successfully.");
-        window.location.href = "/admin/dashboard";
-      } else {
-        setError(result.error || "Authentication failed.");
-        setIsLoading(false);
+      try {
+        result = await webauthnClient.authenticate(email, password);
+      } catch (err: any) {
+        // If no hardware → fallback
+        if (err.message.includes("No hardware keys")) {
+          result = { fallback: true };
+        } else {
+          throw err;
+        }
       }
+
+      // Step 2: Fallback to password login
+      if (result?.fallback) {
+        const { data, error } = await authService.signIn(email, password);
+
+        if (error) {
+          throw new Error(error);
+        }
+
+        window.location.href = "/admin/dashboard";
+        return;
+      }
+
+      // Step 3: WebAuthn success
+      if (result.success) {
+        window.location.href = "/admin/dashboard";
+        return;
+      }
+
+      throw new Error(result.error || "Authentication failed");
+
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || "Hardware authentication failed. Ensure you are on a trusted device.");
+      console.error("Login error:", err);
+      setError(err.message || "Login failed");
+    } finally {
       setIsLoading(false);
     }
   };
