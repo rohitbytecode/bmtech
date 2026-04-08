@@ -1,35 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/Button";
 import { ModalForm } from "@/components/admin/ModalForm";
 import { InputField, TextAreaField } from "@/components/admin/FormFields";
-
-interface Service {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  category: string;
-}
-
-const mockServices: Service[] = [
-  { id: "1", title: "Web Development", description: "Full-stack web applications.", price: "From $1500", category: "IT Services" },
-  { id: "2", title: "Graphic Design", description: "High-quality branding and assets.", price: "From $500", category: "Graphics" },
-  { id: "3", title: "Social Media Ads", description: "Targeted advertising campaigns.", price: "From $300/mo", category: "Marketing" },
-];
+import { useData } from "@/hooks/useData";
+import { dataService, Service } from "@/services/dataService";
 
 const serviceColumns: Column<Service>[] = [
-  { header: "Title", accessor: "title" },
-  { header: "Category", accessor: "category", className: "hidden md:table-cell" },
-  { header: "Price", accessor: "price" },
+  { header: "Title", accessor: "name" },
+  { header: "Icon", accessor: "icon" },
 ];
 
 export default function ServicesPage() {
+  const { data: services, loading, error, refresh } = useData<Service>('services');
   const [isOpen, setIsOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleEdit = (service: Service) => {
     setEditingService(service);
@@ -41,6 +31,62 @@ export default function ServicesPage() {
     setIsOpen(true);
   };
 
+  const handleDelete = async (service: Service) => {
+    if (confirm(`Are you sure you want to delete ${service.name}?`)) {
+      try {
+        const res = await dataService.deleteService(service.id);
+        if (res.success) {
+          refresh();
+        } else {
+          alert("Error: " + res.error);
+        }
+      } catch (err) {
+        alert("Delete failed");
+      }
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const form = e.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    const serviceData = {
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      icon: (formData.get("icon") as string) || "Palette",
+    };
+
+    const runSubmit = async () => {
+      try {
+        let res;
+        if (editingService) {
+          res = await dataService.updateService(editingService.id, serviceData);
+        } else {
+          res = await dataService.createService(serviceData as Omit<Service, 'id' | 'created_at'>);
+        }
+
+        if (res.success) {
+          setIsOpen(false);
+          refresh();
+        } else {
+          alert("Error: " + res.error);
+        }
+      } catch (err) {
+        alert("Submission failed");
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    runSubmit();
+  };
+
+  const filteredServices = Array.isArray(services) ? services.filter(s => 
+    (s.name?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+  ) : [];
+
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -49,6 +95,8 @@ export default function ServicesPage() {
           <input 
             type="text" 
             placeholder="Search services..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-2xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue/40 transition-all duration-300"
           />
         </div>
@@ -59,18 +107,26 @@ export default function ServicesPage() {
 
       <div className="space-y-6">
         <div className="p-1 px-4 text-sm font-semibold text-text-secondary uppercase tracking-widest border-l-4 border-accent-blue">
-          Service Catalog ({mockServices.length})
+          Service Catalog ({filteredServices.length})
         </div>
-        <DataTable 
-          data={mockServices} 
-          columns={serviceColumns} 
-          onEdit={handleEdit}
-          onDelete={(service) => {
-            if(confirm(`Are you sure you want to delete ${service.title}?`)) {
-              console.log("Deleted", service.id);
-            }
-          }}
-        />
+        
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-text-secondary gap-4">
+            <Loader2 className="animate-spin text-accent-blue" size={40} />
+            <p className="font-medium animate-pulse">Loading Services...</p>
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center bg-rose-500/10 border border-rose-500/20 rounded-2xl">
+            <p className="text-rose-400 font-medium">Error loading services: {error}</p>
+          </div>
+        ) : (
+          <DataTable 
+            data={filteredServices} 
+            columns={serviceColumns} 
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
       <ModalForm
@@ -79,34 +135,28 @@ export default function ServicesPage() {
         title={editingService ? "Edit Service" : "Add New Service"}
         description={editingService ? "Update the details of your service below." : "Fill in the information to create a new service."}
         submitLabel={editingService ? "Update Service" : "Create Service"}
-        onSubmit={(e) => {
-          e.preventDefault();
-          setIsOpen(false);
-          console.log("Form Submitted");
-        }}
+        isSubmitting={submitting}
+        onSubmit={handleSubmit}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField 
             label="Service Title" 
+            name="name"
             placeholder="e.g., UI/UX Design" 
             required 
-            defaultValue={editingService?.title}
+            defaultValue={editingService?.name}
           />
           <InputField 
-            label="Category" 
-            placeholder="e.g., Graphics" 
+            label="Icon Name" 
+            name="icon"
+            placeholder="e.g., Palette, Code2" 
             required 
-            defaultValue={editingService?.category}
-          />
-          <InputField 
-            label="Base Price" 
-            placeholder="e.g., From $500" 
-            required 
-            defaultValue={editingService?.price}
+            defaultValue={editingService?.icon || "Palette"}
           />
           <div className="md:col-span-2">
             <TextAreaField 
               label="Description" 
+              name="description"
               placeholder="Describe what this service includes..." 
               required 
               defaultValue={editingService?.description}
@@ -117,3 +167,4 @@ export default function ServicesPage() {
     </div>
   );
 }
+

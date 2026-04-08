@@ -40,12 +40,14 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
         ))}
       </ul>
 
-      <Button
-        variant={highlighted ? "primary" : "outline"}
-        className="w-full"
-      >
-        Choose Plan
-      </Button>
+      <a href="#contact" className="block w-full">
+        <Button
+          variant={highlighted ? "primary" : "outline"}
+          className="w-full"
+        >
+          Choose Plan
+        </Button>
+      </a>
     </div>
   );
 }

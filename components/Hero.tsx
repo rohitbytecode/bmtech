@@ -1,11 +1,16 @@
 "use client";
 import { Button } from "./ui/Button";
-import { ArrowRight, PlayCircle } from "lucide-react";
+import { ArrowRight, PlayCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useData } from "@/hooks/useData";
+import { Settings } from "@/services/dataService";
 
 export default function Hero() {
   const router = useRouter();
+  const { data: settings, loading } = useData<Settings>('settings');
+  const s = settings?.[0];
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center pt-24 px-6 sm:px-12 md:px-24 bg-background overflow-hidden text-center">
       {/* Decorative Blur and Grid */}
@@ -21,29 +26,36 @@ export default function Hero() {
           className="mb-6 flex justify-center"
         >
           <span className="px-4 py-2 rounded-full border border-accent-blue/30 bg-accent-blue/5 text-accent-blue text-xs font-semibold uppercase tracking-widest leading-none">
-            Next Generation Digital Agency
+            {s?.agency_name || "Next Generation Digital Agency"}
           </span>
         </motion.div>
         
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-5xl md:text-7xl font-bold mb-8 leading-tight tracking-tight text-white"
-        >
-          We Handle Your Digital. <br className="hidden md:block" />
-          <span className="text-accent-blue">You Grow Your Business.</span>
-        </motion.h1>
+        {loading ? (
+          <div className="h-32 flex items-center justify-center">
+            <Loader2 className="animate-spin text-accent-blue" size={40} />
+          </div>
+        ) : (
+          <>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-5xl md:text-7xl font-bold mb-8 leading-tight tracking-tight text-white"
+            >
+              {s?.headline || "We Handle Your Digital."} <br className="hidden md:block" />
+              <span className="text-accent-blue">You Grow Your Business.</span>
+            </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-lg md:text-xl text-text-secondary mb-12 max-w-2xl mx-auto font-body"
-        >
-          Partner with BMTech for world-class graphics, video production, IT infrastructure, 
-          and social media scaling. Your vision, our expertise.
-        </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-lg md:text-xl text-text-secondary mb-12 max-w-2xl mx-auto font-body"
+            >
+              {s?.description || "Partner with BMTech for world-class graphics, video production, IT infrastructure, and social media scaling. Your vision, our expertise."}
+            </motion.p>
+          </>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

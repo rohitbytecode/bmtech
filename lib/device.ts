@@ -24,7 +24,14 @@ export function getDeviceFingerprint(): string {
     hash = ((hash << 5) - hash) + char;
     hash |= 0; // Convert to 32bit integer
   }
-  return Math.abs(hash).toString(16);
+  const id = Math.abs(hash).toString(16).toUpperCase();
+  
+  // Sync to cookie for middleware/server access
+  if (typeof document !== "undefined") {
+    document.cookie = `bmtech_hw_id=${id}; path=/; max-age=31536000; SameSite=Lax`;
+  }
+  
+  return id;
 }
 
 // In a real app, these would come from your database (Supabase)

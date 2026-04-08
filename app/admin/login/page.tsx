@@ -8,6 +8,7 @@ import { InputField } from "@/components/admin/FormFields";
 
 import { authorizeCurrentDevice, isDeviceAuthorized, getDeviceFingerprint } from "@/lib/device";
 import { authService } from "@/services/authService";
+import { webauthnClient } from "@/lib/webauthnClient";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -25,38 +26,23 @@ export default function AdminLogin() {
     setIsLoading(true);
     setError(null);
 
-    // 1. Standard Supabase Sign In
-    const { data: loginData, error: loginError } = await authService.signIn(email, password);
-
-    if (loginError || !loginData?.session) {
-      setError(loginError || "Login failed. Please check your credentials.");
-      setIsLoading(false);
-      return;
-    }
-
-    // 2. Verify Super Admin Status securely
     try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: loginData.session.user.id })
-      });
+      // 1. Hardware-First Authentication
+      // This will trigger the browser's biometrics/PIN prompt
+      // and verify the hardware signature + password on the server in one go
+      const result = await webauthnClient.authenticate(email, password);
 
-      const result = await response.json();
-
-      if (response.ok && result.is_super_admin === true) {
-        // Successfully verified as super admin
-        authorizeCurrentDevice(); // Keep the device fingerprinting for extra security
+      if (result.success) {
+        // Log details about the hardware signature if available
+        console.info("Hardware signature verified successfully.");
         window.location.href = "/admin/dashboard";
       } else {
-        // Not a super admin or error
-        await authService.signOut();
-        setError(result.error || "Access Denied: Super Admin privileges strictly required.");
+        setError(result.error || "Authentication failed.");
         setIsLoading(false);
       }
-    } catch (err) {
-      await authService.signOut();
-      setError("System authorization error. Please try again.");
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || "Hardware authentication failed. Ensure you are on a trusted device.");
       setIsLoading(false);
     }
   };

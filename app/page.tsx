@@ -1,3 +1,5 @@
+"use client";
+
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import Portfolio from "@/components/Portfolio";
@@ -6,6 +8,8 @@ import Maintenance from "@/components/Maintenance";
 import Process from "@/components/Process";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
+import { useData } from "@/hooks/useData";
+import { Settings } from "@/services/dataService";
 
 const requiredEnv = [
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -17,6 +21,9 @@ function isEnvLoaded() {
 }
 
 export default function Home() {
+  const { data: settings } = useData<Settings>('settings');
+  const s = settings?.[0];
+
   if (!isEnvLoaded()) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
@@ -51,7 +58,15 @@ export default function Home() {
       <footer className="py-12 border-t border-border bg-background px-6 sm:px-12 md:px-24">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <h2 className="text-2xl font-bold tracking-tight text-white mb-2">BM<span className="text-accent-blue">Tech</span></h2>
+            <h2 className="text-2xl font-bold tracking-tight text-white mb-2">
+              {s ? (
+                <>
+                  {s.agency_name.split(' ')[0]}<span className="text-accent-blue">{s.agency_name.split(' ').slice(1).join(' ')}</span>
+                </>
+              ) : (
+                <>BM<span className="text-accent-blue">Tech</span></>
+              )}
+            </h2>
             <p className="text-text-secondary text-sm max-w-sm">Premium digital agency for modern brands.</p>
           </div>
           
@@ -61,7 +76,7 @@ export default function Home() {
              <a href="#contact" className="hover:text-accent-blue transition-colors">Contact</a>
           </div>
           
-          <p className="text-text-secondary text-sm">© 2026 Brothers Mediatech. All rights reserved.</p>
+          <p className="text-text-secondary text-sm">© 2026 {s?.agency_name || "Brothers Mediatech"}. All rights reserved.</p>
         </div>
       </footer>
     </main>

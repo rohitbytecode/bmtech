@@ -20,7 +20,7 @@ export default function Portfolio() {
         {loading && <p className="text-center text-text-secondary">Loading projects...</p>}
         {error && <p className="text-center text-red-500">Error: {error}</p>}
         
-        {!loading && !error && (
+        {!loading && !error && projects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {projects.map((project) => (
               <ProjectCard
@@ -32,6 +32,8 @@ export default function Portfolio() {
               />
             ))}
           </div>
+        ) : !loading && !error && (
+          <p className="text-center text-text-secondary py-12">No projects found. Check back later!</p>
         )}
       </div>
     </section>

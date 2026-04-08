@@ -21,30 +21,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // 1. First, we call a custom database function (RPC) that has SECURITY DEFINER
-    // This securely looks up the custom column in the protected auth.users table.
-    const { data: isSuperAdmin, error: rpcError } = await supabaseAdmin.rpc('check_is_super_admin', {
+    // 1. Direct check using Service Role (reads the auth table metadata safely)
+    const { data: user, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+    if (fetchError || !user?.user) {
+      console.error('User fetch failed:', fetchError?.message);
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const metadata = user.user.user_metadata;
+    const isSuperAdmin = metadata?.role === 'admin' || metadata?.is_super_admin === true;
+
+    if (isSuperAdmin) {
+      return NextResponse.json({ is_super_admin: true });
+    }
+
+    // 2. Secondary check: RPC Fallback
+    const { data: rpcValue, error: rpcError } = await supabaseAdmin.rpc('check_is_super_admin', {
       check_user_id: userId
     });
 
-    if (rpcError) {
-      // 2. Fallback: On some older Supabase setups, schema('auth') might be exposed.
-      // We will attempt a direct read as a backup in case the user hasn't created the RPC yet.
-      const fallback = await supabaseAdmin.schema('auth').from('users').select('is_super_admin').eq('id', userId).single();
-      
-      if (!fallback.error && fallback.data) {
-         return NextResponse.json({ is_super_admin: fallback.data.is_super_admin === true });
-      }
-
-      console.error('Super admin check failed:', rpcError.message);
-      return NextResponse.json({ 
-        error: 'Database function "check_is_super_admin" not found or failed. Please create it in Supabase SQL editor.',
-        details: rpcError.message 
-      }, { status: 500 });
-    }
-
-    return NextResponse.json({ is_super_admin: isSuperAdmin === true });
+    return NextResponse.json({ is_super_admin: rpcValue === true });
+    
   } catch (err) {
+    console.error('Verify Route Error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

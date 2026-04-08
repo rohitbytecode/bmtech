@@ -4,11 +4,10 @@ export interface Service {
   id: string;
   name: string;
   description: string;
-  price: string | number;
   icon: string;
   created_at?: string;
   // Fallbacks for frontend mapping
-  title?: string; 
+  title?: string;
 }
 
 export interface Project {
@@ -56,7 +55,61 @@ export interface LeadPayload {
   service_id?: string;
 }
 
+export interface Settings {
+  id: number;
+  agency_name: string;
+  headline: string;
+  description: string;
+  contact_email: string;
+  contact_phone: string;
+  about_text: string;
+  email_alerts_enabled: boolean;
+  push_notifications_enabled: boolean;
+  weekly_reports_enabled: boolean;
+  slack_integration_enabled: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const dataService = {
+  // Existing methods ...
+  async getSettings() {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+      if (error) throw error;
+      return { data: [data] as Settings[], error: null };
+    } catch (error: any) {
+      const errorMessage = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      console.error('getSettings failed:', errorMessage);
+      return { data: [], error: errorMessage };
+    }
+  },
+
+  async updateSettings(updates: Partial<Settings>) {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .upsert({ 
+          id: 1, 
+          ...updates, 
+          updated_at: new Date().toISOString() 
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data: data as Settings, error: null };
+    } catch (error: any) {
+      const errorMessage = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      console.error('updateSettings failed:', errorMessage);
+      return { success: false, data: null, error: errorMessage };
+    }
+  },
   // Existing methods ... (I'll keep them and just append)
   async getServices() {
     try {
@@ -64,12 +117,57 @@ export const dataService = {
         .from('services')
         .select('*')
         .order('created_at', { ascending: true });
-        
+
       if (error) throw error;
       return { data: data as Service[], error: null };
     } catch (error) {
       console.error(error);
       return { data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async createService(service: Omit<Service, 'id' | 'created_at'>) {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .insert([service])
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as Service, error: null };
+    } catch (error) {
+      console.error('createService failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async updateService(id: string, updates: Partial<Service>) {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as Service, error: null };
+    } catch (error) {
+      console.error('updateService failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async deleteService(id: string) {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('deleteService failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
   },
 
@@ -88,6 +186,51 @@ export const dataService = {
     }
   },
 
+  async createProject(project: Omit<Project, 'id' | 'created_at'>) {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([project])
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as Project, error: null };
+    } catch (error) {
+      console.error('createProject failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async updateProject(id: string, updates: Partial<Project>) {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as Project, error: null };
+    } catch (error) {
+      console.error('updateProject failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async deleteProject(id: string) {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('deleteProject failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
   async getPackages() {
     try {
       const { data, error } = await supabase
@@ -100,6 +243,51 @@ export const dataService = {
     } catch (error) {
       console.error(error);
       return { data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async createPackage(pkg: Omit<Package, 'id' | 'created_at'>) {
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .insert([pkg])
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as Package, error: null };
+    } catch (error) {
+      console.error('createPackage failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async updatePackage(id: string, updates: Partial<Package>) {
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as Package, error: null };
+    } catch (error) {
+      console.error('updatePackage failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async deletePackage(id: string) {
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('deletePackage failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
   },
 
@@ -187,8 +375,8 @@ export const dataService = {
         error instanceof Error
           ? error.message
           : typeof error === 'object' && error !== null && 'message' in error
-          ? String((error as any).message)
-          : String(error ?? 'Unknown error');
+            ? String((error as any).message)
+            : String(error ?? 'Unknown error');
 
       console.error('submitLead failed:', errorMessage);
       return { success: false, data: null, error: errorMessage };
@@ -222,6 +410,66 @@ export const dataService = {
     } catch (error) {
       console.error('updateLeadStatus failed:', error);
       return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  // Authorized Devices
+  async getAuthorizedDevices() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const { data, error } = await supabase
+        .from('authorized_devices')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error: any) {
+      return { data: [], error: error.message };
+    }
+  },
+
+  async authorizeDevice(deviceId: string, name: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const { data, error } = await supabase
+        .from('authorized_devices')
+        .upsert({ 
+          device_id: deviceId, 
+          device_name: name, 
+          user_id: user.id,
+          last_used_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data, error: null };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  async deauthorizeDevice(deviceId: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const { error } = await supabase
+        .from('authorized_devices')
+        .delete()
+        .eq('device_id', deviceId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return { success: true, error: null };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   }
 };

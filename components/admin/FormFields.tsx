@@ -12,6 +12,9 @@ interface FieldProps {
 
 interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement>, FieldProps {}
 interface TextAreaFieldProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, FieldProps {}
+interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement>, FieldProps {
+  options: { value: string; label: string }[];
+}
 
 export function InputField({ label, error, className, id, ...props }: InputFieldProps) {
   const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
@@ -59,6 +62,45 @@ export function TextAreaField({ label, error, className, id, ...props }: TextAre
         )}
         {...props}
       />
+      {error && <p className="text-xs font-semibold text-rose-400 mt-1">{error}</p>}
+    </div>
+  );
+}
+
+export function SelectField({ label, error, className, id, options, ...props }: SelectFieldProps) {
+  const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <label 
+        htmlFor={inputId} 
+        className="text-sm font-semibold text-text-primary tracking-wide uppercase"
+      >
+        {label}
+      </label>
+      <div className="relative">
+        <select
+          id={inputId}
+          className={cn(
+            "w-full h-12 px-4 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue transition-all duration-200 cursor-pointer appearance-none",
+            error && "border-rose-500 focus:ring-rose-500/20",
+            props.disabled && "opacity-50 cursor-not-allowed grayscale"
+          )}
+          {...props}
+        >
+          <option value="" disabled>Select {label}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value} className="bg-slate-900 text-white">
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </div>
       {error && <p className="text-xs font-semibold text-rose-400 mt-1">{error}</p>}
     </div>
   );
