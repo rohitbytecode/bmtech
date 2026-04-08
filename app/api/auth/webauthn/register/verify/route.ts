@@ -22,13 +22,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Registration verification failed' }, { status: 400 });
     }
 
-    const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
+    const registrationInfo = verification.registrationInfo;
+
+    if (!registrationInfo) {
+      throw new Error("Registration failed");
+    }
+
+    const credentialID = registrationInfo.credential.id;
+    const credentialPublicKey = registrationInfo.credential.publicKey;
+    const counter = registrationInfo.credential.counter;
 
     const supabase = createServerSupabase();
 
     // 2. Get User ID (Assume user exists)
     const { data: { users } } = await supabase.auth.admin.listUsers();
-    const user = users.find(u => u.email === email);
+    const user = users.find((u: any) => u.email === email);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found during verification' }, { status: 404 });
