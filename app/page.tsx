@@ -45,11 +45,14 @@ export default function Home() {
 
   return (
     <main className="flex flex-col min-h-screen">
+      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center py-2 px-4 text-sm font-medium tracking-wide">
+        Launch Offer: First 5 Clients Get <span className="font-bold">20% OFF</span> - Limited Slots Available
+      </div>
       <Hero />
       <Services />
       <Portfolio />
       <Packages />
-      {/* <Maintenance /> */}
+      <Maintenance />
       <Process />
       <About />
       <Contact />
