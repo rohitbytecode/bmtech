@@ -51,7 +51,7 @@ export default function Home() {
       <Services />
       <Portfolio />
       <Packages />
-      <Maintenance />
+      { /*<Maintenance /> */}
       <Process />
       <About />
       <Contact />
