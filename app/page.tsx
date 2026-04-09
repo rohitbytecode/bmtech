@@ -8,6 +8,7 @@ import Maintenance from "@/components/Maintenance";
 import Process from "@/components/Process";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
+import DiscountBanner from "@/components/DiscountBanner";
 import { useData } from "@/hooks/useData";
 import { Settings } from "@/services/dataService";
 
@@ -45,9 +46,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col min-h-screen">
-      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center py-2 px-4 text-sm font-medium tracking-wide">
-        Launch Offer: First 5 Clients Get <span className="font-bold">20% OFF</span> - Limited Slots Available
-      </div>
+      <DiscountBanner/>
       <Hero />
       <Services />
       <Portfolio />
