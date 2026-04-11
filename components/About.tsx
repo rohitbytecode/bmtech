@@ -19,7 +19,7 @@ export default function About() {
         </p>
         <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h4 className="text-4xl font-bold text-accent-blue mb-2">200+</h4>
+            <h4 className="text-4xl font-bold text-accent-blue mb-2">80+</h4>
             <p className="text-sm text-text-secondary">Projects Delivered</p>
           </div>
           <div>
@@ -27,12 +27,12 @@ export default function About() {
             <p className="text-sm text-text-secondary">Customer Retention</p>
           </div>
           <div>
-            <h4 className="text-4xl font-bold text-accent-blue mb-2">5+</h4>
+            <h4 className="text-4xl font-bold text-accent-blue mb-2">2+</h4>
             <p className="text-sm text-text-secondary">Years Experience</p>
           </div>
           <div>
-            <h4 className="text-4xl font-bold text-accent-blue mb-2">24h</h4>
-            <p className="text-sm text-text-secondary">Emergency Support</p>
+            <h4 className="text-4xl font-bold text-accent-blue mb-2">Mon-Fri</h4>
+            <p className="text-sm text-text-secondary">Support Window</p>
           </div>
         </div>
       </div>

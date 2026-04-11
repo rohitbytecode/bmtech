@@ -35,6 +35,7 @@ export interface MaintenancePlan {
   name: string;
   price: string;
   features: string[] | unknown;
+  highlighted?: boolean;
   created_at?: string;
 }
 
@@ -303,6 +304,51 @@ export const dataService = {
     } catch (error) {
       console.error(error);
       return { data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async createMaintenancePlan(plan: Omit<MaintenancePlan, 'id' | 'created_at'>) {
+    try {
+      const { data, error } = await supabase
+        .from('maintenance_plans')
+        .insert([plan])
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as MaintenancePlan, error: null };
+    } catch (error) {
+      console.error('createMaintenancePlan failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async updateMaintenancePlan(id: string, updates: Partial<MaintenancePlan>) {
+    try {
+      const { data, error } = await supabase
+        .from('maintenance_plans')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data: data as MaintenancePlan, error: null };
+    } catch (error) {
+      console.error('updateMaintenancePlan failed:', error);
+      return { success: false, data: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+
+  async deleteMaintenancePlan(id: string) {
+    try {
+      const { error } = await supabase
+        .from('maintenance_plans')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('deleteMaintenancePlan failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
   },
 

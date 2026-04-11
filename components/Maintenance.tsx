@@ -35,6 +35,7 @@ export default function Maintenance() {
                   name={plan.name}
                   price={plan.price}
                   features={parsedFeatures as string[]}
+                  highlighted={plan.highlighted}
                 />
               );
             })}

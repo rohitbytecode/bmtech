@@ -16,10 +16,10 @@ export default function Portfolio() {
             A small glimpse into the high-impact projects we've delivered for our partners.
           </p>
         </div>
-        
+
         {loading && <p className="text-center text-text-secondary">Loading projects...</p>}
         {error && <p className="text-center text-red-500">Error: {error}</p>}
-        
+
         {!loading && !error && projects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {projects.map((project) => (

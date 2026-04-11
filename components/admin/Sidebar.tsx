@@ -21,6 +21,7 @@ const menuItems = [
   { name: "Services", icon: Briefcase, href: "/admin/services" },
   { name: "Portfolio", icon: FileText, href: "/admin/portfolio" },
   { name: "Packages", icon: Package, href: "/admin/packages" },
+  { name: "Monthly Packages", icon: Package, href: "/admin/monthly-packages" },
   { name: "Leads", icon: Users, href: "/admin/leads" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];

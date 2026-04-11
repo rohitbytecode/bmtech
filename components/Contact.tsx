@@ -49,37 +49,59 @@ export default function Contact() {
           <div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Let’s Start Growing Your Business.</h2>
             <p className="text-lg text-text-secondary mb-12">
-              Ready to take your digital presence to the next level? Fill out the form and 
+              Ready to take your digital presence to the next level? Fill out the form and
               our team will get back to you within 24 hours.
             </p>
-            <div className="space-y-6">
-              <div className="flex items-center space-x-6">
-                <div className="w-12 h-12 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
-                  <span className="text-accent-blue font-bold tracking-tighter">PH</span>
+            <div className="space-y-8">
+
+              {/* PHONE */}
+              <div className="flex items-start gap-5">
+                <div className="w-12 h-12 shrink-0 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
+                  <span className="text-accent-blue font-bold tracking-tight">PH</span>
                 </div>
-                <div>
-                  <p className="text-xs uppercase font-bold text-text-secondary tracking-widest leading-none mb-1">CALL US</p>
-                  <p className="text-lg font-bold text-white leading-none">{s?.contact_phone || "+91 77788-64972"}</p>
+
+                <div className="space-y-2">
+                  <p className="text-xs uppercase font-semibold text-text-secondary tracking-wider">
+                    Call Us
+                  </p>
+
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold text-white">
+                      {s?.contact_phone || "+91 77788-64972"}
+                    </p>
+                    <p className="text-lg font-semibold text-white/80">
+                      +91 77788-64972
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-6">
-                 <div className="w-12 h-12 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
-                   <span className="text-accent-blue font-bold tracking-tighter">EM</span>
-                 </div>
-                 <div>
-                   <p className="text-xs uppercase font-bold text-text-secondary tracking-widest leading-none mb-1">EMAIL US</p>
-                   <p className="text-lg font-bold text-white leading-none">{s?.contact_email || "brothersmediatech@gmail.com"}</p>
-                 </div>
-               </div>
+
+              {/* EMAIL */}
+              <div className="flex items-start gap-5">
+                <div className="w-12 h-12 shrink-0 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
+                  <span className="text-accent-blue font-bold tracking-tight">EM</span>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs uppercase font-semibold text-text-secondary tracking-wider">
+                    Email Us
+                  </p>
+
+                  <p className="text-lg font-semibold text-white break-all">
+                    {s?.contact_email || "brothersmediatech@gmail.com"}
+                  </p>
+                </div>
+              </div>
+
             </div>
           </div>
 
           <div className="bg-surface p-8 rounded-2xl border border-border shadow-2xl">
             {success ? (
               <div className="h-full flex flex-col items-center justify-center text-center">
-                 <h2 className="text-3xl font-bold text-white mb-4">Message Sent!</h2>
-                 <p className="text-text-secondary mb-8">We'll get back to you soon.</p>
-                 <Button onClick={() => setSuccess(false)}>Send another message</Button>
+                <h2 className="text-3xl font-bold text-white mb-4">Message Sent!</h2>
+                <p className="text-text-secondary mb-8">We'll get back to you soon.</p>
+                <Button onClick={() => setSuccess(false)}>Send another message</Button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
