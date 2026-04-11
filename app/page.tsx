@@ -9,6 +9,7 @@ import Process from "@/components/Process";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import DiscountBanner from "@/components/DiscountBanner";
+import WorldMap from "@/components/Globalpresence";
 import { useData } from "@/hooks/useData";
 import { Settings } from "@/services/dataService";
 
@@ -48,6 +49,7 @@ export default function Home() {
     <main className="flex flex-col min-h-screen">
       <DiscountBanner />
       <Hero />
+      <WorldMap />
       <Services />
       <Portfolio />
       <Packages />
