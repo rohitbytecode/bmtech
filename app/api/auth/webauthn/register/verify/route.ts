@@ -15,8 +15,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing registration challenge' }, { status: 400 });
     }
 
-    // 1. Verify Registration Signature
-    const verification = await webauthnUtils.verifyRegistration(body, expectedChallenge);
+    // 1. Verify Registration Signature with Dynamic Identity
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+    const origin = request.headers.get('origin') || '';
+    const overrideRpId = host.split(':')[0];
+    
+    const verification = await webauthnUtils.verifyRegistration(body, expectedChallenge, origin, overrideRpId);
 
     if (!verification.verified || !verification.registrationInfo) {
       return NextResponse.json({ error: 'Registration verification failed' }, { status: 400 });

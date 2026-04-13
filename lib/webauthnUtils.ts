@@ -57,23 +57,24 @@ export const webauthnUtils = {
   },
 
   // 2. Verify Registration
-  async verifyRegistration(body: any, expectedChallenge: string) {
+  async verifyRegistration(body: any, expectedChallenge: string, overrideOrigin?: string, overrideRpId?: string) {
     return verifyRegistrationResponse({
       response: body,
       expectedChallenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: overrideOrigin || ORIGIN,
+      expectedRPID: overrideRpId || RP_ID,
     });
   },
 
   // 3. Authentication Options
-  async getAuthenticationOptions(allowCredentials: any[] = []) {
+  async getAuthenticationOptions(allowCredentials: any[] = [], overrideRpId?: string) {
+    const activeRpId = overrideRpId || RP_ID;
     return generateAuthenticationOptions({
-      rpID: RP_ID,
+      rpID: activeRpId,
       allowCredentials: allowCredentials.map(cred => ({
         id: cred.credential_id,
         type: 'public-key',
-        transports: cred.transports || undefined, // Let the browser decide
+        transports: cred.transports || undefined,
       })),
       userVerification: 'required',
     });
@@ -84,13 +85,15 @@ export const webauthnUtils = {
     body: any,
     expectedChallenge: string,
     publicKey: string,
-    counter: number
+    counter: number,
+    overrideOrigin?: string,
+    overrideRpId?: string
   ) {
     return verifyAuthenticationResponse({
       response: body,
       expectedChallenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: overrideOrigin || ORIGIN,
+      expectedRPID: overrideRpId || RP_ID,
       credential: {
         id: body.id,
         publicKey: isoBase64URL.toBuffer(publicKey),

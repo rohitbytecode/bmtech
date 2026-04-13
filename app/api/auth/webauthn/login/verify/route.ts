@@ -36,12 +36,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Hardware credential not recognized' }, { status: 401 });
     }
 
-    // 2. Verify Hardware Signature
+    // 2. Verify Hardware Signature with Dynamic Identity
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+    const origin = request.headers.get('origin') || '';
+    const overrideRpId = host.split(':')[0];
+
     const verification = await webauthnUtils.verifyAuthentication(
       body,
       expectedChallenge,
       dbAuthenticator.public_key,
-      dbAuthenticator.counter
+      dbAuthenticator.counter,
+      origin,
+      overrideRpId
     );
 
     if (!verification.verified || !verification.authenticationInfo) {

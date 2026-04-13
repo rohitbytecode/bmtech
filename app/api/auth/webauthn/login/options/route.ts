@@ -38,13 +38,15 @@ export async function POST(request: Request) {
       }, { status: 200 });
     }
 
-    // 2. Generate Authentication Options
+    // 2. Generate Authentication Options with dynamic RP ID
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+    const overrideRpId = host.split(':')[0]; // Remove port if present
     console.log(`[WebAuthn] Generating login options for ${email}. Found ${credentials?.length || 0} registered keys.`);
-    const options = await webauthnUtils.getAuthenticationOptions(credentials || []);
+    const options = await webauthnUtils.getAuthenticationOptions(credentials || [], overrideRpId);
 
     // 3. Store Challenge in Cookie
-    const isLocalhost = request.url.includes('localhost') || request.url.includes('127.0.0.1');
-    console.log(`[WebAuthn] Challenge generated for ${email}. RP_ID: ${options.rpId}`);
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+    console.log(`[WebAuthn] Challenge generated for ${email}. RP_ID: ${overrideRpId}`);
     (await cookies()).set('webauthn_auth_challenge', options.challenge, {
       httpOnly: true,
       secure: !isLocalhost, // Only secure if not on localhost

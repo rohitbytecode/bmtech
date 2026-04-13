@@ -54,11 +54,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // 3. Generate Registration Options
-    const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id);
+    // 3. Generate Registration Options with dynamic RP ID
+    // Prioritize x-forwarded-host for custom domains on Vercel
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+    const overrideRpId = host.split(':')[0]; // Remove port if present
+    const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id, [], overrideRpId);
 
     // 4. Store Challenge in Cookie for Verification
-    const isLocalhost = request.url.includes('localhost') || request.url.includes('127.0.0.1');
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
     (await cookies()).set('webauthn_reg_challenge', options.challenge, {
       httpOnly: true,
       secure: !isLocalhost, // Only secure if not on localhost
