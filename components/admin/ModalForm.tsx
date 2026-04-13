@@ -14,6 +14,8 @@ interface ModalFormProps {
   onSubmit?: (e: React.FormEvent) => void;
   submitLabel?: string;
   isSubmitting?: boolean;
+  disabled?: boolean;
+  hideFooter?: boolean;
 }
 
 export function ModalForm({
@@ -24,7 +26,9 @@ export function ModalForm({
   children,
   onSubmit,
   submitLabel = "Save Changes",
-  isSubmitting = false
+  isSubmitting = false,
+  disabled = false,
+  hideFooter = false
 }: ModalFormProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -70,29 +74,31 @@ export function ModalForm({
             {children}
           </div>
 
-          <div className="p-8 pt-0 flex flex-col sm:flex-row items-center justify-end gap-4 bg-surface">
-            <Button 
-              type="button" 
-              variant="secondary" 
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full sm:w-auto"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : submitLabel}
-            </Button>
-          </div>
+          {!hideFooter && (
+            <div className="p-8 pt-0 flex flex-col sm:flex-row items-center justify-end gap-4 bg-surface">
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={onClose}
+                disabled={isSubmitting || disabled}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || disabled}
+                className="w-full sm:w-auto"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : submitLabel}
+              </Button>
+            </div>
+          )}
         </form>
       </div>
     </div>

@@ -343,7 +343,7 @@ export function SecuritySettings() {
         onClose={() => setIsInviteModalOpen(false)}
         title="Invite Device"
         description="Share this one-time link with your other device to enroll it securely."
-        hideSubmit
+        hideFooter
       >
         <div className="space-y-4">
           <div className="p-4 rounded-xl bg-background border border-border font-mono text-xs break-all text-text-primary">
