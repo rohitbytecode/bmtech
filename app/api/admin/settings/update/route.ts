@@ -35,7 +35,6 @@ export async function POST(request: Request) {
     }
 
     // 2. Perform Update with Service Role
-    const supabase = createServerSupabase();
     const { data, error } = await supabase
       .from('settings')
       .upsert({ 
