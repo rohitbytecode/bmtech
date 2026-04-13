@@ -44,9 +44,9 @@ export const webauthnUtils = {
       userName: userEmail,
       attestationType: 'none', 
       authenticatorSelection: {
-        residentKey: 'preferred', // Be more flexible with older TPMs
-        userVerification: 'preferred', // Allow the browser to decide based on device state
-        // Removed authenticatorAttachment: 'platform' to allow roaming keys/wider compatibility
+        residentKey: 'preferred', // Stay flexible with storage
+        userVerification: 'preferred', // Stay flexible with state
+        authenticatorAttachment: 'platform', // FORCE built-in biometrics (TPM/Windows Hello)
       },
       excludeCredentials: existingCredentials.map(cred => ({
         id: cred.credential_id,
