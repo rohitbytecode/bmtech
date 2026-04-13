@@ -93,22 +93,19 @@ export const dataService = {
 
   async updateSettings(updates: Partial<Settings>) {
     try {
-      const { data, error } = await supabase
-        .from('settings')
-        .upsert({ 
-          id: 1, 
-          ...updates, 
-          updated_at: new Date().toISOString() 
-        })
-        .select()
-        .single();
+      const response = await fetch('/api/admin/settings/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
 
-      if (error) throw error;
-      return { success: true, data: data as Settings, error: null };
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to update settings');
+
+      return { success: true, data: result.data as Settings, error: null };
     } catch (error: any) {
-      const errorMessage = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
-      console.error('updateSettings failed:', errorMessage);
-      return { success: false, data: null, error: errorMessage };
+      console.error('updateSettings failed:', error.message);
+      return { success: false, data: null, error: error.message };
     }
   },
   // Existing methods ... (I'll keep them and just append)
@@ -462,18 +459,14 @@ export const dataService = {
   // Authorized Devices
   async getAuthorizedDevices() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
-
-      const { data, error } = await supabase
-        .from('authorized_devices')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      return { data, error: null };
+      const response = await fetch('/api/admin/devices/list');
+      const result = await response.json();
+      
+      if (!response.ok) throw new Error(result.error || 'Failed to fetch devices');
+      
+      return { data: result.devices, error: null };
     } catch (error: any) {
+      console.error('getAuthorizedDevices failed:', error.message);
       return { data: [], error: error.message };
     }
   },
@@ -503,18 +496,18 @@ export const dataService = {
 
   async deauthorizeDevice(deviceId: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      const response = await fetch('/api/admin/devices/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId })
+      });
 
-      const { error } = await supabase
-        .from('authorized_devices')
-        .delete()
-        .eq('device_id', deviceId)
-        .eq('user_id', user.id);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to remove device');
 
-      if (error) throw error;
       return { success: true, error: null };
     } catch (error: any) {
+      console.error('deauthorizeDevice failed:', error.message);
       return { success: false, error: error.message };
     }
   }

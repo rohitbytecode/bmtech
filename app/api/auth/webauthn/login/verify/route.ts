@@ -48,10 +48,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Hardware signature verification failed' }, { status: 401 });
     }
 
-    // 3. Update counter in DB
+    // 3. Update counter and last_used_at in DB
     await supabase
       .from('authorized_devices')
-      .update({ counter: verification.authenticationInfo.newCounter })
+      .update({ 
+        counter: verification.authenticationInfo.newCounter,
+        last_used_at: new Date().toISOString()
+      })
       .eq('id', dbAuthenticator.id);
 
     // 4. Verify Password (Final Binding)
@@ -67,8 +70,8 @@ export async function POST(request: Request) {
     // 5. Cleanup Challenge Cookie
     cookieStore.delete('webauthn_auth_challenge');
 
-    // 6. Set a "Strict" hardware-verified cookie
-    cookieStore.set('bmtech_hardware_verified', 'true', {
+    // 6. Set a "Strict" hardware-verified cookie containing the credential ID
+    cookieStore.set('bmtech_hardware_verified', dbAuthenticator.credential_id, {
       httpOnly: true,
       secure: !request.url.includes('localhost'),
       maxAge: 60 * 60 * 24, // 1 day

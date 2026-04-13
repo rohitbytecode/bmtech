@@ -83,17 +83,32 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/admin/login', request.url));
       }
 
-      // Hardware Verification
-      // Hardware verification DISABLED (temporary bypass)
-      // BMTECH_2026
+      // Hardware Verification (Zero-Trust)
+      const hardwareVerifiedToken = request.cookies.get('bmtech_hardware_verified')?.value;
 
-      // const hardwareVerified = request.cookies.get(
-      //   'bmtech_hardware_verified'
-      // )?.value;
+      // Check if user has ANY registered devices. 
+      // If 0 devices, we allow them in so they can register their first one.
+      const { data: devices } = await supabase
+        .from('authorized_devices')
+        .select('credential_id')
+        .eq('user_id', user.id);
 
-      // if (hardwareVerified !== 'true' || request.cookies.get('bmtech_device_trusted')?.value !== 'true') {
-      //   return NextResponse.redirect(new URL('/admin/login', request.url));
-      // }
+      const hasRegisteredDevices = devices && devices.length > 0;
+
+      if (hasRegisteredDevices) {
+        if (!hardwareVerifiedToken) {
+          return NextResponse.redirect(new URL('/admin/login', request.url));
+        }
+
+        // Live Cross-Reference: Verify the token matches a valid device in the DB
+        const isValidDevice = devices.some(d => d.credential_id === hardwareVerifiedToken);
+        if (!isValidDevice) {
+          // Device de-authorized! Clear cookies and kick out.
+          const response = NextResponse.redirect(new URL('/admin/login', request.url));
+          response.cookies.delete('bmtech_hardware_verified');
+          return response;
+        }
+      }
     } catch (e) {
       console.error('Proxy Error:', e);
       return NextResponse.redirect(new URL('/admin/login', request.url));

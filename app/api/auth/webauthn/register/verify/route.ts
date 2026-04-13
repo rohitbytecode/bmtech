@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { enrollmentToken, email } = body;
+    const { enrollmentToken, email, deviceName } = body;
 
     const cookieStore = await cookies();
     const expectedChallenge = cookieStore.get('webauthn_reg_challenge')?.value;
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         public_key: Buffer.from(credentialPublicKey).toString('base64url'),
         counter,
         transports: registrationInfo.credential.transports || [],
-        device_name: 'Hardware Authenticator',
+        device_name: deviceName || 'Hardware Authenticator',
         attestation_type: verification.registrationInfo.attestationObject ? 'direct' : 'none',
       });
 

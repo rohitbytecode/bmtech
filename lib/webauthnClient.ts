@@ -2,7 +2,7 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 
 export const webauthnClient = {
   // 1. Register a new hardware device
-  async register(email: string, enrollmentToken: string) {
+  async register(email: string, enrollmentToken: string, deviceName?: string) {
     try {
       // Get registration options from server
       const res = await fetch('/api/auth/webauthn/register/options', {
@@ -21,7 +21,7 @@ export const webauthnClient = {
       const verifyRes = await fetch('/api/auth/webauthn/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...credential, email, enrollmentToken }),
+        body: JSON.stringify({ ...credential, email, enrollmentToken, deviceName }),
       });
 
       const verifyResult = await verifyRes.json();
