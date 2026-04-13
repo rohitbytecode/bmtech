@@ -44,9 +44,9 @@ export const webauthnUtils = {
       userName: userEmail,
       attestationType: 'none', 
       authenticatorSelection: {
-        residentKey: 'required',
-        userVerification: 'required',
-        authenticatorAttachment: 'platform',
+        residentKey: 'preferred', // Be more flexible with older TPMs
+        userVerification: 'preferred', // Allow the browser to decide based on device state
+        // Removed authenticatorAttachment: 'platform' to allow roaming keys/wider compatibility
       },
       excludeCredentials: existingCredentials.map(cred => ({
         id: cred.credential_id,
@@ -76,7 +76,7 @@ export const webauthnUtils = {
         type: 'public-key',
         transports: cred.transports || undefined,
       })),
-      userVerification: 'required',
+      userVerification: 'preferred',
     });
   },
 
