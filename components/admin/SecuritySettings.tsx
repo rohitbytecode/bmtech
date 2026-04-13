@@ -128,6 +128,26 @@ export function SecuritySettings() {
     setIsRenameModalOpen(true);
   };
 
+  const handleGenerateInvite = async () => {
+    try {
+      const res = await fetch("/api/admin/invite/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "device_invite" })
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        setInviteResult({ url: result.inviteUrl, expires: result.expiresAt });
+        setIsInviteModalOpen(true);
+      } else {
+        alert("Failed to generate invite: " + (result.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("An error occurred generating invite.");
+    }
+  };
+
   const generateRecoveryCodes = async () => {
     if (!confirm("Generating new codes will invalidate any previous recovery codes. Are you sure?")) return;
     setIsGeneratingCodes(true);
@@ -255,8 +275,8 @@ export function SecuritySettings() {
             <h4 className="text-lg font-bold text-text-primary">Add Another Device</h4>
             <p className="text-sm text-text-secondary">Enroll your phone or another workstation securely via a one-time link.</p>
           </div>
-          <Button onClick={() => {}} variant="secondary" className="w-full gap-2 opacity-50 cursor-not-allowed">
-            <ExternalLink size={18} /> Invite New Device (Soon)
+          <Button onClick={handleGenerateInvite} variant="secondary" className="w-full gap-2 border-emerald-500/20 hover:bg-emerald-500/10 text-emerald-400">
+            <ExternalLink size={18} /> Invite New Device
           </Button>
         </div>
       </div>
@@ -316,6 +336,34 @@ export function SecuritySettings() {
       {/* Rename Modal */}
       <ModalForm isOpen={isRenameModalOpen} onClose={() => setIsRenameModalOpen(false)} title="Rename Device" submitLabel={isRenaming ? "Saving..." : "Save Changes"} onSubmit={handleRenameSubmit} disabled={isRenaming}>
         <InputField label="New Friendly Name" value={regDeviceName} onChange={(e) => setRegDeviceName(e.target.value)} required />
+      </ModalForm>
+      {/* Invite Modal */}
+      <ModalForm
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        title="Invite Device"
+        description="Share this one-time link with your other device to enroll it securely."
+        hideSubmit
+      >
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-background border border-border font-mono text-xs break-all text-text-primary">
+            {inviteResult?.url}
+          </div>
+          <Button
+            className="w-full"
+            onClick={() => {
+              if (inviteResult) {
+                navigator.clipboard.writeText(inviteResult.url);
+                alert("Link copied to clipboard!");
+              }
+            }}
+          >
+            Copy Link
+          </Button>
+          <p className="text-[10px] text-rose-400 text-center font-bold uppercase tracking-widest">
+            Expires in 10 minutes
+          </p>
+        </div>
       </ModalForm>
     </div>
   );

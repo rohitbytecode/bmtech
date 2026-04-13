@@ -13,22 +13,42 @@ export async function POST(request: Request) {
 
     const supabase = createServerSupabase();
 
-    // 1. Verify Enrollment Token
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('enrollment_tokens')
+    // 1. Verify Enrollment Token (New device_invites first, then legacy enrollment_tokens)
+    let inviterId = null;
+    
+    const { data: inviteData } = await supabase
+      .from('device_invites')
       .select('*')
-      .eq('token_hash', enrollmentToken) // In a real app, hash this
-      .eq('is_used', false)
+      .eq('token', enrollmentToken)
+      .eq('used', false)
       .gt('expires_at', new Date().toISOString())
       .single();
 
-    if (tokenError || !tokenData) {
-      return NextResponse.json({ error: 'Invalid or expired enrollment token' }, { status: 401 });
+    if (inviteData) {
+      inviterId = inviteData.created_by;
+    } else {
+      // Fallback to legacy bootstrap tokens
+      const { data: tokenData } = await supabase
+        .from('enrollment_tokens')
+        .select('*')
+        .eq('token_hash', enrollmentToken)
+        .eq('is_used', false)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+        
+      if (!tokenData) {
+        return NextResponse.json({ error: 'Invalid or expired enrollment token/invite' }, { status: 401 });
+      }
     }
 
-    // 2. Get User ID (Assume user exists or handle creation)
-    const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
-    const user = users.find(u => u.email === email);
+    // 2. Get User ID (Assume user exists)
+    // For device_invites, we use the creator's ID. 
+    const { data: { users } } = await supabase.auth.admin.listUsers();
+    
+    // If we have an inviterId from device_invites, that IS our target user
+    const user = inviterId 
+      ? users.find(u => u.id === inviterId)
+      : users.find(u => u.email === email);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

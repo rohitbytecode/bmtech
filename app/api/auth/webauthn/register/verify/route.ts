@@ -34,11 +34,24 @@ export async function POST(request: Request) {
 
     const supabase = createServerSupabase();
 
-    // 2. Get User ID (Assume user exists)
-    const { data: { users } } = await supabase.auth.admin.listUsers();
-    const user = users.find((u: any) => u.email === email);
+    // 2. Identify the target user and the invite type
+    const { data: inviteData } = await supabase
+      .from('device_invites')
+      .select('*')
+      .eq('token', enrollmentToken)
+      .eq('used', false)
+      .single();
 
-    if (!user) {
+    let targetUserId = inviteData?.created_by;
+    
+    if (!targetUserId) {
+      // Fallback to legacy bootstrap
+      const { data: { users } } = await supabase.auth.admin.listUsers();
+      const legacyUser = users.find((u: any) => u.email === email);
+      targetUserId = legacyUser?.id;
+    }
+
+    if (!targetUserId) {
       return NextResponse.json({ error: 'User not found during verification' }, { status: 404 });
     }
 
@@ -46,7 +59,7 @@ export async function POST(request: Request) {
     const { error: dbError } = await supabase
       .from('authorized_devices')
       .insert({
-        user_id: user.id,
+        user_id: targetUserId,
         credential_id: credentialID,
         public_key: Buffer.from(credentialPublicKey).toString('base64url'),
         counter,
@@ -60,11 +73,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to store authenticator' }, { status: 500 });
     }
 
-    // 4. Mark Enrollment Token as Used
-    await supabase
-      .from('enrollment_tokens')
-      .update({ is_used: true })
-      .eq('token_hash', enrollmentToken);
+    // 4. Mark Token/Invite as Used (Single-Use Policy)
+    if (inviteData) {
+      await supabase
+        .from('device_invites')
+        .update({ used: true })
+        .eq('id', inviteData.id);
+    } else {
+      await supabase
+        .from('enrollment_tokens')
+        .update({ is_used: true })
+        .eq('token_hash', enrollmentToken);
+    }
 
     // 5. Cleanup Challenge Cookie
     cookieStore.delete('webauthn_reg_challenge');
