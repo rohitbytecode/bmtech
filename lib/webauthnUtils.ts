@@ -8,9 +8,21 @@ import {
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
-const RP_ID = process.env.NEXT_PUBLIC_RP_ID || 'localhost';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// Extract domain for RP_ID (e.g., 'bmtlab.vercel.app' from 'https://bmtlab.vercel.app')
+const getRpId = () => {
+  try {
+    return new URL(APP_URL).hostname;
+  } catch {
+    return 'localhost';
+  }
+};
+
+const RP_ID = process.env.NEXT_PUBLIC_RP_ID || getRpId();
 const RP_NAME = 'BMTech Admin Panel';
-const ORIGIN = process.env.NEXT_PUBLIC_ORIGIN || 'http://localhost:3000';
+const ORIGIN = process.env.NEXT_PUBLIC_ORIGIN || APP_URL.replace(/\/$/, ''); // Ensure no trailing slash
+
 
 export const webauthnUtils = {
   // 1. Registration Options
@@ -24,12 +36,12 @@ export const webauthnUtils = {
       authenticatorSelection: {
         residentKey: 'required',
         userVerification: 'required',
-        authenticatorAttachment: 'platform', // Enforce TPM/Secure Enclave
+        authenticatorAttachment: 'platform', // Strictly enforce Windows Hello/TouchID/TPM
       },
       excludeCredentials: existingCredentials.map(cred => ({
         id: cred.credential_id,
         type: 'public-key',
-        transports: cred.transports,
+        transports: cred.transports || ['internal'], // Hint that it's an internal key
       })),
     });
   },
@@ -51,7 +63,7 @@ export const webauthnUtils = {
       allowCredentials: allowCredentials.map(cred => ({
         id: cred.credential_id,
         type: 'public-key',
-        transports: cred.transports,
+        transports: cred.transports || undefined, // Let the browser decide
       })),
       userVerification: 'required',
     });

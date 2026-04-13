@@ -47,9 +47,10 @@ export async function POST(request: Request) {
       .from('authorized_devices')
       .insert({
         user_id: user.id,
-        credential_id: Buffer.from(credentialID).toString('base64url'),
+        credential_id: credentialID,
         public_key: Buffer.from(credentialPublicKey).toString('base64url'),
         counter,
+        transports: registrationInfo.credential.transports || [],
         device_name: 'Hardware Authenticator',
         attestation_type: verification.registrationInfo.attestationObject ? 'direct' : 'none',
       });

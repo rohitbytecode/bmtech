@@ -38,9 +38,10 @@ export async function POST(request: Request) {
     const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id);
 
     // 4. Store Challenge in Cookie for Verification
+    const isLocalhost = request.url.includes('localhost') || request.url.includes('127.0.0.1');
     (await cookies()).set('webauthn_reg_challenge', options.challenge, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: !isLocalhost, // Only secure if not on localhost
       maxAge: 300, // 5 minutes
       sameSite: 'lax',
     });

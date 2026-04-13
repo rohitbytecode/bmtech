@@ -39,12 +39,15 @@ export async function POST(request: Request) {
     }
 
     // 2. Generate Authentication Options
-    const options = await webauthnUtils.getAuthenticationOptions(credentials);
+    console.log(`[WebAuthn] Generating login options for ${email}. Found ${credentials?.length || 0} registered keys.`);
+    const options = await webauthnUtils.getAuthenticationOptions(credentials || []);
 
     // 3. Store Challenge in Cookie
+    const isLocalhost = request.url.includes('localhost') || request.url.includes('127.0.0.1');
+    console.log(`[WebAuthn] Challenge generated for ${email}. RP_ID: ${options.rpId}`);
     (await cookies()).set('webauthn_auth_challenge', options.challenge, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: !isLocalhost, // Only secure if not on localhost
       maxAge: 300,
       sameSite: 'lax',
     });

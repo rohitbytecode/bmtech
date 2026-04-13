@@ -24,6 +24,7 @@ export async function proxy(request: NextRequest) {
   if (
     pathname.startsWith('/admin') &&
     pathname !== '/admin/login' &&
+    pathname !== '/admin/enroll' &&
     pathname !== '/admin/hardware-authorization'
   ) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

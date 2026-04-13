@@ -67,12 +67,23 @@ export async function POST(request: Request) {
     // 5. Cleanup Challenge Cookie
     cookieStore.delete('webauthn_auth_challenge');
 
-    // 6. Set a "Strict" hardware-verified cookie that the Middleware will look for
+    // 6. Set a "Strict" hardware-verified cookie
     cookieStore.set('bmtech_hardware_verified', 'true', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: !request.url.includes('localhost'),
       maxAge: 60 * 60 * 24, // 1 day
       sameSite: 'lax',
+    });
+
+    // 7. Manually set the Supabase session cookie (since createServerSupabase doesn't)
+    // This allows the middleware and other pages to see the user as logged in.
+    const session = authData.session;
+    cookieStore.set('sb-auth-token', JSON.stringify(session), {
+      httpOnly: false, // Must be accessible to some client-side scripts
+      secure: !request.url.includes('localhost'),
+      maxAge: session.expires_in,
+      sameSite: 'lax',
+      path: '/',
     });
 
     return NextResponse.json({ success: true });
