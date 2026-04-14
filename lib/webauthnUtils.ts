@@ -6,6 +6,7 @@ import {
   type VerifiedRegistrationResponse,
   type VerifiedAuthenticationResponse
 } from '@simplewebauthn/server';
+import base64url from 'base64url';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -132,38 +133,53 @@ export const webauthnUtils = {
 
   // 4. Verify Authentication
   async verifyAuthentication(
-    body: any,
-    expectedChallenge: string,
-    credentialID: string,
-    publicKey: string,
-    counter: number,
-    overrideOrigin?: string,
-    overrideRpId?: string,
-    hint?: string
-  ) {
-    const rpId = getRpId(overrideRpId, hint);
-    const origin = getOrigin(overrideOrigin);
+  body: any,
+  expectedChallenge: string,
+  credentialID: string | Uint8Array | Buffer,
+  publicKey: string,
+  counter: number,
+  overrideOrigin?: string,
+  overrideRpId?: string,
+  hint?: string
+) {
+  const rpId = getRpId(overrideRpId, hint);
+  const origin = getOrigin(overrideOrigin);
 
-    // Filter out our custom fields to prevent library validation crashes
-    const { email, password, rpIdHint, ...cleanResponse } = body;
+  const { email, password, rpIdHint, ...cleanResponse } = body;
 
-    console.log(`[WebAuthn] Verifying Authentication:
-      - Expected RP_ID: ${rpId}
-      - Expected Origin: ${origin}`);
+  console.log(`[WebAuthn] Verifying Authentication:
+    - Expected RP_ID: ${rpId}
+    - Expected Origin: ${origin}`);
 
-    const opts: any = {
-      response: cleanResponse,
-      expectedChallenge,
-      expectedOrigin: origin,
-      expectedRPID: rpId,
-      authenticator: {
-        credentialID,
-        credentialPublicKey: Buffer.from(publicKey, 'base64url'),
-        counter,
-      },
-      requireUserVerification: false, // Resilience for devices with inconsistent UV reporting
-    };
-
-    return verifyAuthenticationResponse(opts);
+  let credentialIDBuffer: Buffer;
+  if (typeof credentialID === 'string') {
+    credentialIDBuffer = base64url.toBuffer(credentialID);
+  } else {
+    credentialIDBuffer = Buffer.from(credentialID);
   }
+
+  const publicKeyBuffer =
+    publicKey.includes('-') || publicKey.includes('_')
+      ? Buffer.from(publicKey, 'base64url')
+      : Buffer.from(publicKey, 'base64');
+
+  if (!credentialIDBuffer || !publicKeyBuffer || typeof counter !== 'number') {
+    throw new Error('Invalid authenticator data passed to verification');
+  }
+
+  const opts: any = {
+    response: cleanResponse,
+    expectedChallenge,
+    expectedOrigin: origin,
+    expectedRPID: rpId,
+    authenticator: {
+      credentialID: credentialIDBuffer,
+      credentialPublicKey: publicKeyBuffer,
+      counter,
+    },
+    requireUserVerification: false,
+  };
+
+  return verifyAuthenticationResponse(opts);
+}
 };
