@@ -63,7 +63,10 @@ export async function POST(request: Request) {
       sameSite: 'lax',
     });
 
-    return NextResponse.json(options);
+    return NextResponse.json({
+      ...options,
+      rpId: options.rpId || overrideRpId,
+    });
   } catch (error: any) {
     console.error('Auth options error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

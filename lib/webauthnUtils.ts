@@ -165,15 +165,18 @@ export const webauthnUtils = {
     throw new Error('Invalid authenticator binary data');
   }
 
+  const safeConter = typeof counter === 'number' ? counter : 0;
+
   const opts: any = {
     response: cleanResponse,
     expectedChallenge,
     expectedOrigin: origin,
     expectedRPID: rpId,
+
     authenticator: {
       credentialID: credentialIDBuffer,
       credentialPublicKey: publicKeyBuffer,
-      counter,
+      counter: safeConter,
     },
     requireUserVerification: false,
   };
