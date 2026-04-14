@@ -48,16 +48,18 @@ export const getRpId = (host?: string, hint?: string) => {
 };
 
 /**
- * Robustly identify the Origin for the current context.
+ * Robustly identify the origin for the current context.
+ * WebAuthn origins MUST NOT have a trailing slash.
  */
 export const getOrigin = (originHeader?: string) => {
-  if (originHeader) return originHeader.replace(/\/$/, '');
-  
-  if (typeof window !== 'undefined') {
-    return window.location.origin.replace(/\/$/, '');
+  // Priority 1: Use the actual 'Origin' header from the browser
+  if (originHeader && originHeader !== 'null') {
+    return originHeader.replace(/\/$/, '').toLowerCase();
   }
 
-  return (process.env.NEXT_PUBLIC_ORIGIN || APP_URL).replace(/\/$/, '');
+  // Priority 2: Fallback to environment variables
+  const envOrigin = process.env.NEXT_PUBLIC_ORIGIN || APP_URL;
+  return envOrigin.replace(/\/$/, '').toLowerCase();
 };
 
 export const webauthnUtils = {
