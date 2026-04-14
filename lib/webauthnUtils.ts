@@ -6,7 +6,6 @@ import {
   type VerifiedRegistrationResponse,
   type VerifiedAuthenticationResponse
 } from '@simplewebauthn/server';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -32,7 +31,7 @@ export const getRpId = (host?: string, hint?: string) => {
   if (typeof window !== 'undefined') {
     return window.location.hostname.toLowerCase();
   }
-  
+
   // 4. Environment Variables (Server-side fallbacks)
   const explicitRpId = process.env.NEXT_PUBLIC_RP_ID;
   if (explicitRpId) return explicitRpId.toLowerCase();
@@ -66,7 +65,7 @@ export const webauthnUtils = {
   // 1. Registration Options
   async getRegistrationOptions(userEmail: string, userId: string, existingCredentials: any[] = [], overrideRpId?: string, hint?: string) {
     const rpId = getRpId(overrideRpId, hint);
-    
+
     console.log(`[WebAuthn] Generating Registration Options:
       - User: ${userEmail}
       - RP_ID (Final): ${rpId}
@@ -77,7 +76,7 @@ export const webauthnUtils = {
       rpID: rpId,
       userID: Buffer.from(userId),
       userName: userEmail,
-      attestationType: 'none', 
+      attestationType: 'none',
       authenticatorSelection: {
         residentKey: 'preferred',
         userVerification: 'preferred',
@@ -96,12 +95,15 @@ export const webauthnUtils = {
     const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
 
+    // Filter out our custom fields to prevent library validation crashes
+    const { email, enrollmentToken, deviceName, rpIdHint, ...cleanResponse } = body;
+
     console.log(`[WebAuthn] Verifying Registration:
       - Expected RP_ID: ${rpId}
       - Expected Origin: ${origin}`);
 
     return verifyRegistrationResponse({
-      response: body,
+      response: cleanResponse,
       expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpId,
@@ -131,6 +133,7 @@ export const webauthnUtils = {
   async verifyAuthentication(
     body: any,
     expectedChallenge: string,
+    credentialID: string,
     publicKey: string,
     counter: number,
     overrideOrigin?: string,
@@ -140,20 +143,25 @@ export const webauthnUtils = {
     const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
 
+    // Filter out our custom fields to prevent library validation crashes
+    const { email, password, rpIdHint, ...cleanResponse } = body;
+
     console.log(`[WebAuthn] Verifying Authentication:
       - Expected RP_ID: ${rpId}
       - Expected Origin: ${origin}`);
 
-    return verifyAuthenticationResponse({
-      response: body,
+    const opts: any = {
+      response: cleanResponse,
       expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpId,
-      credential: {
-        id: body.id,
-        publicKey: isoBase64URL.toBuffer(publicKey),
+      authenticator: {
+        credentialID,
+        credentialPublicKey: Buffer.from(publicKey, 'base64url'),
         counter,
       },
-    });
+    };
+
+    return verifyAuthenticationResponse(opts);
   }
 };

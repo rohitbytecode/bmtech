@@ -42,7 +42,11 @@ export const webauthnClient = {
       });
 
       const verifyResult = await verifyRes.json();
-      if (verifyResult.error) throw new Error(verifyResult.error);
+      if (verifyResult.error) {
+        // Show BOTH the general error and the technical details if available
+        const fullError = verifyResult.details ? `${verifyResult.error}: ${verifyResult.details}` : verifyResult.error;
+        throw new Error(fullError);
+      }
 
       return verifyResult;
     } catch (err: any) {
@@ -86,6 +90,7 @@ export const webauthnClient = {
       }
 
       const assertion = await startAuthentication({ optionsJSON: options });
+      
       // Send the assertion back to server for verification
       const verifyRes = await fetch('/api/auth/webauthn/login/verify', {
         method: 'POST',
@@ -99,7 +104,10 @@ export const webauthnClient = {
       });
 
       const verifyResult = await verifyRes.json();
-      if (verifyResult.error) throw new Error(verifyResult.error);
+      if (verifyResult.error) {
+        const fullError = verifyResult.details ? `${verifyResult.error}: ${verifyResult.details}` : verifyResult.error;
+        throw new Error(fullError);
+      }
 
       return verifyResult;
     } catch (err: any) {

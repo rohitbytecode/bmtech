@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     const verification = await webauthnUtils.verifyAuthentication(
       body,
       expectedChallenge,
+      dbAuthenticator.credential_id,
       dbAuthenticator.public_key,
       dbAuthenticator.counter,
       origin,
