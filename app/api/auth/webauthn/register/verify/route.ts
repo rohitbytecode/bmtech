@@ -20,6 +20,8 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
     
+    console.log(`[API] Registration Verify request. Host: ${host}, Origin: ${origin}, RP_ID: ${overrideRpId}`);
+    
     const verification = await webauthnUtils.verifyRegistration(body, expectedChallenge, origin, overrideRpId);
 
     if (!verification.verified || !verification.registrationInfo) {

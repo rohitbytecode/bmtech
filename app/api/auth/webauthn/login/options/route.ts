@@ -41,7 +41,9 @@ export async function POST(request: Request) {
     // 2. Generate Authentication Options with dynamic RP ID
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const overrideRpId = host.split(':')[0]; // Remove port if present
-    console.log(`[WebAuthn] Generating login options for ${email}. Found ${credentials?.length || 0} registered keys.`);
+    
+    console.log(`[API] Login Options request for ${email}. Host: ${host}, RP_ID: ${overrideRpId}`);
+    
     const options = await webauthnUtils.getAuthenticationOptions(credentials || [], overrideRpId);
 
     // 3. Store Challenge in Cookie

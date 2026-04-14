@@ -41,6 +41,8 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
 
+    console.log(`[API] Login Verify request for ${email}. Host: ${host}, Origin: ${origin}, RP_ID: ${overrideRpId}`);
+
     const verification = await webauthnUtils.verifyAuthentication(
       body,
       expectedChallenge,

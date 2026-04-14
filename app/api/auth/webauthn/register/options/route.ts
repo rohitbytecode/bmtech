@@ -58,6 +58,9 @@ export async function POST(request: Request) {
     // Prioritize x-forwarded-host for custom domains on Vercel
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const overrideRpId = host.split(':')[0]; // Remove port if present
+    
+    console.log(`[API] Registration Options request for ${user.email}. Host: ${host}, Override RP_ID: ${overrideRpId}`);
+    
     const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id, [], overrideRpId);
 
     // 4. Store Challenge in Cookie for Verification
