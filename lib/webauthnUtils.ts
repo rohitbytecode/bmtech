@@ -107,6 +107,7 @@ export const webauthnUtils = {
       expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpId,
+      requireUserVerification: false, // Don't require UV flag during initial enrollment
     });
   },
 
