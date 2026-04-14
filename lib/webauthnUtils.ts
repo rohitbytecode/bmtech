@@ -161,8 +161,8 @@ export const webauthnUtils = {
       ? Buffer.from(publicKey, 'base64url')
       : Buffer.from(publicKey, 'base64');
 
-  if (!credentialIDBuffer || !publicKeyBuffer || typeof counter !== 'number') {
-    throw new Error('Invalid authenticator data passed to verification');
+  if(!credentialIDBuffer || !publicKeyBuffer) {
+    throw new Error('Invalid authenticator binary data');
   }
 
   const opts: any = {

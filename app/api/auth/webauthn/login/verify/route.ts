@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabaseServer';
 import { webauthnUtils } from '@/lib/webauthnUtils';
 import { cookies } from 'next/headers';
-import base64url from 'base64url';
 
 export async function POST(request: Request) {
   try {
@@ -16,8 +15,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing authentication challenge' }, { status: 400 });
     }
 
+    if (!body.id) {
+      return NextResponse.json({ error: 'Missing credential ID from client' }, { status: 400 });
+    }
+
     const supabase = createServerSupabase();
 
+    // Get user
     const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
 
     if (userError || !userData?.users) {
@@ -31,12 +35,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!body.id) {
-    return NextResponse.json({ error: 'Missing credential ID from client' }, { status: 400 });
-    }
-
     const incomingCredentialID = body.id;
 
+    // Fetch authenticator
     const { data: dbAuthenticator, error: dbError } = await supabase
       .from('authorized_devices')
       .select('*')
@@ -44,15 +45,15 @@ export async function POST(request: Request) {
       .eq('credential_id', incomingCredentialID)
       .single();
 
-    if(dbError) {
-      console.log('[DB ERROR]', dbError);
+    if (dbError) {
+      console.error('[DB ERROR]', dbError);
     }
 
     if (!dbAuthenticator) {
-      console.log('[AUTH FAIL]');
+      console.error('[AUTH FAIL]');
       console.log('Incoming credential ID:', incomingCredentialID);
- 
-        const { data: allCreds } = await supabase
+
+      const { data: allCreds } = await supabase
         .from('authorized_devices')
         .select('credential_id')
         .eq('user_id', user.id);
@@ -60,26 +61,34 @@ export async function POST(request: Request) {
       console.log('Stored credentials:', allCreds);
 
       return NextResponse.json({ error: 'Hardware credential not recognized' }, { status: 401 });
-
     }
+
+    // HARD VALIDATION (fixes crash)
+    if (
+      !dbAuthenticator.credential_id ||
+      !dbAuthenticator.public_key
+    ) {
+      console.error('[INVALID AUTHENTICATOR DATA]', dbAuthenticator);
+      return NextResponse.json({ error: 'Corrupted authenticator data' }, { status: 500 });
+    }
+
+    // Debug (important)
+    console.log('[AUTH DEBUG]');
+    console.log('credential_id:', dbAuthenticator.credential_id);
+    console.log('public_key:', dbAuthenticator.public_key);
+    console.log('counter:', dbAuthenticator.counter);
 
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
 
-    console.log(`[API] Login Verify:
-      - Email: ${email}
-      - Host: ${host}
-      - Origin: ${origin}
-      - RP_ID: ${overrideRpId}
-      - Hint: ${rpIdHint}`);
-
+    // Verify authentication
     const verification = await webauthnUtils.verifyAuthentication(
       body,
       expectedChallenge,
-      dbAuthenticator.credential_id,   // already normalized in util
+      dbAuthenticator.credential_id,
       dbAuthenticator.public_key,
-      dbAuthenticator.counter,
+      dbAuthenticator.counter ?? 0, // SAFE COUNTER FIX
       origin,
       overrideRpId,
       rpIdHint
@@ -89,6 +98,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Hardware signature verification failed' }, { status: 401 });
     }
 
+    // Update counter
     await supabase
       .from('authorized_devices')
       .update({
@@ -97,6 +107,7 @@ export async function POST(request: Request) {
       })
       .eq('id', dbAuthenticator.id);
 
+    // Password check
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
