@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabaseServer';
 import { webauthnUtils } from '@/lib/webauthnUtils';
 import { cookies } from 'next/headers';
+import base64Url  from 'base64url';
 
 export async function POST(request: Request) {
   try {
@@ -58,12 +59,13 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const registrationInfo = verification.registrationInfo;
-    const credentialID = registrationInfo.credential.id;
-    const credentialPublicKey = registrationInfo.credential.publicKey;
-    const counter = registrationInfo.credential.counter;
+  const registrationInfo = verification.registrationInfo;
 
-    console.log(`[API] Cryptography match! Registering Credential: ${credentialID.substring(0, 10)}...`);
+  const credentialID = registrationInfo.credential.id; // already base64url string
+  const credentialPublicKey = base64Url.encode(Buffer.from(registrationInfo.credential.publicKey));
+  const counter = registrationInfo.credential.counter;
+
+    console.log(`[API] Registering Credential (base64url): ${credentialID}`);
 
     let supabase;
     try {
@@ -121,9 +123,9 @@ export async function POST(request: Request) {
       .insert({
         user_id: targetUserId,
         credential_id: credentialID,
-        public_key: Buffer.from(credentialPublicKey).toString('base64url'),
+        public_key: credentialPublicKey,       
         counter,
-        transports: registrationInfo.credential.transports || [],
+        transports: body.response?.transports || [],
         device_name: deviceName || 'Hardware Authenticator',
         attestation_type: registrationInfo.attestationObject ? 'direct' : 'none',
       });

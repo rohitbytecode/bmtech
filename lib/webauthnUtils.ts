@@ -85,7 +85,6 @@ export const webauthnUtils = {
       },
       excludeCredentials: existingCredentials.map(cred => ({
         id: cred.credential_id,
-        type: 'public-key',
         transports: cred.transports || ['internal'],
       })),
     });
@@ -124,7 +123,6 @@ export const webauthnUtils = {
       rpID: rpId,
       allowCredentials: allowCredentials.map(cred => ({
         id: cred.credential_id,
-        type: 'public-key',
         transports: cred.transports || undefined,
       })),
       userVerification: 'preferred',

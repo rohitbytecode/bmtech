@@ -31,7 +31,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const incomingCredentialID = base64url.toBuffer(body.rawId || body.id);
+    if (!body.id) {
+    return NextResponse.json({ error: 'Missing credential ID from client' }, { status: 400 });
+    }
+
+    const incomingCredentialID = body.id;
 
     const { data: dbAuthenticator, error: dbError } = await supabase
       .from('authorized_devices')
@@ -40,10 +44,23 @@ export async function POST(request: Request) {
       .eq('credential_id', incomingCredentialID)
       .single();
 
-    if (dbError || !dbAuthenticator) {
-      console.log('[DEBUG] Incoming ID:', body.rawId || body.id);
-      console.log('[DEBUG] Normalized ID:', incomingCredentialID);
+    if(dbError) {
+      console.log('[DB ERROR]', dbError);
+    }
+
+    if (!dbAuthenticator) {
+      console.log('[AUTH FAIL]');
+      console.log('Incoming credential ID:', incomingCredentialID);
+ 
+        const { data: allCreds } = await supabase
+        .from('authorized_devices')
+        .select('credential_id')
+        .eq('user_id', user.id);
+
+      console.log('Stored credentials:', allCreds);
+
       return NextResponse.json({ error: 'Hardware credential not recognized' }, { status: 401 });
+
     }
 
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
