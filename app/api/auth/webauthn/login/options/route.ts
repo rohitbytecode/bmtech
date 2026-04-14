@@ -14,7 +14,14 @@ export async function POST(request: Request) {
     const supabase = createServerSupabase();
 
     // 1. Get User and their registered authenticators
-    const { data: { users } } = await supabase.auth.admin.listUsers();
+    const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+    
+    if (userError || !userData?.users) {
+      console.error('[API] listUsers error:', userError);
+      return NextResponse.json({ error: 'Failed to fetch user list' }, { status: 500 });
+    }
+
+    const { users } = userData;
     const user = users.find(u => u.email === email);
 
     if (!user) {

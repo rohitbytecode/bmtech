@@ -52,8 +52,14 @@ export async function POST(request: Request) {
     
     if (!targetUserId) {
       // Fallback to legacy bootstrap
-      const { data: { users } } = await supabase.auth.admin.listUsers();
-      const legacyUser = users.find((u: any) => u.email === email);
+      const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+      
+      if (userError || !userData?.users) {
+        console.error('[API] listUsers error during verification:', userError);
+        return NextResponse.json({ error: 'Failed to fetch user list for verification' }, { status: 500 });
+      }
+
+      const legacyUser = userData.users.find((u: any) => u.email === email);
       targetUserId = legacyUser?.id;
     }
 

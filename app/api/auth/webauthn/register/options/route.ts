@@ -43,7 +43,14 @@ export async function POST(request: Request) {
 
     // 2. Get User ID (Assume user exists)
     // For device_invites, we use the creator's ID. 
-    const { data: { users } } = await supabase.auth.admin.listUsers();
+    const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+    
+    if (userError || !userData?.users) {
+      console.error('[API] listUsers error:', userError);
+      return NextResponse.json({ error: 'Failed to fetch user list' }, { status: 500 });
+    }
+
+    const { users } = userData;
     
     // If we have an inviterId from device_invites, that IS our target user
     const user = inviterId 
