@@ -81,8 +81,8 @@ export const webauthnClient = {
 
       console.log('[WebAuthn] Authentication Options received:');
       console.table({
-        RP_ID: options.rpID || options.rp.id,
-        Challenge: options.challenge.substring(0, 10) + '...',
+        RP_ID: options.rpID || (options.rp ? options.rp.id : 'N/A'),
+        Challenge: options.challenge ? options.challenge.substring(0, 10) + '...' : 'MISSING',
       });
 
       if (!options.challenge) {
