@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { enrollmentToken, email, deviceName } = body;
+    const { enrollmentToken, email, deviceName, rpIdHint } = body;
 
     const cookieStore = await cookies();
     const expectedChallenge = cookieStore.get('webauthn_reg_challenge')?.value;
@@ -20,9 +20,9 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
     
-    console.log(`[API] Registration Verify request. Host: ${host}, Origin: ${origin}, RP_ID: ${overrideRpId}`);
+    console.log(`[API] Registration Verify request. Host: ${host}, Origin: ${origin}, RP_ID: ${overrideRpId}, Hint: ${rpIdHint}`);
     
-    const verification = await webauthnUtils.verifyRegistration(body, expectedChallenge, origin, overrideRpId);
+    const verification = await webauthnUtils.verifyRegistration(body, expectedChallenge, origin, overrideRpId, rpIdHint);
 
     if (!verification.verified || !verification.registrationInfo) {
       return NextResponse.json({ error: 'Registration verification failed' }, { status: 400 });

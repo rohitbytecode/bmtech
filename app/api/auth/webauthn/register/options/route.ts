@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const { enrollmentToken, email } = await request.json();
+    const { enrollmentToken, email, rpIdHint } = await request.json();
 
     if (!enrollmentToken || !email) {
       return NextResponse.json({ error: 'Missing enrollment token or email' }, { status: 400 });
@@ -59,9 +59,9 @@ export async function POST(request: Request) {
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const overrideRpId = host.split(':')[0]; // Remove port if present
     
-    console.log(`[API] Registration Options request for ${user.email}. Host: ${host}, Override RP_ID: ${overrideRpId}`);
+    console.log(`[API] Registration Options request for ${user.email}. Host: ${host}, Hint: ${rpIdHint}`);
     
-    const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id, [], overrideRpId);
+    const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id, [], overrideRpId, rpIdHint);
 
     // 4. Store Challenge in Cookie for Verification
     const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');

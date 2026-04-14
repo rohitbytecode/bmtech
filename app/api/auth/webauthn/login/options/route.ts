@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email, rpIdHint } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
@@ -42,9 +42,9 @@ export async function POST(request: Request) {
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const overrideRpId = host.split(':')[0]; // Remove port if present
     
-    console.log(`[API] Login Options request for ${email}. Host: ${host}, RP_ID: ${overrideRpId}`);
+    console.log(`[API] Login Options request for ${email}. Host: ${host}, RP_ID: ${overrideRpId}, Hint: ${rpIdHint}`);
     
-    const options = await webauthnUtils.getAuthenticationOptions(credentials || [], overrideRpId);
+    const options = await webauthnUtils.getAuthenticationOptions(credentials || [], overrideRpId, rpIdHint);
 
     // 3. Store Challenge in Cookie
     const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');

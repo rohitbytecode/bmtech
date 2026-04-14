@@ -14,19 +14,26 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
  * Robustly identify the RP ID for the current context.
  * In WebAuthn, RP_ID must be the domain (e.g., 'bmtlab.vercel.app') or a suffix.
  */
-export const getRpId = (host?: string) => {
-  // 1. Prioritize explicit Host from headers (provided by caller)
+export const getRpId = (host?: string, hint?: string) => {
+  // 1. Prioritize Client-side hint (The browser knows exactly where it is)
+  if (hint && hint.trim()) {
+    return hint.trim().toLowerCase();
+  }
+
+  // 2. Prioritize explicit Host from headers (provided by caller)
   if (host) {
-    const cleanHost = host.split(':')[0].toLowerCase();
+    // Handle potential list of hosts from X-Forwarded-Host
+    const firstHost = host.split(',')[0].trim();
+    const cleanHost = firstHost.split(':')[0].toLowerCase();
     return cleanHost;
   }
 
-  // 2. Client-side fallback
+  // 3. Client-side fallback (if running in browser)
   if (typeof window !== 'undefined') {
     return window.location.hostname.toLowerCase();
   }
   
-  // 3. Environment Variables (Server-side fallbacks)
+  // 4. Environment Variables (Server-side fallbacks)
   const explicitRpId = process.env.NEXT_PUBLIC_RP_ID;
   if (explicitRpId) return explicitRpId.toLowerCase();
 
@@ -55,13 +62,13 @@ export const getOrigin = (originHeader?: string) => {
 
 export const webauthnUtils = {
   // 1. Registration Options
-  async getRegistrationOptions(userEmail: string, userId: string, existingCredentials: any[] = [], overrideRpId?: string) {
-    const rpId = getRpId(overrideRpId);
+  async getRegistrationOptions(userEmail: string, userId: string, existingCredentials: any[] = [], overrideRpId?: string, hint?: string) {
+    const rpId = getRpId(overrideRpId, hint);
     
     console.log(`[WebAuthn] Generating Registration Options:
       - User: ${userEmail}
       - RP_ID (Final): ${rpId}
-      - Input Host: ${overrideRpId || 'N/A'}`);
+      - Hint Source: ${hint ? 'Client' : 'Header/Env'}`);
 
     return generateRegistrationOptions({
       rpName: 'BMTech Admin Panel',
@@ -83,14 +90,13 @@ export const webauthnUtils = {
   },
 
   // 2. Verify Registration
-  async verifyRegistration(body: any, expectedChallenge: string, overrideOrigin?: string, overrideRpId?: string) {
-    const rpId = getRpId(overrideRpId);
+  async verifyRegistration(body: any, expectedChallenge: string, overrideOrigin?: string, overrideRpId?: string, hint?: string) {
+    const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
 
     console.log(`[WebAuthn] Verifying Registration:
       - Expected RP_ID: ${rpId}
-      - Expected Origin: ${origin}
-      - Client-sent Origin: ${body.response?.clientDataJSON ? 'Present' : 'Missing'}`);
+      - Expected Origin: ${origin}`);
 
     return verifyRegistrationResponse({
       response: body,
@@ -101,12 +107,12 @@ export const webauthnUtils = {
   },
 
   // 3. Authentication Options
-  async getAuthenticationOptions(allowCredentials: any[] = [], overrideRpId?: string) {
-    const rpId = getRpId(overrideRpId);
+  async getAuthenticationOptions(allowCredentials: any[] = [], overrideRpId?: string, hint?: string) {
+    const rpId = getRpId(overrideRpId, hint);
 
     console.log(`[WebAuthn] Generating Authentication Options:
       - RP_ID (Final): ${rpId}
-      - Keys Available: ${allowCredentials.length}`);
+      - Hint Source: ${hint ? 'Client' : 'Header/Env'}`);
 
     return generateAuthenticationOptions({
       rpID: rpId,
@@ -126,9 +132,10 @@ export const webauthnUtils = {
     publicKey: string,
     counter: number,
     overrideOrigin?: string,
-    overrideRpId?: string
+    overrideRpId?: string,
+    hint?: string
   ) {
-    const rpId = getRpId(overrideRpId);
+    const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
 
     console.log(`[WebAuthn] Verifying Authentication:

@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { email, password, rpIdHint } = body;
 
     const cookieStore = await cookies();
     const expectedChallenge = cookieStore.get('webauthn_auth_challenge')?.value;
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
 
-    console.log(`[API] Login Verify request for ${email}. Host: ${host}, Origin: ${origin}, RP_ID: ${overrideRpId}`);
+    console.log(`[API] Login Verify request for ${email}. Host: ${host}, Origin: ${origin}, RP_ID: ${overrideRpId}, Hint: ${rpIdHint}`);
 
     const verification = await webauthnUtils.verifyAuthentication(
       body,
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
       dbAuthenticator.public_key,
       dbAuthenticator.counter,
       origin,
-      overrideRpId
+      overrideRpId,
+      rpIdHint
     );
 
     if (!verification.verified || !verification.authenticationInfo) {

@@ -8,11 +8,22 @@ export const webauthnClient = {
       const res = await fetch('/api/auth/webauthn/register/options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, enrollmentToken }),
+        body: JSON.stringify({ 
+          email, 
+          enrollmentToken,
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined 
+        }),
       });
 
       const options = await res.json();
       if (options.error) throw new Error(options.error);
+
+      console.log('[WebAuthn] Registration Options received:');
+      console.table({
+        RP_ID: options.rp.id,
+        User_Name: options.user.name,
+        Challenge: options.challenge.substring(0, 10) + '...',
+      });
 
       // Start the WebAuthn registration (triggers TPM/Biometrics)
       const credential = await startRegistration({ optionsJSON: options });
@@ -21,7 +32,13 @@ export const webauthnClient = {
       const verifyRes = await fetch('/api/auth/webauthn/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...credential, email, enrollmentToken, deviceName }),
+        body: JSON.stringify({ 
+          ...credential, 
+          email, 
+          enrollmentToken, 
+          deviceName,
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined 
+        }),
       });
 
       const verifyResult = await verifyRes.json();
@@ -42,7 +59,10 @@ export const webauthnClient = {
       const res = await fetch('/api/auth/webauthn/login/options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined
+        }),
       });
 
       options = await res.json();
@@ -55,6 +75,12 @@ export const webauthnClient = {
         throw new Error(options.error);
       }
 
+      console.log('[WebAuthn] Authentication Options received:');
+      console.table({
+        RP_ID: options.rpID || options.rp.id,
+        Challenge: options.challenge.substring(0, 10) + '...',
+      });
+
       if (!options.challenge) {
         throw new Error("Invalid WebAuthn options received");
       }
@@ -64,7 +90,12 @@ export const webauthnClient = {
       const verifyRes = await fetch('/api/auth/webauthn/login/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...assertion, email, password }),
+        body: JSON.stringify({ 
+          ...assertion, 
+          email, 
+          password,
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined 
+        }),
       });
 
       const verifyResult = await verifyRes.json();

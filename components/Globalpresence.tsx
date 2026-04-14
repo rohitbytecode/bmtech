@@ -50,7 +50,7 @@ export default function WorldMap() {
             <div className="relative w-full h-[350px] overflow-hidden rounded-xl">
                 <img
                     ref={imgRef}
-                    src="/world-mapv1.png"
+                    src="/world-map.png"
                     alt="world map"
                     onLoad={() => setIsLoaded(true)}
                     className="w-full h-full object-contain opacity-40 grayscale brightness-125"
