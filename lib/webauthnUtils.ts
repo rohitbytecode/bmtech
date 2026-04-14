@@ -161,6 +161,7 @@ export const webauthnUtils = {
         credentialPublicKey: Buffer.from(publicKey, 'base64url'),
         counter,
       },
+      requireUserVerification: false, // Resilience for devices with inconsistent UV reporting
     };
 
     return verifyAuthenticationResponse(opts);
