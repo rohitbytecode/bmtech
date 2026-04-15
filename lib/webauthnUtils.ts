@@ -191,7 +191,15 @@ if (!cleanResponse.response?.clientDataJSON) {
 }
 
   const opts: any = {
-    response: cleanResponse,
+    response: {
+  ...cleanResponse,
+  rawId: base64url.toBuffer(cleanResponse.rawId),
+  response: {
+    ...cleanResponse.response,
+    attestationObject: base64url.toBuffer(cleanResponse.response.attestationObject),
+    clientDataJSON: base64url.toBuffer(cleanResponse.response.clientDataJSON),
+  },
+},
     expectedChallenge,
     expectedOrigin: origin,
     expectedRPID: rpId,
