@@ -82,6 +82,17 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
 
+    if (body.id !== dbAuthenticator.credential_id) {
+  console.error('[CRITICAL] Credential mismatch');
+  console.log('Client ID:', body.id);
+  console.log('DB ID:', dbAuthenticator.credential_id);
+
+  return NextResponse.json(
+    { error: 'Credential ID mismatch' },
+    { status: 401 }
+  );
+}
+
     // Verify authentication
     const verification = await webauthnUtils.verifyAuthentication(
       body,

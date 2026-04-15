@@ -165,7 +165,19 @@ export const webauthnUtils = {
     throw new Error('Invalid authenticator binary data');
   }
 
-  const safeConter = typeof counter === 'number' ? counter : 0;
+  const safeCounter = typeof counter === 'number' ? counter : 0;
+
+  if (!cleanResponse.id) {
+  throw new Error('Missing credential ID in authentication response');
+}
+
+if (!cleanResponse.response?.authenticatorData) {
+  throw new Error('Missing authenticatorData');
+}
+
+if (!cleanResponse.response?.clientDataJSON) {
+  throw new Error('Missing clientDataJSON');
+}
 
   const opts: any = {
     response: cleanResponse,
@@ -176,7 +188,7 @@ export const webauthnUtils = {
     authenticator: {
       credentialID: credentialIDBuffer,
       credentialPublicKey: publicKeyBuffer,
-      counter: safeConter,
+      counter: safeCounter,
     },
     requireUserVerification: false,
   };
