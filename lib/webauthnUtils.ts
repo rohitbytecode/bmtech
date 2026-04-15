@@ -103,7 +103,18 @@ export const webauthnUtils = {
       - Expected Origin: ${origin}`);
 
     return verifyRegistrationResponse({
-      response: cleanResponse,
+        response: {
+  ...cleanResponse,
+  rawId: base64url.toBuffer(cleanResponse.rawId),
+  response: {
+    ...cleanResponse.response,
+    authenticatorData: base64url.toBuffer(cleanResponse.response.authenticatorData),
+    clientDataJSON: base64url.toBuffer(cleanResponse.response.clientDataJSON),
+    signature: base64url.toBuffer(cleanResponse.response.signature),
+    userHandle: cleanResponse.response.userHandle
+      ? base64url.toBuffer(cleanResponse.response.userHandle)
+      : null,
+},},
       expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpId,
