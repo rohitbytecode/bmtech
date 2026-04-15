@@ -3,8 +3,6 @@ import {
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
-  type VerifiedRegistrationResponse,
-  type VerifiedAuthenticationResponse
 } from '@simplewebauthn/server';
 import base64url from 'base64url';
 
@@ -92,14 +90,12 @@ export const webauthnUtils = {
     const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
 
-    // Strip custom fields — only pass standard WebAuthn credential fields
     const { email, enrollmentToken, deviceName, rpIdHint, ...cleanResponse } = body;
 
     console.log(`[WebAuthn] Verifying Registration:
       - Expected RP_ID: ${rpId}
       - Expected Origin: ${origin}`);
 
-    // Pass cleanResponse directly — @simplewebauthn/server handles base64url natively
     return verifyRegistrationResponse({
       response: cleanResponse,
       expectedChallenge,
@@ -161,20 +157,22 @@ export const webauthnUtils = {
       throw new Error('Missing clientDataJSON');
     }
 
-    let credentialIDBuffer: Buffer;
-    if (typeof credentialID === 'string') {
-      credentialIDBuffer = base64url.toBuffer(credentialID);
-    } else {
-      credentialIDBuffer = Buffer.from(credentialID);
-    }
+    // Derive credential ID as string (base64url)
+    const credentialIdString =
+      typeof credentialID === 'string'
+        ? credentialID
+        : base64url.encode(Buffer.from(credentialID));
 
-    const publicKeyBuffer =
-      publicKey.includes('-') || publicKey.includes('_')
-        ? Buffer.from(publicKey, 'base64url')
-        : Buffer.from(publicKey, 'base64');
+    // Derive public key as Uint8Array
+    // Derive public key as Uint8Array<ArrayBuffer>
+const publicKeyBuffer = (
+  publicKey.includes('-') || publicKey.includes('_')
+    ? base64url.toBuffer(publicKey)
+    : Buffer.from(publicKey, 'base64')
+) as unknown as Uint8Array<ArrayBuffer>;
 
-    if (!credentialIDBuffer || !publicKeyBuffer) {
-      throw new Error('Invalid authenticator binary data');
+    if (!publicKeyBuffer?.length) {
+      throw new Error('Invalid public key binary data');
     }
 
     const safeCounter = typeof counter === 'number' ? counter : 0;
@@ -184,9 +182,9 @@ export const webauthnUtils = {
       expectedChallenge,
       expectedOrigin: origin,
       expectedRPID: rpId,
-      authenticator: {
-        credentialID: credentialIDBuffer,
-        credentialPublicKey: publicKeyBuffer,
+      credential: {
+        id: credentialIdString,
+        publicKey: publicKeyBuffer,   
         counter: safeCounter,
       },
       requireUserVerification: false,
