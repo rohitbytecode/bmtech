@@ -160,7 +160,7 @@ export default function SettingsPage() {
                   </section>
                 )}
 
-                {activeTab === "notifications" && (
+                {/* {activeTab === "notifications" && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="space-y-1 border-l-4 border-accent-blue pl-6 mb-10">
                       <h3 className="text-2xl font-bold text-text-primary tracking-tight">Alert Settings</h3>
@@ -187,7 +187,28 @@ export default function SettingsPage() {
                       onChange={(checked) => setNotifSettings({ ...notifSettings, slack_integration_enabled: checked })}
                     />
                   </div>
-                )}
+                )} */}
+
+                {activeTab === "notifications" && (
+  <div className="flex flex-col items-center justify-center h-[300px] text-center animate-in fade-in slide-in-from-right-4 duration-500">
+    
+    <div className="space-y-4">
+      <h3 className="text-2xl font-bold text-text-primary tracking-tight">
+        Notifications
+      </h3>
+
+      <p className="text-text-secondary text-sm max-w-md">
+        This feature is currently under development. You’ll soon be able to manage alerts,
+        integrations, and reports from this panel.
+      </p>
+
+      <div className="inline-block px-4 py-2 rounded-full bg-accent-blue/10 text-accent-blue text-sm font-medium border border-accent-blue/20">
+        Coming Soon
+      </div>
+    </div>
+
+  </div>
+)}
 
                 {activeTab === "branding" && (
                   <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
