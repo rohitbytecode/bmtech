@@ -25,7 +25,12 @@ export async function proxy(request: NextRequest) {
     pathname !== "/admin/login" &&
     pathname !== "/admin/enroll" &&
     pathname !== "/admin/hardware-authorization"
-  ) {
+  ) {// dev bypass
+
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.next();
+    }
+    // ────────────────────────────────────────────────────────────────────────
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 

@@ -17,6 +17,11 @@ export default function AdminLogin() {
   const [deviceFingerprint, setDeviceFingerprint] = useState('');
 
   React.useEffect(() => {
+    // ── DEV BYPASS: skip login entirely in local development ──
+    if (process.env.NODE_ENV === 'development') {
+      window.location.href = '/admin/dashboard';
+      return;
+    }
     setDeviceFingerprint(getDeviceFingerprint());
   }, []);
 

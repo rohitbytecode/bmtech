@@ -14,6 +14,11 @@ import {
   AlertTriangle,
   Edit2,
   CheckCircle2,
+  FlaskConical,
+  Lock,
+  Cpu,
+  Fingerprint,
+  CloudOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/admin/FormFields';
@@ -21,6 +26,137 @@ import { ModalForm } from '@/components/admin/ModalForm';
 import { webauthnClient } from '@/lib/webauthnClient';
 import { dataService } from '@/services/dataService';
 import { cn } from '@/lib/utils';
+
+// ── DEV MODE SCREEN ────────────────────────────────────────────────────────────
+function DevModeSecurityScreen() {
+  const [pulse, setPulse] = useState(false);
+  useEffect(() => {
+    const t = setInterval(() => setPulse((p) => !p), 1800);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="relative flex flex-col items-center justify-center min-h-[520px] overflow-hidden select-none animate-in fade-in slide-in-from-bottom-6 duration-700">
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full bg-amber-500/10 blur-[100px] animate-pulse" />
+        <div className="absolute top-1/4 right-1/4 w-[200px] h-[200px] rounded-full bg-accent-blue/8 blur-[80px] animate-pulse delay-700" />
+        {/* Subtle grid */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, #f59e0b 1px, transparent 1px), linear-gradient(to bottom, #f59e0b 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center text-center space-y-8 max-w-md px-4">
+
+        {/* Icon cluster */}
+        <div className="relative">
+          <div className="h-24 w-24 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-2xl shadow-amber-500/20">
+            <FlaskConical size={44} className="text-amber-400" />
+          </div>
+          {/* Orbiting badge */}
+          <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
+            <span className="text-[9px] font-black text-white uppercase leading-none">DEV</span>
+          </div>
+        </div>
+
+        {/* Headline */}
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest">
+            <span
+              className={cn(
+                'h-1.5 w-1.5 rounded-full bg-amber-400 transition-opacity duration-700',
+                pulse ? 'opacity-100' : 'opacity-20',
+              )}
+            />
+            Development Environment
+          </div>
+
+          <h3 className="text-3xl font-extrabold text-text-primary tracking-tight leading-tight">
+            Hardware Auth <br />
+            <span className="text-amber-400">Bypassed</span>
+          </h3>
+
+          <p className="text-text-secondary text-sm leading-relaxed">
+            Zero-Trust hardware authentication is{' '}
+            <span className="text-amber-400 font-semibold">disabled in development</span>. All
+            WebAuthn passkey checks, device registration, and session verification are skipped
+            locally to keep your workflow fast.
+          </p>
+        </div>
+
+        {/* Info cards */}
+        <div className="w-full space-y-3">
+          {[
+            {
+              icon: Fingerprint,
+              label: 'Passkey Registration',
+              status: 'Skipped',
+              color: 'text-amber-400',
+              bg: 'bg-amber-500/8 border-amber-500/15',
+            },
+            {
+              icon: Cpu,
+              label: 'Hardware Verification',
+              status: 'Skipped',
+              color: 'text-amber-400',
+              bg: 'bg-amber-500/8 border-amber-500/15',
+            },
+            {
+              icon: CloudOff,
+              label: 'Session API Calls',
+              status: 'Suppressed',
+              color: 'text-amber-400',
+              bg: 'bg-amber-500/8 border-amber-500/15',
+            },
+            {
+              icon: Lock,
+              label: 'Production Auth',
+              status: 'Active on Deploy',
+              color: 'text-emerald-400',
+              bg: 'bg-emerald-500/8 border-emerald-500/15',
+            },
+          ].map(({ icon: Icon, label, status, color, bg }) => (
+            <div
+              key={label}
+              className={cn(
+                'flex items-center justify-between px-5 py-3 rounded-2xl border text-sm',
+                bg,
+              )}
+            >
+              <div className="flex items-center gap-3 text-text-secondary">
+                <Icon size={16} className={color} />
+                <span className="font-medium">{label}</span>
+              </div>
+              <span className={cn('text-[11px] font-bold uppercase tracking-wider', color)}>
+                {status}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="pt-2 space-y-3 w-full">
+          <p className="text-[11px] text-text-secondary/60 font-mono uppercase tracking-widest">
+            To use hardware auth → deploy to production
+          </p>
+          <div className="flex items-center justify-center gap-2 text-xs text-text-secondary/50 font-medium">
+            <span className="h-px w-8 bg-border" />
+            <span>NODE_ENV = &quot;production&quot; enables full Zero-Trust</span>
+            <span className="h-px w-8 bg-border" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ──────────────────────────────────────────────────────────────────────────────
 
 interface Device {
   id: string;
@@ -31,7 +167,17 @@ interface Device {
   transports?: string[];
 }
 
+// Exported wrapper — no hooks here, safe env check
 export function SecuritySettings() {
+  if (process.env.NODE_ENV === 'development') {
+    return <DevModeSecurityScreen />;
+  }
+  return <SecuritySettingsPanel />;
+}
+
+// Full production UI — all hooks live here
+function SecuritySettingsPanel() {
+
   const [authorizedDevices, setAuthorizedDevices] = useState<Device[]>([]);
   const [currentCredentialId, setCurrentCredentialId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

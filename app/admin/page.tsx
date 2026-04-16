@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export default async function AdminRoot() {
+  // ── DEV BYPASS: skip auth entirely in local development ──
+  if (process.env.NODE_ENV === 'development') {
+    redirect('/admin/dashboard');
+  }
+
   const cookieStore = await cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
