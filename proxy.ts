@@ -1,31 +1,30 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isMaintenanceMode = process.env.MAINTENANCE_MODE === 'true';
+  const isMaintenanceMode = process.env.MAINTENANCE_MODE === "true";
 
-  // 1. Maintenance Mode
-  if (isMaintenanceMode && pathname !== '/maintenance') {
-    if (pathname.includes('.') || pathname.startsWith('/_next')) {
+  // Maintenance Mode
+  if (isMaintenanceMode && pathname !== "/maintenance") {
+    if (pathname.includes(".") || pathname.startsWith("/_next")) {
       return NextResponse.next();
     }
 
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-maintenance-mode', 'true');
+    requestHeaders.set("x-maintenance-mode", "true");
 
-    return NextResponse.rewrite(new URL('/maintenance', request.url), {
+    return NextResponse.rewrite(new URL("/maintenance", request.url), {
       request: { headers: requestHeaders },
     });
   }
 
-  // 2. Admin Protection
   if (
-    pathname.startsWith('/admin') &&
-    pathname !== '/admin/login' &&
-    pathname !== '/admin/enroll' &&
-    pathname !== '/admin/hardware-authorization'
+    pathname.startsWith("/admin") &&
+    pathname !== "/admin/login" &&
+    pathname !== "/admin/enroll" &&
+    pathname !== "/admin/hardware-authorization"
   ) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -33,11 +32,12 @@ export async function proxy(request: NextRequest) {
     const allCookies = request.cookies.getAll();
 
     const authCookie = allCookies.find(
-      (c) => c.name.includes('auth-token') || c.name.includes('supabase.auth.token'),
+      (c) =>
+        c.name.includes("auth-token") || c.name.includes("supabase.auth.token"),
     );
 
     if (!authCookie) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
 
     try {
@@ -53,10 +53,10 @@ export async function proxy(request: NextRequest) {
       const token =
         sessionData?.access_token ||
         sessionData?.[0]?.access_token ||
-        (typeof sessionData === 'string' ? sessionData : null);
+        (typeof sessionData === "string" ? sessionData : null);
 
       if (!token) {
-        return NextResponse.redirect(new URL('/admin/login', request.url));
+        return NextResponse.redirect(new URL("/admin/login", request.url));
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -75,47 +75,49 @@ export async function proxy(request: NextRequest) {
       if (
         error ||
         !user ||
-        (user.user_metadata?.role !== 'admin' && user.user_metadata?.is_super_admin !== true)
+        (user.user_metadata?.role !== "admin" &&
+          user.user_metadata?.is_super_admin !== true)
       ) {
-        return NextResponse.redirect(new URL('/admin/login', request.url));
+        return NextResponse.redirect(new URL("/admin/login", request.url));
       }
 
-      // Hardware Verification (Zero-Trust)
-      const hardwareVerifiedToken = request.cookies.get('bmtech_hardware_verified')?.value;
+      const hardwareVerifiedToken = request.cookies.get(
+        "bmtech_hardware_verified",
+      )?.value;
 
-      // Check if user has ANY registered devices.
-      // If 0 devices, we allow them in so they can register their first one.
       const { data: devices } = await supabase
-        .from('authorized_devices')
-        .select('credential_id')
-        .eq('user_id', user.id);
+        .from("authorized_devices")
+        .select("credential_id")
+        .eq("user_id", user.id);
 
       const hasRegisteredDevices = devices && devices.length > 0;
 
       if (hasRegisteredDevices) {
         if (!hardwareVerifiedToken) {
-          return NextResponse.redirect(new URL('/admin/login', request.url));
+          return NextResponse.redirect(new URL("/admin/login", request.url));
         }
 
-        // Live Cross-Reference: Verify the token matches a valid device in the DB
-        const isValidDevice = devices.some((d) => d.credential_id === hardwareVerifiedToken);
+        const isValidDevice = devices.some(
+          (d) => d.credential_id === hardwareVerifiedToken,
+        );
         if (!isValidDevice) {
           // Device de-authorized! Clear cookies and kick out.
-          const response = NextResponse.redirect(new URL('/admin/login', request.url));
-          response.cookies.delete('bmtech_hardware_verified');
+          const response = NextResponse.redirect(
+            new URL("/admin/login", request.url),
+          );
+          response.cookies.delete("bmtech_hardware_verified");
           return response;
         }
       }
     } catch (e) {
-      console.error('Proxy Error:', e);
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+      console.error("Proxy Error:", e);
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }
 
   return NextResponse.next();
 }
 
-// ✅ Correct config export
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
