@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Mail, Phone, Calendar, Loader2 } from 'lucide-react';
+import { Search, Filter, Mail, Calendar, Loader2 } from 'lucide-react';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -75,7 +75,6 @@ export default function LeadsPage() {
       const leadsList = data || [];
       setLeads(leadsList);
 
-      // Calculate stats
       setStats({
         total: leadsList.length,
         new: leadsList.filter((l) => l.status === 'new').length,
@@ -101,7 +100,6 @@ export default function LeadsPage() {
       return;
     }
 
-    // Refresh data
     fetchLeads();
   };
 
@@ -115,6 +113,40 @@ export default function LeadsPage() {
       lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.message.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const handleExportCSV = () => {
+    if (!filteredLeads.length) {
+      alert("No data to export");
+      return;
+    }
+
+    const headers = ["Name", "Email", "Message", "Status", "Created At"];
+
+    const rows = filteredLeads.map((lead) => [
+      lead.name,
+      lead.email,
+      lead.message,
+      lead.status,
+      new Date(lead.created_at).toLocaleString(),
+    ]);
+
+    const csvContent =
+      [headers, ...rows]
+        .map((row) =>
+          row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(",")
+        )
+        .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "leads.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (loading && leads.length === 0) {
     return (
@@ -135,18 +167,16 @@ export default function LeadsPage() {
 
         <div className="flex items-center gap-4">
           <div className="relative group min-w-[200px] md:min-w-[300px]">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-accent-blue transition-colors"
-              size={18}
-            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
             <input
               type="text"
               placeholder="Search leads..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-12 pl-12 pr-4 bg-surface border border-border rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue/40 transition-all"
+              className="w-full h-12 pl-12 pr-4 bg-surface border border-border rounded-xl"
             />
           </div>
+
           <Button variant="secondary" className="h-12 w-12 p-0 rounded-xl" onClick={fetchLeads}>
             <Filter size={20} />
           </Button>
@@ -166,34 +196,37 @@ export default function LeadsPage() {
 
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-surface border border-border space-y-4">
-            <h3 className="font-bold text-text-primary border-b border-border pb-4 uppercase text-xs tracking-widest text-accent-blue">
+            <h3 className="font-bold text-text-primary border-b pb-4 uppercase text-xs tracking-widest text-accent-blue">
               Conversion Overview
             </h3>
+
             <div className="space-y-6 pt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-text-secondary text-sm font-medium">New Leads</span>
-                <span className="text-text-primary font-bold bg-accent-blue/10 px-2.5 py-1 rounded-lg text-xs">
-                  {stats.new.toString().padStart(2, '0')}
-                </span>
+              <div className="flex justify-between">
+                <span>New Leads</span>
+                <span>{stats.new.toString().padStart(2, '0')}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-text-secondary text-sm font-medium">Total Inquiries</span>
-                <span className="text-text-primary font-bold bg-surface border border-border px-2.5 py-1 rounded-lg text-xs">
-                  {stats.total.toString().padStart(2, '0')}
-                </span>
+
+              <div className="flex justify-between">
+                <span>Total Inquiries</span>
+                <span>{stats.total.toString().padStart(2, '0')}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-text-secondary text-sm font-medium">Contacted</span>
-                <span className="text-emerald-400 font-bold text-xs">{stats.contacted}</span>
+
+              <div className="flex justify-between">
+                <span>Contacted</span>
+                <span>{stats.contacted}</span>
               </div>
             </div>
           </div>
 
           <div className="p-6 rounded-2xl bg-accent-blue/5 border border-accent-blue/20 flex flex-col gap-4">
-            <p className="text-sm font-medium text-text-primary">Download leads for offline use.</p>
+            <p className="text-sm font-medium text-text-primary">
+              Download leads for offline use.
+            </p>
+
             <Button
               variant="outline"
               className="w-full border-accent-blue/20 hover:bg-accent-blue/10"
+              onClick={handleExportCSV}
             >
               Export to CSV
             </Button>
