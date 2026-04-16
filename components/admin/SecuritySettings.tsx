@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Shield,
   Monitor,
@@ -19,13 +19,13 @@ import {
   Cpu,
   Fingerprint,
   CloudOff,
-} from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { InputField } from '@/components/admin/FormFields';
-import { ModalForm } from '@/components/admin/ModalForm';
-import { webauthnClient } from '@/lib/webauthnClient';
-import { dataService } from '@/services/dataService';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { InputField } from "@/components/admin/FormFields";
+import { ModalForm } from "@/components/admin/ModalForm";
+import { webauthnClient } from "@/lib/webauthnClient";
+import { dataService } from "@/services/dataService";
+import { cn } from "@/lib/utils";
 
 function DevModeSecurityScreen() {
   const [pulse, setPulse] = useState(false);
@@ -45,15 +45,14 @@ function DevModeSecurityScreen() {
           className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
-              'linear-gradient(to right, #f59e0b 1px, transparent 1px), linear-gradient(to bottom, #f59e0b 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
+              "linear-gradient(to right, #f59e0b 1px, transparent 1px), linear-gradient(to bottom, #f59e0b 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
           }}
         />
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center space-y-8 max-w-md px-4">
-
         {/* Icon cluster */}
         <div className="relative">
           <div className="h-24 w-24 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-2xl shadow-amber-500/20">
@@ -61,7 +60,9 @@ function DevModeSecurityScreen() {
           </div>
           {/* Orbiting badge */}
           <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
-            <span className="text-[9px] font-black text-white uppercase leading-none">DEV</span>
+            <span className="text-[9px] font-black text-white uppercase leading-none">
+              DEV
+            </span>
           </div>
         </div>
 
@@ -70,8 +71,8 @@ function DevModeSecurityScreen() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest">
             <span
               className={cn(
-                'h-1.5 w-1.5 rounded-full bg-amber-400 transition-opacity duration-700',
-                pulse ? 'opacity-100' : 'opacity-20',
+                "h-1.5 w-1.5 rounded-full bg-amber-400 transition-opacity duration-700",
+                pulse ? "opacity-100" : "opacity-20",
               )}
             />
             Development Environment
@@ -83,10 +84,12 @@ function DevModeSecurityScreen() {
           </h3>
 
           <p className="text-text-secondary text-sm leading-relaxed">
-            Zero-Trust hardware authentication is{' '}
-            <span className="text-amber-400 font-semibold">disabled in development</span>. All
-            WebAuthn passkey checks, device registration, and session verification are skipped
-            locally to keep your workflow fast.
+            Zero-Trust hardware authentication is{" "}
+            <span className="text-amber-400 font-semibold">
+              disabled in development
+            </span>
+            . All WebAuthn passkey checks, device registration, and session
+            verification are skipped locally to keep your workflow fast.
           </p>
         </div>
 
@@ -95,37 +98,37 @@ function DevModeSecurityScreen() {
           {[
             {
               icon: Fingerprint,
-              label: 'Passkey Registration',
-              status: 'Skipped',
-              color: 'text-amber-400',
-              bg: 'bg-amber-500/8 border-amber-500/15',
+              label: "Passkey Registration",
+              status: "Skipped",
+              color: "text-amber-400",
+              bg: "bg-amber-500/8 border-amber-500/15",
             },
             {
               icon: Cpu,
-              label: 'Hardware Verification',
-              status: 'Skipped',
-              color: 'text-amber-400',
-              bg: 'bg-amber-500/8 border-amber-500/15',
+              label: "Hardware Verification",
+              status: "Skipped",
+              color: "text-amber-400",
+              bg: "bg-amber-500/8 border-amber-500/15",
             },
             {
               icon: CloudOff,
-              label: 'Session API Calls',
-              status: 'Suppressed',
-              color: 'text-amber-400',
-              bg: 'bg-amber-500/8 border-amber-500/15',
+              label: "Session API Calls",
+              status: "Suppressed",
+              color: "text-amber-400",
+              bg: "bg-amber-500/8 border-amber-500/15",
             },
             {
               icon: Lock,
-              label: 'Production Auth',
-              status: 'Active on Deploy',
-              color: 'text-emerald-400',
-              bg: 'bg-emerald-500/8 border-emerald-500/15',
+              label: "Production Auth",
+              status: "Active on Deploy",
+              color: "text-emerald-400",
+              bg: "bg-emerald-500/8 border-emerald-500/15",
             },
           ].map(({ icon: Icon, label, status, color, bg }) => (
             <div
               key={label}
               className={cn(
-                'flex items-center justify-between px-5 py-3 rounded-2xl border text-sm',
+                "flex items-center justify-between px-5 py-3 rounded-2xl border text-sm",
                 bg,
               )}
             >
@@ -133,7 +136,12 @@ function DevModeSecurityScreen() {
                 <Icon size={16} className={color} />
                 <span className="font-medium">{label}</span>
               </div>
-              <span className={cn('text-[11px] font-bold uppercase tracking-wider', color)}>
+              <span
+                className={cn(
+                  "text-[11px] font-bold uppercase tracking-wider",
+                  color,
+                )}
+              >
                 {status}
               </span>
             </div>
@@ -147,35 +155,43 @@ function DevModeSecurityScreen() {
           </p>
           <div className="flex items-center justify-center gap-2 text-xs text-text-secondary/50 font-medium">
             <span className="h-px w-8 bg-border" />
-            <span>NODE_ENV = &quot;production&quot; enables full Zero-Trust</span>
+            <span>
+              NODE_ENV = &quot;production&quot; enables full Zero-Trust
+            </span>
             <span className="h-px w-8 bg-border" />
           </div>
         </div>
 
         {/* System Architect Credit */}
-        <div className="pt-4 flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-2">
-            <span className="h-px w-10 bg-gradient-to-r from-transparent to-amber-500/30" />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-text-secondary/30">
-              System Architect
-            </span>
-            <span className="h-px w-10 bg-gradient-to-l from-transparent to-amber-500/30" />
+        <div className="relative flex items-center justify-center py-6 overflow-hidden select-none">
+          {/* Ambient glow */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[60px] rounded-full bg-accent-blue/10 blur-[40px]" />
           </div>
 
-          <p className="font-mono text-[11px] tracking-widest relative">
-            <span className="relative z-10 text-amber-400 font-semibold animate-pulse">
-              Rohit More
-            </span>
+          <div className="relative z-10 flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="h-px w-10 bg-gradient-to-r from-transparent to-accent-blue/30" />
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-text-secondary/30">
+                System Architect
+              </span>
+              <span className="h-px w-10 bg-gradient-to-l from-transparent to-accent-blue/30" />
+            </div>
 
-            {/* Glow layer */}
-            <span className="absolute inset-0 text-amber-400 glow-text">
-              Rohit More
-            </span>
-          </p>
+            <p className="font-mono text-[11px] tracking-widest relative">
+              <span className="relative z-10 text-accent-blue/80 font-semibold">
+                Rohit More
+              </span>
 
-          <p className="text-[9px] text-text-secondary/25 uppercase tracking-[0.2em] font-medium">
-            Core systems handled by lead architect
-          </p>
+              <span className="absolute inset-0 text-accent-blue glow-text">
+                Rohit More
+              </span>
+            </p>
+
+            <p className="text-[9px] text-text-secondary/25 uppercase tracking-[0.2em] font-medium">
+              Core systems handled by lead architect
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -193,7 +209,7 @@ interface Device {
 
 // Exported wrapper — no hooks here, safe env check
 export function SecuritySettings() {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     return <DevModeSecurityScreen />;
   }
   return <SecuritySettingsPanel />;
@@ -201,9 +217,10 @@ export function SecuritySettings() {
 
 // Full production UI — all hooks live here
 function SecuritySettingsPanel() {
-
   const [authorizedDevices, setAuthorizedDevices] = useState<Device[]>([]);
-  const [currentCredentialId, setCurrentCredentialId] = useState<string | null>(null);
+  const [currentCredentialId, setCurrentCredentialId] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
   // Recovery Codes State
@@ -217,19 +234,25 @@ function SecuritySettingsPanel() {
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
-  const [regDeviceName, setRegDeviceName] = useState('');
-  const [editingDevice, setEditingDevice] = useState<{ id: string; name: string } | null>(null);
-  const [inviteResult, setInviteResult] = useState<{ url: string; expires: string } | null>(null);
+  const [regDeviceName, setRegDeviceName] = useState("");
+  const [editingDevice, setEditingDevice] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [inviteResult, setInviteResult] = useState<{
+    url: string;
+    expires: string;
+  } | null>(null);
 
   const fetchSessionInfo = async () => {
     try {
-      const res = await fetch('/api/admin/session/info');
+      const res = await fetch("/api/admin/session/info");
       const data = await res.json();
       if (data.currentCredentialId) {
         setCurrentCredentialId(data.currentCredentialId);
       }
     } catch (err) {
-      console.error('Failed to fetch session info:', err);
+      console.error("Failed to fetch session info:", err);
     }
   };
 
@@ -240,7 +263,7 @@ function SecuritySettingsPanel() {
       setAuthorizedDevices(data || []);
       await fetchSessionInfo();
     } catch (err) {
-      console.error('Failed to fetch devices:', err);
+      console.error("Failed to fetch devices:", err);
     } finally {
       setLoading(false);
     }
@@ -260,20 +283,20 @@ function SecuritySettingsPanel() {
 
     setIsRegistering(true);
     try {
-      const res = await fetch('/api/auth/webauthn/enrollment/generate-self', {
-        method: 'POST',
+      const res = await fetch("/api/auth/webauthn/enrollment/generate-self", {
+        method: "POST",
       });
       const { token, userEmail, error } = await res.json();
       if (error) throw new Error(error);
 
       await webauthnClient.register(userEmail, token, regDeviceName);
 
-      alert('Device registered successfully!');
+      alert("Device registered successfully!");
       setIsRegModalOpen(false);
-      setRegDeviceName('');
+      setRegDeviceName("");
       fetchDevices();
     } catch (err: any) {
-      alert('Registration failed: ' + err.message);
+      alert("Registration failed: " + err.message);
     } finally {
       setIsRegistering(false);
     }
@@ -285,9 +308,9 @@ function SecuritySettingsPanel() {
 
     setIsRenaming(true);
     try {
-      const res = await fetch('/api/admin/devices/rename', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/devices/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: editingDevice.id, newName: regDeviceName }),
       });
       const data = await res.json();
@@ -295,13 +318,13 @@ function SecuritySettingsPanel() {
       if (data.success) {
         setIsRenameModalOpen(false);
         setEditingDevice(null);
-        setRegDeviceName('');
+        setRegDeviceName("");
         fetchDevices();
       } else {
-        alert('Failed to rename: ' + (data.error || 'Unknown error'));
+        alert("Failed to rename: " + (data.error || "Unknown error"));
       }
     } catch (err) {
-      alert('Error connecting to server.');
+      alert("Error connecting to server.");
     } finally {
       setIsRenaming(false);
     }
@@ -315,10 +338,10 @@ function SecuritySettingsPanel() {
 
   const handleGenerateInvite = async () => {
     try {
-      const res = await fetch('/api/admin/invite/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'device_invite' }),
+      const res = await fetch("/api/admin/invite/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "device_invite" }),
       });
       const result = await res.json();
 
@@ -326,35 +349,43 @@ function SecuritySettingsPanel() {
         setInviteResult({ url: result.inviteUrl, expires: result.expiresAt });
         setIsInviteModalOpen(true);
       } else {
-        alert('Failed to generate invite: ' + (result.error || 'Unknown error'));
+        alert(
+          "Failed to generate invite: " + (result.error || "Unknown error"),
+        );
       }
     } catch (err) {
-      alert('An error occurred generating invite.');
+      alert("An error occurred generating invite.");
     }
   };
 
   const generateRecoveryCodes = async () => {
-    if (!confirm('Generating new codes will invalidate any previous recovery codes. Are you sure?'))
+    if (
+      !confirm(
+        "Generating new codes will invalidate any previous recovery codes. Are you sure?",
+      )
+    )
       return;
     setIsGeneratingCodes(true);
     try {
-      const res = await fetch('/api/admin/recovery/generate', { method: 'POST' });
+      const res = await fetch("/api/admin/recovery/generate", {
+        method: "POST",
+      });
       const data = await res.json();
       if (data.codes) setRecoveryCodes(data.codes);
     } catch (err) {
-      alert('Error connecting to server.');
+      alert("Error connecting to server.");
     } finally {
       setIsGeneratingCodes(false);
     }
   };
 
   const downloadRecoveryCodes = () => {
-    const text = `BMTECH ADMIN RECOVERY CODES\nGenerated: ${new Date().toLocaleString()}\n\nSAVE THESE CODES IN A SECURE PLACE!\n\n${recoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nEach code can only be used once.`;
-    const blob = new Blob([text], { type: 'text/plain' });
+    const text = `BMTECH ADMIN RECOVERY CODES\nGenerated: ${new Date().toLocaleString()}\n\nSAVE THESE CODES IN A SECURE PLACE!\n\n${recoveryCodes.map((c, i) => `${i + 1}. ${c}`).join("\n")}\n\nEach code can only be used once.`;
+    const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `bmtech-recovery-codes-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `bmtech-recovery-codes-${new Date().toISOString().split("T")[0]}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -362,29 +393,31 @@ function SecuritySettingsPanel() {
   const handleRemoveDevice = async (deviceId: string, deviceName: string) => {
     if (!confirm(`Are you sure you want to remove "${deviceName}"?`)) return;
     try {
-      const res = await fetch('/api/admin/devices/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/devices/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deviceId }),
       });
       const result = await res.json();
       if (result.success) {
         if (result.removedSelf) {
-          alert('Access revoked. You will be logged out.');
-          window.location.href = '/admin/login';
+          alert("Access revoked. You will be logged out.");
+          window.location.href = "/admin/login";
         } else {
           fetchDevices();
         }
       }
     } catch (err) {
-      alert('Error removing device.');
+      alert("Error removing device.");
     }
   };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
       <div className="space-y-1 border-l-4 border-accent-blue pl-6">
-        <h3 className="text-2xl font-bold text-text-primary tracking-tight">Zero-Trust Security</h3>
+        <h3 className="text-2xl font-bold text-text-primary tracking-tight">
+          Zero-Trust Security
+        </h3>
         <p className="text-text-secondary text-sm">
           Manage hardware-backed passkeys for secure admin access.
         </p>
@@ -398,8 +431,8 @@ function SecuritySettingsPanel() {
             <h4 className="text-lg font-bold">Zero-Trust Bypass Active</h4>
           </div>
           <p className="text-sm text-text-secondary">
-            Your account is currently vulnerable. Register your first device to enable strict
-            protection.
+            Your account is currently vulnerable. Register your first device to
+            enable strict protection.
           </p>
         </div>
       )}
@@ -408,7 +441,9 @@ function SecuritySettingsPanel() {
       <div className="p-8 rounded-3xl bg-surface border border-border space-y-8 shadow-xl shadow-black/10">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h4 className="text-xl font-bold text-text-primary">Master Recovery Codes</h4>
+            <h4 className="text-xl font-bold text-text-primary">
+              Master Recovery Codes
+            </h4>
             <p className="text-text-secondary text-sm">
               One-time codes to access your account if you lose your hardware.
             </p>
@@ -419,7 +454,11 @@ function SecuritySettingsPanel() {
             variant="outline"
             className="gap-2"
           >
-            {isGeneratingCodes ? <Loader2 className="animate-spin" size={18} /> : <Key size={18} />}
+            {isGeneratingCodes ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Key size={18} />
+            )}
             Generate New Codes
           </Button>
         </div>
@@ -432,7 +471,10 @@ function SecuritySettingsPanel() {
                 </div>
               ))}
             </div>
-            <Button onClick={downloadRecoveryCodes} className="bg-accent-blue w-full">
+            <Button
+              onClick={downloadRecoveryCodes}
+              className="bg-accent-blue w-full"
+            >
               Download Keys
             </Button>
           </div>
@@ -444,17 +486,23 @@ function SecuritySettingsPanel() {
         <div className="p-8 rounded-3xl bg-surface border border-border flex flex-col items-center text-center space-y-6 shadow-xl shadow-black/10">
           <div
             className={cn(
-              'h-16 w-16 rounded-2xl flex items-center justify-center',
+              "h-16 w-16 rounded-2xl flex items-center justify-center",
               currentDeviceInList
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-accent-blue/10 text-accent-blue',
+                ? "bg-emerald-500/10 text-emerald-400"
+                : "bg-accent-blue/10 text-accent-blue",
             )}
           >
-            {currentDeviceInList ? <CheckCircle2 size={32} /> : <Key size={32} />}
+            {currentDeviceInList ? (
+              <CheckCircle2 size={32} />
+            ) : (
+              <Key size={32} />
+            )}
           </div>
           <div className="space-y-2">
             <h4 className="text-lg font-bold text-text-primary">
-              {currentDeviceInList ? 'This Device is Secured' : 'Register This Device'}
+              {currentDeviceInList
+                ? "This Device is Secured"
+                : "Register This Device"}
             </h4>
             <p className="text-sm text-text-secondary">
               {currentDeviceInList
@@ -476,7 +524,10 @@ function SecuritySettingsPanel() {
               <Edit2 size={18} /> Rename This Device
             </Button>
           ) : (
-            <Button onClick={() => setIsRegModalOpen(true)} className="w-full gap-2">
+            <Button
+              onClick={() => setIsRegModalOpen(true)}
+              className="w-full gap-2"
+            >
               <Plus size={18} /> Register Passkey
             </Button>
           )}
@@ -488,9 +539,12 @@ function SecuritySettingsPanel() {
             <Smartphone size={32} />
           </div>
           <div className="space-y-2">
-            <h4 className="text-lg font-bold text-text-primary">Add Another Device</h4>
+            <h4 className="text-lg font-bold text-text-primary">
+              Add Another Device
+            </h4>
             <p className="text-sm text-text-secondary">
-              Enroll your phone or another workstation securely via a one-time link.
+              Enroll your phone or another workstation securely via a one-time
+              link.
             </p>
           </div>
           <Button
@@ -521,24 +575,26 @@ function SecuritySettingsPanel() {
               <div
                 key={device.id}
                 className={cn(
-                  'p-6 flex items-center justify-between group transition-colors',
-                  isCurrent ? 'bg-accent-blue/5' : 'hover:bg-surface/50',
+                  "p-6 flex items-center justify-between group transition-colors",
+                  isCurrent ? "bg-accent-blue/5" : "hover:bg-surface/50",
                 )}
               >
                 <div className="flex items-center gap-5">
                   <div
                     className={cn(
-                      'h-12 w-12 rounded-2xl border flex items-center justify-center shadow-inner',
+                      "h-12 w-12 rounded-2xl border flex items-center justify-center shadow-inner",
                       isCurrent
-                        ? 'bg-accent-blue/10 border-accent-blue/20 text-accent-blue'
-                        : 'bg-surface border-border text-text-secondary',
+                        ? "bg-accent-blue/10 border-accent-blue/20 text-accent-blue"
+                        : "bg-surface border-border text-text-secondary",
                     )}
                   >
                     <Monitor size={22} />
                   </div>
                   <div>
                     <div className="flex items-center gap-3">
-                      <h5 className="font-bold text-text-primary">{device.device_name}</h5>
+                      <h5 className="font-bold text-text-primary">
+                        {device.device_name}
+                      </h5>
                       {isCurrent && (
                         <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
                           Current Session
@@ -551,10 +607,10 @@ function SecuritySettingsPanel() {
                       </p>
                       <span className="h-1 w-1 rounded-full bg-border" />
                       <p className="text-[10px] text-text-secondary font-medium">
-                        Last used{' '}
+                        Last used{" "}
                         {device.last_used_at
                           ? new Date(device.last_used_at).toLocaleDateString()
-                          : 'Never'}
+                          : "Never"}
                       </p>
                     </div>
                   </div>
@@ -562,13 +618,20 @@ function SecuritySettingsPanel() {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => openRenameModal({ id: device.id, name: device.device_name })}
+                    onClick={() =>
+                      openRenameModal({
+                        id: device.id,
+                        name: device.device_name,
+                      })
+                    }
                     className="p-3 text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                   >
                     <Edit2 size={20} />
                   </button>
                   <button
-                    onClick={() => handleRemoveDevice(device.id, device.device_name)}
+                    onClick={() =>
+                      handleRemoveDevice(device.id, device.device_name)
+                    }
                     className="p-3 text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                   >
                     <Trash2 size={20} />
@@ -585,7 +648,7 @@ function SecuritySettingsPanel() {
         isOpen={isRegModalOpen}
         onClose={() => setIsRegModalOpen(false)}
         title="Register Passkey"
-        submitLabel={isRegistering ? 'Confirming...' : 'Register Device'}
+        submitLabel={isRegistering ? "Confirming..." : "Register Device"}
         onSubmit={handleRegisterLocal}
         disabled={isRegistering}
       >
@@ -603,7 +666,7 @@ function SecuritySettingsPanel() {
         isOpen={isRenameModalOpen}
         onClose={() => setIsRenameModalOpen(false)}
         title="Rename Device"
-        submitLabel={isRenaming ? 'Saving...' : 'Save Changes'}
+        submitLabel={isRenaming ? "Saving..." : "Save Changes"}
         onSubmit={handleRenameSubmit}
         disabled={isRenaming}
       >
@@ -629,8 +692,8 @@ function SecuritySettingsPanel() {
             <span className="h-px w-12 bg-gradient-to-l from-transparent to-accent-blue/40" />
           </div>
           <p className="font-mono text-[11px] text-text-secondary/60 tracking-widest">
-            <span className="text-accent-blue/70 font-bold">Rohit More</span>
-            {' '}- Zero-Trust Security Infrastructure
+            <span className="text-accent-blue/70 font-bold">Rohit More</span> -
+            Zero-Trust Security Infrastructure
           </p>
           <p className="text-[9px] text-text-secondary/30 uppercase tracking-[0.2em] font-medium">
             This system is managed by our highly skilled system architect
@@ -655,7 +718,7 @@ function SecuritySettingsPanel() {
             onClick={() => {
               if (inviteResult) {
                 navigator.clipboard.writeText(inviteResult.url);
-                alert('Link copied to clipboard!');
+                alert("Link copied to clipboard!");
               }
             }}
           >
