@@ -27,7 +27,6 @@ import { webauthnClient } from '@/lib/webauthnClient';
 import { dataService } from '@/services/dataService';
 import { cn } from '@/lib/utils';
 
-// ── DEV MODE SCREEN ────────────────────────────────────────────────────────────
 function DevModeSecurityScreen() {
   const [pulse, setPulse] = useState(false);
   useEffect(() => {
@@ -144,7 +143,7 @@ function DevModeSecurityScreen() {
         {/* CTA */}
         <div className="pt-2 space-y-3 w-full">
           <p className="text-[11px] text-text-secondary/60 font-mono uppercase tracking-widest">
-            To use hardware auth → deploy to production
+            To use hardware auth- deploy to production
           </p>
           <div className="flex items-center justify-center gap-2 text-xs text-text-secondary/50 font-medium">
             <span className="h-px w-8 bg-border" />
@@ -152,11 +151,36 @@ function DevModeSecurityScreen() {
             <span className="h-px w-8 bg-border" />
           </div>
         </div>
+
+        {/* System Architect Credit */}
+        <div className="pt-4 flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-amber-500/30" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-text-secondary/30">
+              System Architect
+            </span>
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-amber-500/30" />
+          </div>
+
+          <p className="font-mono text-[11px] tracking-widest relative">
+            <span className="relative z-10 text-amber-400 font-semibold animate-pulse">
+              Rohit More
+            </span>
+
+            {/* Glow layer */}
+            <span className="absolute inset-0 text-amber-400 glow-text">
+              Rohit More
+            </span>
+          </p>
+
+          <p className="text-[9px] text-text-secondary/25 uppercase tracking-[0.2em] font-medium">
+            Core systems handled by lead architect
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-// ──────────────────────────────────────────────────────────────────────────────
 
 interface Device {
   id: string;
@@ -590,6 +614,30 @@ function SecuritySettingsPanel() {
           required
         />
       </ModalForm>
+      {/* System Architect Credit */}
+      <div className="relative flex items-center justify-center py-6 overflow-hidden select-none">
+        {/* Ambient glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[60px] rounded-full bg-accent-blue/10 blur-[40px]" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="h-px w-12 bg-gradient-to-r from-transparent to-accent-blue/40" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-text-secondary/40">
+              System Architect
+            </span>
+            <span className="h-px w-12 bg-gradient-to-l from-transparent to-accent-blue/40" />
+          </div>
+          <p className="font-mono text-[11px] text-text-secondary/60 tracking-widest">
+            <span className="text-accent-blue/70 font-bold">Rohit More</span>
+            {' '}- Zero-Trust Security Infrastructure
+          </p>
+          <p className="text-[9px] text-text-secondary/30 uppercase tracking-[0.2em] font-medium">
+            This system is managed by our highly skilled system architect
+          </p>
+        </div>
+      </div>
+
       {/* Invite Modal */}
       <ModalForm
         isOpen={isInviteModalOpen}
