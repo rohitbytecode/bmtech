@@ -683,20 +683,32 @@ function SecuritySettingsPanel() {
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[60px] rounded-full bg-accent-blue/10 blur-[40px]" />
         </div>
+
         <div className="relative z-10 flex flex-col items-center gap-1.5">
+          {/* Top label */}
           <div className="flex items-center gap-2">
-            <span className="h-px w-12 bg-gradient-to-r from-transparent to-accent-blue/40" />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-text-secondary/40">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-accent-blue/30" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-text-secondary/30">
               System Architect
             </span>
-            <span className="h-px w-12 bg-gradient-to-l from-transparent to-accent-blue/40" />
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-accent-blue/30" />
           </div>
-          <p className="font-mono text-[11px] text-text-secondary/60 tracking-widest">
-            <span className="text-accent-blue/70 font-bold">Rohit More</span> -
-            Zero-Trust Security Infrastructure
+
+          {/* Name with animated glow */}
+          <p className="font-mono text-[11px] tracking-widest relative">
+            <span className="relative z-10 text-accent-blue/80 font-semibold">
+              Rohit More
+            </span>
+
+            {/* Animated glow layer (same as dev, but blue) */}
+            <span className="absolute inset-0 text-accent-blue glow-text">
+              Rohit More
+            </span>
           </p>
-          <p className="text-[9px] text-text-secondary/30 uppercase tracking-[0.2em] font-medium">
-            This system is managed by our highly skilled system architect
+
+          {/* Footer */}
+          <p className="text-[9px] text-text-secondary/25 uppercase tracking-[0.2em] font-medium">
+            Core systems handled by lead architect
           </p>
         </div>
       </div>
