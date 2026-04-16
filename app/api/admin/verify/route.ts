@@ -11,7 +11,10 @@ const supabaseAdmin =
 
 export async function POST(request: NextRequest) {
   if (!supabaseAdmin) {
-    return NextResponse.json({ error: 'Supabase server environment variables are not configured.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Supabase server environment variables are not configured.' },
+      { status: 500 },
+    );
   }
 
   try {
@@ -38,11 +41,10 @@ export async function POST(request: NextRequest) {
 
     // 2. Secondary check: RPC Fallback
     const { data: rpcValue, error: rpcError } = await supabaseAdmin.rpc('check_is_super_admin', {
-      check_user_id: userId
+      check_user_id: userId,
     });
 
     return NextResponse.json({ is_super_admin: rpcValue === true });
-    
   } catch (err) {
     console.error('Verify Route Error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const cookieStorage = {
   getItem: (key: string) => {
     if (typeof document === 'undefined') return null;
-    const cookie = document.cookie.split('; ').find(row => row.startsWith(`${key}=`));
+    const cookie = document.cookie.split('; ').find((row) => row.startsWith(`${key}=`));
     return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
   },
   setItem: (key: string, value: string) => {
@@ -27,15 +27,11 @@ const cookieStorage = {
 };
 
 // Initializing the Supabase client with custom cookie storage
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || '',
-  {
-    auth: {
-      storage: cookieStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    }
-  }
-);
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+  auth: {
+    storage: cookieStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});

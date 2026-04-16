@@ -1,44 +1,49 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Users, Briefcase, Package, ArrowUpRight, Loader2 } from "lucide-react";
-import { StatCard } from "@/components/admin/StatCard";
-import { DataTable, Column } from "@/components/admin/DataTable";
-import Link from "next/link";
-import { dataService, Lead } from "@/services/dataService";
+import React, { useState, useEffect } from 'react';
+import { Users, Briefcase, Package, ArrowUpRight, Loader2 } from 'lucide-react';
+import { StatCard } from '@/components/admin/StatCard';
+import { DataTable, Column } from '@/components/admin/DataTable';
+import Link from 'next/link';
+import { dataService, Lead } from '@/services/dataService';
 
 const leadsColumns: Column<Lead>[] = [
-  { header: "Name", accessor: "name" },
-  { header: "Email", accessor: "email" },
+  { header: 'Name', accessor: 'name' },
+  { header: 'Email', accessor: 'email' },
   {
-    header: "Message",
+    header: 'Message',
     accessor: (lead) => (
       <div className="max-w-xs truncate text-text-secondary font-normal" title={lead.message}>
         {lead.message}
       </div>
-    )
+    ),
   },
   {
-    header: "Status",
+    header: 'Status',
     accessor: (lead) => (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${lead.status === "new" ? "bg-accent-blue/10 text-accent-blue" : "bg-emerald-400/10 text-emerald-400"
-        }`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+          lead.status === 'new'
+            ? 'bg-accent-blue/10 text-accent-blue'
+            : 'bg-emerald-400/10 text-emerald-400'
+        }`}
+      >
         {lead.status.toUpperCase()}
       </span>
-    )
+    ),
   },
   {
-    header: "Date",
+    header: 'Date',
     accessor: (lead) => {
       const date = new Date(lead.created_at);
       const now = new Date();
       const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-      if (diffInHours < 1) return "Just now";
+      if (diffInHours < 1) return 'Just now';
       if (diffInHours < 24) return `${diffInHours} hours ago`;
-      if (diffInHours < 48) return "Yesterday";
+      if (diffInHours < 48) return 'Yesterday';
       return date.toLocaleDateString();
-    }
+    },
   },
 ];
 
@@ -47,7 +52,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalLeads: 0,
     totalProjects: 0,
-    totalPackages: 0
+    totalPackages: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +63,7 @@ export default function Dashboard() {
         setLoading(true);
         const [leadsRes, statsRes] = await Promise.all([
           dataService.getLeads(),
-          dataService.getDashboardStats()
+          dataService.getDashboardStats(),
         ]);
 
         if (leadsRes.error) throw new Error(leadsRes.error);
@@ -67,7 +72,7 @@ export default function Dashboard() {
         setLeads(leadsRes.data || []);
         setStats(statsRes.data || { totalLeads: 0, totalProjects: 0, totalPackages: 0 });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
@@ -107,19 +112,15 @@ export default function Dashboard() {
           label="Total Leads"
           value={stats.totalLeads}
           icon={Users}
-          trend={{ value: "Live", isUp: true }}
+          trend={{ value: 'Live', isUp: true }}
         />
         <StatCard
           label="Total Projects"
           value={stats.totalProjects}
           icon={Briefcase}
-          trend={{ value: "Live", isUp: true }}
+          trend={{ value: 'Live', isUp: true }}
         />
-        <StatCard
-          label="Active Packages"
-          value={stats.totalPackages}
-          icon={Package}
-        />
+        <StatCard label="Active Packages" value={stats.totalPackages} icon={Package} />
       </div>
 
       <div className="space-y-6">

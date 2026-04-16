@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabaseServer';
 import { webauthnUtils } from '@/lib/webauthnUtils';
 import { cookies } from 'next/headers';
-import base64Url  from 'base64url';
+import base64Url from 'base64url';
 
 export async function POST(request: Request) {
   try {
     console.log(`[API][${new Date().toISOString()}] Starting Registration Verify`);
-    
+
     const body = await request.json();
     const { enrollmentToken, email, deviceName, rpIdHint } = body;
 
@@ -21,49 +21,69 @@ export async function POST(request: Request) {
       - Enrollment Token: ${enrollmentToken ? 'Present' : 'MISSING'}`);
 
     if (!expectedChallenge) {
-      console.warn('[API] FATAL: Registration challenge missing from cookies. This could be due to cross-site cookie blocking.');
-      return NextResponse.json({ 
-        error: 'Security challenge expired or blocked. Please refresh and try again.',
-        diagnostic: 'CHALLENGE_MISSING' 
-      }, { status: 400 });
+      console.warn(
+        '[API] FATAL: Registration challenge missing from cookies. This could be due to cross-site cookie blocking.',
+      );
+      return NextResponse.json(
+        {
+          error: 'Security challenge expired or blocked. Please refresh and try again.',
+          diagnostic: 'CHALLENGE_MISSING',
+        },
+        { status: 400 },
+      );
     }
 
     // 1. Verify Registration Signature with Dynamic Identity
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const origin = request.headers.get('origin') || '';
     const overrideRpId = host.split(':')[0];
-    
+
     console.log(`[API] Identity context:
       - Host: ${host}
       - Origin: ${origin}
       - RP_ID: ${overrideRpId}
       - Client Hint: ${rpIdHint}`);
-    
+
     let verification;
     try {
-      verification = await webauthnUtils.verifyRegistration(body, expectedChallenge, origin, overrideRpId, rpIdHint);
+      verification = await webauthnUtils.verifyRegistration(
+        body,
+        expectedChallenge,
+        origin,
+        overrideRpId,
+        rpIdHint,
+      );
     } catch (vErr: any) {
       console.error('[WebAuthn] Cryptographic verification CRASHED:', vErr);
-      return NextResponse.json({ 
-        error: 'Hardware verification crashed', 
-        details: vErr.message,
-        diagnostic: 'CRYPTO_CRASH'
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: 'Hardware verification crashed',
+          details: vErr.message,
+          diagnostic: 'CRYPTO_CRASH',
+        },
+        { status: 500 },
+      );
     }
 
     if (!verification.verified || !verification.registrationInfo) {
       console.warn('[WebAuthn] Verification FAILED:', verification);
-      return NextResponse.json({ 
-        error: 'Hardware verification failed. Your device might be incompatible or the domain is mismatched.',
-        diagnostic: 'VERIFICATION_FAILED'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            'Hardware verification failed. Your device might be incompatible or the domain is mismatched.',
+          diagnostic: 'VERIFICATION_FAILED',
+        },
+        { status: 400 },
+      );
     }
 
-  const registrationInfo = verification.registrationInfo;
+    const registrationInfo = verification.registrationInfo;
 
-  const credentialID = registrationInfo.credential.id; // already base64url string
-  const credentialPublicKey = base64Url.encode(Buffer.from(registrationInfo.credential.publicKey));
-  const counter = registrationInfo.credential.counter;
+    const credentialID = registrationInfo.credential.id; // already base64url string
+    const credentialPublicKey = base64Url.encode(
+      Buffer.from(registrationInfo.credential.publicKey),
+    );
+    const counter = registrationInfo.credential.counter;
 
     console.log(`[API] Registering Credential (base64url): ${credentialID}`);
 
@@ -72,11 +92,14 @@ export async function POST(request: Request) {
       supabase = createServerSupabase();
     } catch (confErr: any) {
       console.error('[Supabase] Config error:', confErr.message);
-      return NextResponse.json({ 
-        error: 'Server configuration error', 
-        details: confErr.message,
-        diagnostic: 'CONFIG_ERROR'
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: 'Server configuration error',
+          details: confErr.message,
+          diagnostic: 'CONFIG_ERROR',
+        },
+        { status: 500 },
+      );
     }
 
     // 2. Identify the target user and the invite type
@@ -93,18 +116,21 @@ export async function POST(request: Request) {
     }
 
     let targetUserId = inviteData?.created_by;
-    
+
     if (!targetUserId) {
       console.log('[API] Falling back to legacy tokens/email lookup...');
       const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-      
+
       if (userError || !userData?.users) {
         console.error('[Supabase] FATAL Admin API error:', userError);
-        return NextResponse.json({ 
-          error: 'Authentication authority unreachable',
-          details: userError?.message || 'Empty user list',
-          diagnostic: 'AUTH_API_FAILURE'
-        }, { status: 500 });
+        return NextResponse.json(
+          {
+            error: 'Authentication authority unreachable',
+            details: userError?.message || 'Empty user list',
+            diagnostic: 'AUTH_API_FAILURE',
+          },
+          { status: 500 },
+        );
       }
 
       const legacyUser = userData.users.find((u: any) => u.email === email);
@@ -118,32 +144,36 @@ export async function POST(request: Request) {
 
     // 3. Store the Authenticator in the database
     console.log(`[API] Binding device to user ${targetUserId}...`);
-    const { error: dbError } = await supabase
-      .from('authorized_devices')
-      .insert({
-        user_id: targetUserId,
-        credential_id: credentialID,
-        public_key: credentialPublicKey,       
-        counter,
-        transports: body.response?.transports || [],
-        device_name: deviceName || 'Hardware Authenticator',
-        attestation_type: registrationInfo.attestationObject ? 'direct' : 'none',
-      });
+    const { error: dbError } = await supabase.from('authorized_devices').insert({
+      user_id: targetUserId,
+      credential_id: credentialID,
+      public_key: credentialPublicKey,
+      counter,
+      transports: body.response?.transports || [],
+      device_name: deviceName || 'Hardware Authenticator',
+      attestation_type: registrationInfo.attestationObject ? 'direct' : 'none',
+    });
 
     if (dbError) {
       console.error('[Supabase] DB storing error:', dbError);
-      return NextResponse.json({ 
-        error: 'Database rejection', 
-        details: dbError.message,
-        diagnostic: 'DB_INSERT_FAILURE'
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: 'Database rejection',
+          details: dbError.message,
+          diagnostic: 'DB_INSERT_FAILURE',
+        },
+        { status: 500 },
+      );
     }
 
     // 4. Mark Token/Invite as Used
     if (inviteData) {
       await supabase.from('device_invites').update({ used: true }).eq('id', inviteData.id);
     } else {
-      await supabase.from('enrollment_tokens').update({ is_used: true }).eq('token_hash', enrollmentToken);
+      await supabase
+        .from('enrollment_tokens')
+        .update({ is_used: true })
+        .eq('token_hash', enrollmentToken);
     }
 
     cookieStore.delete('webauthn_reg_challenge');
@@ -151,11 +181,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('[API] TOP-LEVEL CRASH:', error);
-    return NextResponse.json({ 
-      error: 'Internal Server Error', 
-      details: error.message,
-      stack: error.stack?.split('\n')[0], // Only first line of stack for security
-      diagnostic: 'TOP_LEVEL_CRASH'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Internal Server Error',
+        details: error.message,
+        stack: error.stack?.split('\n')[0], // Only first line of stack for security
+        diagnostic: 'TOP_LEVEL_CRASH',
+      },
+      { status: 500 },
+    );
   }
 }

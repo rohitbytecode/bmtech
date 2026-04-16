@@ -42,7 +42,7 @@ export const useSubmissions = () => {
         if (fetchError) throw fetchError;
 
         if (isMounted) {
-          setSubmissions(data as Submission[] || []);
+          setSubmissions((data as Submission[]) || []);
           setSubmissionCount(data?.length || 0);
         }
       } catch (err) {

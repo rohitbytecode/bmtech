@@ -28,8 +28,11 @@ export async function POST(request: Request) {
     }
 
     const supabase = createServerSupabase();
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
+
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -37,10 +40,10 @@ export async function POST(request: Request) {
     // 2. Perform Update with Service Role
     const { data, error } = await supabase
       .from('settings')
-      .upsert({ 
-        id: 1, 
-        ...updates, 
-        updated_at: new Date().toISOString() 
+      .upsert({
+        id: 1,
+        ...updates,
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();

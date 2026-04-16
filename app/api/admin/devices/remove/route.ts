@@ -11,11 +11,11 @@ export async function POST(request: Request) {
     }
 
     const supabase = createServerSupabase();
-    
+
     // 1. Get current user from session
     const cookieStore = await cookies();
     const authCookie = cookieStore.get('sb-auth-token');
-    
+
     if (!authCookie) {
       return NextResponse.json({ error: 'No session found' }, { status: 401 });
     }
@@ -28,7 +28,10 @@ export async function POST(request: Request) {
       token = authCookie.value;
     }
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

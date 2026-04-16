@@ -33,9 +33,7 @@ export async function proxy(request: NextRequest) {
     const allCookies = request.cookies.getAll();
 
     const authCookie = allCookies.find(
-      (c) =>
-        c.name.includes('auth-token') ||
-        c.name.includes('supabase.auth.token')
+      (c) => c.name.includes('auth-token') || c.name.includes('supabase.auth.token'),
     );
 
     if (!authCookie) {
@@ -77,8 +75,7 @@ export async function proxy(request: NextRequest) {
       if (
         error ||
         !user ||
-        (user.user_metadata?.role !== 'admin' &&
-          user.user_metadata?.is_super_admin !== true)
+        (user.user_metadata?.role !== 'admin' && user.user_metadata?.is_super_admin !== true)
       ) {
         return NextResponse.redirect(new URL('/admin/login', request.url));
       }
@@ -86,7 +83,7 @@ export async function proxy(request: NextRequest) {
       // Hardware Verification (Zero-Trust)
       const hardwareVerifiedToken = request.cookies.get('bmtech_hardware_verified')?.value;
 
-      // Check if user has ANY registered devices. 
+      // Check if user has ANY registered devices.
       // If 0 devices, we allow them in so they can register their first one.
       const { data: devices } = await supabase
         .from('authorized_devices')
@@ -101,7 +98,7 @@ export async function proxy(request: NextRequest) {
         }
 
         // Live Cross-Reference: Verify the token matches a valid device in the DB
-        const isValidDevice = devices.some(d => d.credential_id === hardwareVerifiedToken);
+        const isValidDevice = devices.some((d) => d.credential_id === hardwareVerifiedToken);
         if (!isValidDevice) {
           // Device de-authorized! Clear cookies and kick out.
           const response = NextResponse.redirect(new URL('/admin/login', request.url));

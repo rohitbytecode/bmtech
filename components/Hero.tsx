@@ -1,10 +1,10 @@
-"use client";
-import { Button } from "./ui/Button";
-import { ArrowRight, PlayCircle, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useData } from "@/hooks/useData";
-import { Settings } from "@/services/dataService";
+'use client';
+import { Button } from './ui/Button';
+import { ArrowRight, PlayCircle, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useData } from '@/hooks/useData';
+import { Settings } from '@/services/dataService';
 
 export default function Hero() {
   const router = useRouter();
@@ -26,10 +26,10 @@ export default function Hero() {
           className="mb-6 flex justify-center"
         >
           <span className="px-4 py-2 rounded-full border border-accent-blue/30 bg-accent-blue/5 text-accent-blue text-xs font-semibold uppercase tracking-widest leading-none">
-            {s?.agency_name || "Next Generation Digital Agency"}
+            {s?.agency_name || 'Next Generation Digital Agency'}
           </span>
         </motion.div>
-        
+
         {loading ? (
           <div className="h-32 flex items-center justify-center">
             <Loader2 className="animate-spin text-accent-blue" size={40} />
@@ -42,7 +42,7 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-5xl md:text-7xl font-bold mb-8 leading-tight tracking-tight text-white"
             >
-              {s?.headline || "We Handle Your Digital."} <br className="hidden md:block" />
+              {s?.headline || 'We Handle Your Digital.'} <br className="hidden md:block" />
               <span className="text-accent-blue">You Grow Your Business.</span>
             </motion.h1>
 
@@ -52,7 +52,8 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-lg md:text-xl text-text-secondary mb-12 max-w-2xl mx-auto font-body"
             >
-              {s?.description || "Partner with BMTech for world-class graphics, video production, IT infrastructure, and social media scaling. Your vision, our expertise."}
+              {s?.description ||
+                'Partner with BMTech for world-class graphics, video production, IT infrastructure, and social media scaling. Your vision, our expertise.'}
             </motion.p>
           </>
         )}
@@ -63,13 +64,23 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 py-4"
         >
-          <Button size="lg" className="w-full sm:w-auto h-14 group" onClick={() => router.push('/login')}>
-            Get Started <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+          <Button
+            size="lg"
+            className="w-full sm:w-auto h-14 group"
+            onClick={() => router.push('/login')}
+          >
+            Get Started{' '}
+            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <Button variant="outline" size="lg" className="w-full sm:w-auto h-14" onClick={() => {
-            const portfolioSection = document.getElementById('portfolio');
-            portfolioSection?.scrollIntoView({ behavior: 'smooth' });
-          }}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto h-14"
+            onClick={() => {
+              const portfolioSection = document.getElementById('portfolio');
+              portfolioSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
             View Portfolio <PlayCircle className="ml-2" />
           </Button>
         </motion.div>

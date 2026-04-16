@@ -39,12 +39,16 @@ export default function ClientDashboardPage() {
             <div className="flex h-16 justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-accent-blue">BMTech</span>
-                <span className="text-xs font-medium text-text-secondary bg-border/50 px-2 py-1 rounded">CLIENT</span>
+                <span className="text-xs font-medium text-text-secondary bg-border/50 px-2 py-1 rounded">
+                  CLIENT
+                </span>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-sm font-medium text-text-primary">{user?.email}</p>
-                  <p className={`text-xs font-medium ${emailVerified ? 'text-green-400' : 'text-orange-400'}`}>
+                  <p
+                    className={`text-xs font-medium ${emailVerified ? 'text-green-400' : 'text-orange-400'}`}
+                  >
                     {emailVerified ? '✓ Verified' : '⚠ Not verified'}
                   </p>
                 </div>
@@ -111,7 +115,9 @@ export default function ClientDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Account Information Card */}
               <div className="rounded-xl bg-surface shadow-sm shadow-black/10 border border-border p-6">
-                <h2 className="text-lg font-semibold text-text-primary mb-4">Account Information</h2>
+                <h2 className="text-lg font-semibold text-text-primary mb-4">
+                  Account Information
+                </h2>
                 <div className="space-y-4">
                   <div>
                     <label className="text-xs font-medium text-text-secondary">Email Address</label>
@@ -124,7 +130,9 @@ export default function ClientDashboardPage() {
                     </p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-text-secondary">Account Status</label>
+                    <label className="text-xs font-medium text-text-secondary">
+                      Account Status
+                    </label>
                     <div className="flex items-center gap-2 mt-1">
                       {emailVerified ? (
                         <>
@@ -134,7 +142,9 @@ export default function ClientDashboardPage() {
                       ) : (
                         <>
                           <AlertCircle size={16} className="text-orange-400" />
-                          <span className="text-sm text-orange-400 font-medium">Pending Verification</span>
+                          <span className="text-sm text-orange-400 font-medium">
+                            Pending Verification
+                          </span>
                         </>
                       )}
                     </div>
@@ -142,7 +152,9 @@ export default function ClientDashboardPage() {
                   <div>
                     <label className="text-xs font-medium text-text-secondary">Member Since</label>
                     <p className="text-sm text-text-primary mt-1">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Recently'}
+                      {user?.created_at
+                        ? new Date(user.created_at).toLocaleDateString()
+                        : 'Recently'}
                     </p>
                   </div>
                 </div>
@@ -169,7 +181,9 @@ export default function ClientDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-green-300">Email Verified</p>
-                      <p className="text-2xl font-bold text-text-primary mt-1">{emailVerified ? '✓ Yes' : '✗ No'}</p>
+                      <p className="text-2xl font-bold text-text-primary mt-1">
+                        {emailVerified ? '✓ Yes' : '✗ No'}
+                      </p>
                     </div>
                     <div className="w-12 h-12 rounded-lg bg-green-500/15 flex items-center justify-center">
                       {emailVerified ? (
@@ -188,7 +202,9 @@ export default function ClientDashboardPage() {
                       {submissionsLoading ? (
                         <div className="h-8 w-12 bg-purple-500/20 rounded mt-2 animate-pulse"></div>
                       ) : (
-                        <p className="text-2xl font-bold text-text-primary mt-1">{submissionCount}</p>
+                        <p className="text-2xl font-bold text-text-primary mt-1">
+                          {submissionCount}
+                        </p>
                       )}
                     </div>
                     <div className="w-12 h-12 rounded-lg bg-purple-500/15 flex items-center justify-center">
@@ -214,7 +230,9 @@ export default function ClientDashboardPage() {
               ) : submissionCount === 0 ? (
                 <div className="text-center py-12 px-8">
                   <FileText size={48} className="mx-auto text-text-secondary mb-4" />
-                  <h3 className="text-lg font-semibold text-text-primary mb-2">No Submissions Yet</h3>
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">
+                    No Submissions Yet
+                  </h3>
                   <p className="text-text-secondary mb-6">
                     You haven't submitted any inquiries or requests yet.
                   </p>
@@ -230,33 +248,56 @@ export default function ClientDashboardPage() {
                   <table className="w-full">
                     <thead className="bg-background border-b border-border">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">Service</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">Message</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">
+                          Name
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">
+                          Service
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">
+                          Message
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary">
+                          Date
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {submissions.map((submission, index) => (
-                        <tr key={submission.id} className={index !== submissions.length - 1 ? 'border-b border-border' : ''}>
+                        <tr
+                          key={submission.id}
+                          className={
+                            index !== submissions.length - 1 ? 'border-b border-border' : ''
+                          }
+                        >
                           <td className="px-6 py-4 text-sm text-text-primary">{submission.name}</td>
-                          <td className="px-6 py-4 text-sm text-text-secondary">{submission.service_id || 'General'}</td>
-                          <td className="px-6 py-4 text-sm text-text-secondary max-w-xs truncate">{submission.message}</td>
+                          <td className="px-6 py-4 text-sm text-text-secondary">
+                            {submission.service_id || 'General'}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-text-secondary max-w-xs truncate">
+                            {submission.message}
+                          </td>
                           <td className="px-6 py-4 text-sm">
-                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                              submission.status === 'new'
-                                ? 'bg-accent-blue/15 text-blue-300'
-                                : submission.status === 'contacted'
-                                ? 'bg-green-500/15 text-green-300'
-                                : 'bg-border text-text-secondary'
-                            }`}>
+                            <span
+                              className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                submission.status === 'new'
+                                  ? 'bg-accent-blue/15 text-blue-300'
+                                  : submission.status === 'contacted'
+                                    ? 'bg-green-500/15 text-green-300'
+                                    : 'bg-border text-text-secondary'
+                              }`}
+                            >
                               {submission.status || 'new'}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-text-secondary flex items-center gap-1">
                             <Clock size={14} />
-                            {submission.created_at ? new Date(submission.created_at).toLocaleDateString() : 'N/A'}
+                            {submission.created_at
+                              ? new Date(submission.created_at).toLocaleDateString()
+                              : 'N/A'}
                           </td>
                         </tr>
                       ))}

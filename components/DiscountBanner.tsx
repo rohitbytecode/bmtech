@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function DiscountBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const isClosed = localStorage.getItem("discount_closed");
+    const isClosed = localStorage.getItem('discount_closed');
 
     if (!isClosed) {
       setVisible(true);
@@ -14,7 +14,7 @@ export default function DiscountBanner() {
   }, []);
 
   const handleClose = () => {
-    localStorage.setItem("discount_closed", "true");
+    localStorage.setItem('discount_closed', 'true');
     setVisible(false);
   };
 
@@ -22,7 +22,6 @@ export default function DiscountBanner() {
 
   return (
     <div className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2 flex items-center justify-center relative text-sm font-medium tracking-wide">
-      
       <span>
         Launch Offer: <strong>First 5 Clients Get 20% OFF</strong> - Limited Slots Available
       </span>

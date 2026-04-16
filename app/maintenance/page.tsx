@@ -15,20 +15,21 @@ export default function MaintenancePage() {
             <Settings className="w-16 h-16 text-accent-blue animate-[spin_4s_linear_infinite]" />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-text-primary tracking-tight">System Update</h1>
           <p className="text-text-secondary text-lg">
             We are currently upgrading our systems to provide you with an even better experience.
           </p>
         </div>
-        
+
         <div className="p-4 rounded-xl bg-surface border border-border">
           <p className="text-sm font-semibold text-text-primary uppercase tracking-widest text-accent-blue">
             Estimated time: Short Term
           </p>
           <p className="text-xs text-text-secondary mt-1">
-            Our team is working hard to bring the site back online quickly. Thank you for your patience!
+            Our team is working hard to bring the site back online quickly. Thank you for your
+            patience!
           </p>
         </div>
       </div>

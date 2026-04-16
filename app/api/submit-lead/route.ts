@@ -14,9 +14,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Supabase server environment variables are not configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
+        error:
+          'Supabase server environment variables are not configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
   const body = await request.json();
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
   if (!name || !email || !message) {
     return NextResponse.json(
       { success: false, error: 'Name, email, and message are required.' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
   if (error) {
     return NextResponse.json(
       { success: false, error: error.message ?? 'Failed to save lead.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

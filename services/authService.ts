@@ -17,7 +17,7 @@ export const authService = {
   async signUp(
     email: string,
     password: string,
-    role: 'admin' | 'team' | 'client' = 'client'
+    role: 'admin' | 'team' | 'client' = 'client',
   ): Promise<SignUpResponse> {
     try {
       if (!email || !password) {

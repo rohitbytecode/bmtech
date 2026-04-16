@@ -11,7 +11,7 @@ export function useData<T>(entity: EntityType) {
   const fetchData = async () => {
     setLoading(true);
     setError(null);
-    
+
     let res: { data: unknown[] | null; error: string | null } = { data: null, error: null };
 
     switch (entity) {

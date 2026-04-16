@@ -33,7 +33,9 @@ export default function SignupPage() {
     }
 
     setShowVerificationPending(true);
-    setMessage('Check your email for the confirmation link. Click it to verify your email address.');
+    setMessage(
+      'Check your email for the confirmation link. Click it to verify your email address.',
+    );
     setIsLoading(false);
   };
 
@@ -96,7 +98,9 @@ export default function SignupPage() {
               </div>
               <h3 className="text-lg font-semibold text-text-primary">Email Verification Sent</h3>
               <p className="text-sm text-text-secondary">
-                We&apos;ve sent a confirmation link to <strong className="text-text-primary">{email}</strong>. Click the link in the email to verify your account.
+                We&apos;ve sent a confirmation link to{' '}
+                <strong className="text-text-primary">{email}</strong>. Click the link in the email
+                to verify your account.
               </p>
             </div>
 
@@ -106,7 +110,7 @@ export default function SignupPage() {
                 disabled={isResending}
                 className="w-full rounded-lg bg-surface px-4 py-2.5 text-sm font-semibold text-text-primary border border-border hover:bg-border/50 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-all disabled:opacity-70"
               >
-                {isResending ? 'Resending...' : 'Didn\'t receive the email? Resend'}
+                {isResending ? 'Resending...' : "Didn't receive the email? Resend"}
               </button>
 
               <Link
@@ -125,7 +129,10 @@ export default function SignupPage() {
           <form className="mt-8 space-y-6" onSubmit={handleSignup}>
             <div className="space-y-4 rounded-md">
               <div>
-                <label className="block text-sm font-medium text-text-secondary" htmlFor="email-address">
+                <label
+                  className="block text-sm font-medium text-text-secondary"
+                  htmlFor="email-address"
+                >
                   Email address
                 </label>
                 <input
@@ -161,7 +168,9 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-secondary">Account Type</label>
+                <label className="block text-sm font-medium text-text-secondary">
+                  Account Type
+                </label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as 'client' | 'team')}
@@ -188,7 +197,10 @@ export default function SignupPage() {
         {!showVerificationPending && (
           <p className="mt-4 text-center text-sm text-text-secondary">
             Already have an account?{' '}
-            <Link href="/login" className="font-medium text-accent-blue hover:text-blue-400 transition-colors">
+            <Link
+              href="/login"
+              className="font-medium text-accent-blue hover:text-blue-400 transition-colors"
+            >
               Sign in instead
             </Link>
           </p>

@@ -1,6 +1,7 @@
 # Deployment & Production Setup Guide
 
 ## Table of Contents
+
 1. [Pre-Deployment Checklist](#pre-deployment-checklist)
 2. [Supabase Production Configuration](#supabase-production-configuration)
 3. [Environment Variables Setup](#environment-variables-setup)
@@ -15,6 +16,7 @@
 Before deploying to production, ensure:
 
 ### Code Quality
+
 - [ ] All environment variables properly set
 - [ ] No hardcoded URLs (should use `NEXT_PUBLIC_APP_URL`)
 - [ ] Error handling implemented for all API calls
@@ -22,6 +24,7 @@ Before deploying to production, ensure:
 - [ ] Build completes without errors: `npm run build`
 
 ### Authentication
+
 - [ ] Email verification tested end-to-end
 - [ ] Auth redirect URLs configured in Supabase
 - [ ] Signup and login flows work correctly
@@ -29,6 +32,7 @@ Before deploying to production, ensure:
 - [ ] Logout clears session properly
 
 ### Database
+
 - [ ] RLS policies enabled on all tables
 - [ ] Public read/write policies tested
 - [ ] Admin-only operations protected
@@ -36,6 +40,7 @@ Before deploying to production, ensure:
 - [ ] Migration rollback plan documented
 
 ### Security
+
 - [ ] Service role key never exposed in frontend
 - [ ] .env files excluded from git (.gitignore updated)
 - [ ] HTTPS enforced on production
@@ -51,6 +56,7 @@ Before deploying to production, ensure:
 **Recommended**: Create a separate Supabase project for production.
 
 **Steps**:
+
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
 2. Click "New Project"
 3. Select your region (choose closest to users)
@@ -87,6 +93,7 @@ CREATE POLICY "Public Read" ON table_name FOR SELECT USING (true);
 ## Environment Variables Setup
 
 ### Local Development
+
 **File**: `.env.local`
 
 ```bash
@@ -116,6 +123,7 @@ NODE_ENV=production
 ```
 
 ### Staging Environment (Optional)
+
 Create a staging project for testing before production:
 
 ```bash
@@ -145,6 +153,7 @@ For Vercel deployment, visit your project settings to find the domain.
 2. Add all possible redirect URLs:
 
 **Production**:
+
 ```
 https://yourdomain.com/auth/callback
 https://yourdomain.com/login
@@ -152,6 +161,7 @@ https://yourdomain.com/dashboard
 ```
 
 **Staging** (if applicable):
+
 ```
 https://staging.yourdomain.com/auth/callback
 https://staging.yourdomain.com/login
@@ -159,6 +169,7 @@ https://staging.yourdomain.com/dashboard
 ```
 
 **Local Development** (for testing):
+
 ```
 http://localhost:3000/auth/callback
 http://localhost:3000/login
@@ -222,8 +233,8 @@ CREATE POLICY "admin_delete_leads" ON leads
 Run this query to check:
 
 ```sql
-SELECT tablename, rowsecurity 
-FROM pg_tables 
+SELECT tablename, rowsecurity
+FROM pg_tables
 WHERE schemaname = 'public';
 ```
 
@@ -243,12 +254,12 @@ All should show `rowsecurity = true`.
 
 #### Common Production Errors
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Invalid email or password` | Wrong credentials | User needs to verify email first |
-| `Email not verified` | Sign-up incomplete | Resend verification email |
-| `Redirect URL not recognized` | Domain mismatch | Update URL Configuration in Supabase |
-| `RLS policy violation` | Policy blocks access | Check RLS policies match your data model |
+| Error                         | Cause                | Fix                                      |
+| ----------------------------- | -------------------- | ---------------------------------------- |
+| `Invalid email or password`   | Wrong credentials    | User needs to verify email first         |
+| `Email not verified`          | Sign-up incomplete   | Resend verification email                |
+| `Redirect URL not recognized` | Domain mismatch      | Update URL Configuration in Supabase     |
+| `RLS policy violation`        | Policy blocks access | Check RLS policies match your data model |
 
 ### Monitoring Checklist
 
@@ -317,6 +328,7 @@ If using a custom domain:
 If something goes wrong in production:
 
 1. **Revert Code**:
+
    ```bash
    git revert <commit-hash>
    git push origin main

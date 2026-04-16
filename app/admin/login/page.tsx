@@ -1,20 +1,20 @@
-"use client";
+'use client';
 // Admin Login Page with Enterprise SSO
 
-import React, { useState } from "react";
-import { Lock, Mail, ArrowRight, Shield } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { InputField } from "@/components/admin/FormFields";
-import { authorizeCurrentDevice, isDeviceAuthorized, getDeviceFingerprint } from "@/lib/device";
-import { authService } from "@/services/authService";
-import { webauthnClient } from "@/lib/webauthnClient";
+import React, { useState } from 'react';
+import { Lock, Mail, ArrowRight, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { InputField } from '@/components/admin/FormFields';
+import { authorizeCurrentDevice, isDeviceAuthorized, getDeviceFingerprint } from '@/lib/device';
+import { authService } from '@/services/authService';
+import { webauthnClient } from '@/lib/webauthnClient';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deviceFingerprint, setDeviceFingerprint] = useState("");
+  const [deviceFingerprint, setDeviceFingerprint] = useState('');
 
   React.useEffect(() => {
     setDeviceFingerprint(getDeviceFingerprint());
@@ -33,7 +33,7 @@ export default function AdminLogin() {
         result = await webauthnClient.authenticate(email, password);
       } catch (err: any) {
         // If no hardware → fallback
-        if (err.message.includes("No hardware keys")) {
+        if (err.message.includes('No hardware keys')) {
           result = { fallback: true };
         } else {
           throw err;
@@ -48,21 +48,20 @@ export default function AdminLogin() {
           throw new Error(error);
         }
 
-        window.location.href = "/admin/dashboard";
+        window.location.href = '/admin/dashboard';
         return;
       }
 
       // Step 3: WebAuthn success
       if (result.success) {
-        window.location.href = "/admin/dashboard";
+        window.location.href = '/admin/dashboard';
         return;
       }
 
-      throw new Error(result.error || "Authentication failed");
-
+      throw new Error(result.error || 'Authentication failed');
     } catch (err: any) {
-      console.error("Login error:", err);
-      setError(err.message || "Login failed");
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +118,10 @@ export default function AdminLogin() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer group text-text-secondary hover:text-text-primary transition-colors">
-                <input type="checkbox" className="w-4 h-4 rounded border-border bg-background accent-accent-blue focus:ring-accent-blue/40" />
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-border bg-background accent-accent-blue focus:ring-accent-blue/40"
+                />
                 <span>Stay signed in</span>
               </label>
               {/* <a href="#" className="text-accent-blue hover:text-accent-blue/80 font-bold transition-colors">Reset Key</a> */}
@@ -137,7 +139,11 @@ export default function AdminLogin() {
                 </div>
               ) : (
                 <>
-                  Initialize Dashboard <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  Initialize Dashboard{' '}
+                  <ArrowRight
+                    size={20}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </>
               )}
             </Button>
@@ -152,7 +158,13 @@ export default function AdminLogin() {
         </div>
 
         <p className="text-center text-text-secondary text-sm">
-          Technical issues? <a href="#" className="text-text-primary underline font-semibold decoration-accent-blue/40 underline-offset-4 decoration-2">Contact System Architect</a>
+          Technical issues?{' '}
+          <a
+            href="#"
+            className="text-text-primary underline font-semibold decoration-accent-blue/40 underline-offset-4 decoration-2"
+          >
+            Contact System Architect
+          </a>
         </p>
       </div>
     </div>

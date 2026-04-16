@@ -1,28 +1,33 @@
-"use client";
+'use client';
 
-import React from "react";
-import { User as UserIcon, Search, Bell, Loader2 } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import React from 'react';
+import { User as UserIcon, Search, Bell, Loader2 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, role, loading } = useAuth();
-  const pageTitle = pathname.split("/").pop() || "Dashboard";
+  const pageTitle = pathname.split('/').pop() || 'Dashboard';
   const formattedTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
 
   return (
     <header className="h-20 bg-background border-b border-border px-8 flex items-center justify-between sticky top-0 z-40">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary capitalize">{formattedTitle}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary capitalize">
+          {formattedTitle}
+        </h1>
       </div>
 
       <div className="flex items-center gap-6">
         <div className="relative pointer-events-none opacity-50">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search..." 
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Search..."
             className="h-10 pl-10 pr-4 w-64 bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue/40"
           />
         </div>
@@ -41,7 +46,7 @@ export function Navbar() {
             ) : (
               <>
                 <p className="text-sm font-semibold text-text-primary">
-                  {user?.email?.split('@')[0] || "Admin User"}
+                  {user?.email?.split('@')[0] || 'Admin User'}
                 </p>
                 <p className="text-xs text-text-secondary capitalize">{role}</p>
               </>

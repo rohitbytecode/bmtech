@@ -8,10 +8,10 @@ export const webauthnClient = {
       const res = await fetch('/api/auth/webauthn/register/options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email, 
+        body: JSON.stringify({
+          email,
           enrollmentToken,
-          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined 
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined,
         }),
       });
 
@@ -32,19 +32,21 @@ export const webauthnClient = {
       const verifyRes = await fetch('/api/auth/webauthn/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...credential, 
-          email, 
-          enrollmentToken, 
+        body: JSON.stringify({
+          ...credential,
+          email,
+          enrollmentToken,
           deviceName,
-          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined 
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined,
         }),
       });
 
       const verifyResult = await verifyRes.json();
       if (verifyResult.error) {
         // Show BOTH the general error and the technical details if available
-        const fullError = verifyResult.details ? `${verifyResult.error}: ${verifyResult.details}` : verifyResult.error;
+        const fullError = verifyResult.details
+          ? `${verifyResult.error}: ${verifyResult.details}`
+          : verifyResult.error;
         throw new Error(fullError);
       }
 
@@ -63,9 +65,9 @@ export const webauthnClient = {
       const res = await fetch('/api/auth/webauthn/login/options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email,
-          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined,
         }),
       });
 
@@ -81,31 +83,33 @@ export const webauthnClient = {
 
       console.log('[WebAuthn] Authentication Options received:');
       console.table({
-        RP_ID: options.rpID || "MISSING_RP_ID",
+        RP_ID: options.rpID || 'MISSING_RP_ID',
         Challenge: options.challenge ? options.challenge.substring(0, 10) + '...' : 'MISSING',
       });
 
       if (!options.challenge) {
-        throw new Error("Invalid WebAuthn options received");
+        throw new Error('Invalid WebAuthn options received');
       }
 
       const assertion = await startAuthentication({ optionsJSON: options });
-      
+
       // Send the assertion back to server for verification
       const verifyRes = await fetch('/api/auth/webauthn/login/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...assertion, 
-          email, 
+        body: JSON.stringify({
+          ...assertion,
+          email,
           password,
-          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined 
+          rpIdHint: typeof window !== 'undefined' ? window.location.hostname : undefined,
         }),
       });
 
       const verifyResult = await verifyRes.json();
       if (verifyResult.error) {
-        const fullError = verifyResult.details ? `${verifyResult.error}: ${verifyResult.details}` : verifyResult.error;
+        const fullError = verifyResult.details
+          ? `${verifyResult.error}: ${verifyResult.details}`
+          : verifyResult.error;
         throw new Error(fullError);
       }
 
@@ -113,13 +117,14 @@ export const webauthnClient = {
     } catch (err: any) {
       // Detailed error identification for hardware auth
       let errorMessage = err.message;
-      
+
       if (err.name === 'NotAllowedError') {
-        errorMessage = 'Hardware authentication was not allowed. This usually happens if the domain mismatch or user canceled the request.';
+        errorMessage =
+          'Hardware authentication was not allowed. This usually happens if the domain mismatch or user canceled the request.';
         console.warn('WebAuthn Configuration Check:', {
           currentOrigin: window.location.origin,
           currentHost: window.location.hostname,
-          rpId: options?.rpID || 'unknown'
+          rpId: options?.rpID || 'unknown',
         });
       } else if (err.name === 'SecurityError') {
         errorMessage = 'WebAuthn is only available over HTTPS or localhost.';
@@ -128,5 +133,5 @@ export const webauthnClient = {
       console.error('WebAuthn Authentication Error:', err);
       throw new Error(errorMessage);
     }
-  }
+  },
 };

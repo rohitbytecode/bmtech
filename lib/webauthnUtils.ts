@@ -52,7 +52,7 @@ export const webauthnUtils = {
     userId: string,
     existingCredentials: any[] = [],
     overrideRpId?: string,
-    hint?: string
+    hint?: string,
   ) {
     const rpId = getRpId(overrideRpId, hint);
 
@@ -72,7 +72,7 @@ export const webauthnUtils = {
         userVerification: 'preferred',
         authenticatorAttachment: 'platform',
       },
-      excludeCredentials: existingCredentials.map(cred => ({
+      excludeCredentials: existingCredentials.map((cred) => ({
         id: cred.credential_id,
         transports: cred.transports || ['internal'],
       })),
@@ -85,7 +85,7 @@ export const webauthnUtils = {
     expectedChallenge: string,
     overrideOrigin?: string,
     overrideRpId?: string,
-    hint?: string
+    hint?: string,
   ) {
     const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
@@ -109,7 +109,7 @@ export const webauthnUtils = {
   async getAuthenticationOptions(
     allowCredentials: any[] = [],
     overrideRpId?: string,
-    hint?: string
+    hint?: string,
   ) {
     const rpId = getRpId(overrideRpId, hint);
 
@@ -119,7 +119,7 @@ export const webauthnUtils = {
 
     return generateAuthenticationOptions({
       rpID: rpId,
-      allowCredentials: allowCredentials.map(cred => ({
+      allowCredentials: allowCredentials.map((cred) => ({
         id: cred.credential_id,
         transports: cred.transports || undefined,
       })),
@@ -136,7 +136,7 @@ export const webauthnUtils = {
     counter: number,
     overrideOrigin?: string,
     overrideRpId?: string,
-    hint?: string
+    hint?: string,
   ) {
     const rpId = getRpId(overrideRpId, hint);
     const origin = getOrigin(overrideOrigin);
@@ -159,17 +159,13 @@ export const webauthnUtils = {
 
     // Derive credential ID as string (base64url)
     const credentialIdString =
-      typeof credentialID === 'string'
-        ? credentialID
-        : base64url.encode(Buffer.from(credentialID));
+      typeof credentialID === 'string' ? credentialID : base64url.encode(Buffer.from(credentialID));
 
     // Derive public key as Uint8Array
     // Derive public key as Uint8Array<ArrayBuffer>
-const publicKeyBuffer = (
-  publicKey.includes('-') || publicKey.includes('_')
-    ? base64url.toBuffer(publicKey)
-    : Buffer.from(publicKey, 'base64')
-) as unknown as Uint8Array<ArrayBuffer>;
+    const publicKeyBuffer = (publicKey.includes('-') || publicKey.includes('_')
+      ? base64url.toBuffer(publicKey)
+      : Buffer.from(publicKey, 'base64')) as unknown as Uint8Array<ArrayBuffer>;
 
     if (!publicKeyBuffer?.length) {
       throw new Error('Invalid public key binary data');
@@ -184,7 +180,7 @@ const publicKeyBuffer = (
       expectedRPID: rpId,
       credential: {
         id: credentialIdString,
-        publicKey: publicKeyBuffer,   
+        publicKey: publicKeyBuffer,
         counter: safeCounter,
       },
       requireUserVerification: false,

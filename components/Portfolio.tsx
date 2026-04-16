@@ -1,14 +1,17 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import ProjectCard from "./ProjectCard";
-import { Project } from "@/services/dataService";
-import { useData } from "@/hooks/useData";
+'use client';
+import React, { useEffect, useState } from 'react';
+import ProjectCard from './ProjectCard';
+import { Project } from '@/services/dataService';
+import { useData } from '@/hooks/useData';
 
 export default function Portfolio() {
   const { data: projects, loading, error } = useData<Project>('projects');
 
   return (
-    <section id="portfolio" className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50 border-y border-border">
+    <section
+      id="portfolio"
+      className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50 border-y border-border"
+    >
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">Our Masterpieces</h2>
@@ -32,8 +35,13 @@ export default function Portfolio() {
               />
             ))}
           </div>
-        ) : !loading && !error && (
-          <p className="text-center text-text-secondary py-12">No projects found. Check back later!</p>
+        ) : (
+          !loading &&
+          !error && (
+            <p className="text-center text-text-secondary py-12">
+              No projects found. Check back later!
+            </p>
+          )
         )}
       </div>
     </section>

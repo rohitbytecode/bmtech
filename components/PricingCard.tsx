@@ -1,7 +1,7 @@
-"use client";
-import { Check } from "lucide-react";
-import { Button } from "./ui/Button";
-import { cn } from "@/lib/utils";
+'use client';
+import { Check } from 'lucide-react';
+import { Button } from './ui/Button';
+import { cn } from '@/lib/utils';
 
 interface PricingCardProps {
   name: string;
@@ -14,10 +14,10 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
   return (
     <div
       className={cn(
-        "p-8 rounded-2xl border transition-all duration-300 relative overflow-hidden",
+        'p-8 rounded-2xl border transition-all duration-300 relative overflow-hidden',
         highlighted
-          ? "bg-surface border-accent-blue shadow-2xl shadow-accent-blue/15 scale-105"
-          : "bg-surface border-border hover:border-accent-blue/30"
+          ? 'bg-surface border-accent-blue shadow-2xl shadow-accent-blue/15 scale-105'
+          : 'bg-surface border-border hover:border-accent-blue/30',
       )}
     >
       {highlighted && (
@@ -41,10 +41,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
       </ul>
 
       <a href="#contact" className="block w-full">
-        <Button
-          variant={highlighted ? "primary" : "outline"}
-          className="w-full"
-        >
+        <Button variant={highlighted ? 'primary' : 'outline'} className="w-full">
           Choose Plan
         </Button>
       </a>

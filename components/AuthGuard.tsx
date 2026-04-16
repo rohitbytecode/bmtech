@@ -15,11 +15,7 @@ interface AuthGuardProps {
  * Redirects unauthenticated users to login with a return URL.
  * Redirects unauthorized users (insufficient role) to /unauthorized.
  */
-export default function AuthGuard({
-  children,
-  allowedRoles,
-  fallback,
-}: AuthGuardProps) {
+export default function AuthGuard({ children, allowedRoles, fallback }: AuthGuardProps) {
   const { user, loading, role } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

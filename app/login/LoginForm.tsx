@@ -54,7 +54,10 @@ export default function LoginForm() {
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4 rounded-md">
             <div>
-              <label className="block text-sm font-medium text-text-secondary" htmlFor="email-address">
+              <label
+                className="block text-sm font-medium text-text-secondary"
+                htmlFor="email-address"
+              >
                 Email address
               </label>
               <input
@@ -100,7 +103,10 @@ export default function LoginForm() {
 
         <p className="mt-4 text-center text-sm text-text-secondary">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-medium text-accent-blue hover:text-blue-400 transition-colors">
+          <Link
+            href="/signup"
+            className="font-medium text-accent-blue hover:text-blue-400 transition-colors"
+          >
             Sign up now
           </Link>
         </p>

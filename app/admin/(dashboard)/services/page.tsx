@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
-import { DataTable, Column } from "@/components/admin/DataTable";
-import { Button } from "@/components/ui/Button";
-import { ModalForm } from "@/components/admin/ModalForm";
-import { InputField, TextAreaField } from "@/components/admin/FormFields";
-import { useData } from "@/hooks/useData";
-import { dataService, Service } from "@/services/dataService";
+import React, { useState } from 'react';
+import { Plus, Search, Loader2 } from 'lucide-react';
+import { DataTable, Column } from '@/components/admin/DataTable';
+import { Button } from '@/components/ui/Button';
+import { ModalForm } from '@/components/admin/ModalForm';
+import { InputField, TextAreaField } from '@/components/admin/FormFields';
+import { useData } from '@/hooks/useData';
+import { dataService, Service } from '@/services/dataService';
 
 const serviceColumns: Column<Service>[] = [
-  { header: "Title", accessor: "name" },
-  { header: "Icon", accessor: "icon" },
+  { header: 'Title', accessor: 'name' },
+  { header: 'Icon', accessor: 'icon' },
 ];
 
 export default function ServicesPage() {
@@ -19,7 +19,7 @@ export default function ServicesPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleEdit = (service: Service) => {
     setEditingService(service);
@@ -38,10 +38,10 @@ export default function ServicesPage() {
         if (res.success) {
           refresh();
         } else {
-          alert("Error: " + res.error);
+          alert('Error: ' + res.error);
         }
       } catch (err) {
-        alert("Delete failed");
+        alert('Delete failed');
       }
     }
   };
@@ -51,11 +51,11 @@ export default function ServicesPage() {
     setSubmitting(true);
     const form = e.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
-    
+
     const serviceData = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      icon: (formData.get("icon") as string) || "Palette",
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+      icon: (formData.get('icon') as string) || 'Palette',
     };
 
     const runSubmit = async () => {
@@ -71,10 +71,10 @@ export default function ServicesPage() {
           setIsOpen(false);
           refresh();
         } else {
-          alert("Error: " + res.error);
+          alert('Error: ' + res.error);
         }
       } catch (err) {
-        alert("Submission failed");
+        alert('Submission failed');
       } finally {
         setSubmitting(false);
       }
@@ -83,25 +83,29 @@ export default function ServicesPage() {
     runSubmit();
   };
 
-  const filteredServices = Array.isArray(services) ? services.filter(s => 
-    (s.name?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-  ) : [];
+  const filteredServices = Array.isArray(services)
+    ? services.filter((s) => (s.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()))
+    : [];
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="relative group flex-1 max-w-lg">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-accent-blue transition-colors" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search services..." 
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-accent-blue transition-colors"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-2xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue/40 transition-all duration-300"
           />
         </div>
         <Button onClick={handleAdd} className="h-14 px-8 gap-2 group">
-          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" /> Add New Service
+          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" /> Add
+          New Service
         </Button>
       </div>
 
@@ -109,7 +113,7 @@ export default function ServicesPage() {
         <div className="p-1 px-4 text-sm font-semibold text-text-secondary uppercase tracking-widest border-l-4 border-accent-blue">
           Service Catalog ({filteredServices.length})
         </div>
-        
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-text-secondary gap-4">
             <Loader2 className="animate-spin text-accent-blue" size={40} />
@@ -120,9 +124,9 @@ export default function ServicesPage() {
             <p className="text-rose-400 font-medium">Error loading services: {error}</p>
           </div>
         ) : (
-          <DataTable 
-            data={filteredServices} 
-            columns={serviceColumns} 
+          <DataTable
+            data={filteredServices}
+            columns={serviceColumns}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -132,33 +136,37 @@ export default function ServicesPage() {
       <ModalForm
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title={editingService ? "Edit Service" : "Add New Service"}
-        description={editingService ? "Update the details of your service below." : "Fill in the information to create a new service."}
-        submitLabel={editingService ? "Update Service" : "Create Service"}
+        title={editingService ? 'Edit Service' : 'Add New Service'}
+        description={
+          editingService
+            ? 'Update the details of your service below.'
+            : 'Fill in the information to create a new service.'
+        }
+        submitLabel={editingService ? 'Update Service' : 'Create Service'}
         isSubmitting={submitting}
         onSubmit={handleSubmit}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField 
-            label="Service Title" 
+          <InputField
+            label="Service Title"
             name="name"
-            placeholder="e.g., UI/UX Design" 
-            required 
+            placeholder="e.g., UI/UX Design"
+            required
             defaultValue={editingService?.name}
           />
-          <InputField 
-            label="Icon Name" 
+          <InputField
+            label="Icon Name"
             name="icon"
-            placeholder="e.g., Palette, Code2" 
-            required 
-            defaultValue={editingService?.icon || "Palette"}
+            placeholder="e.g., Palette, Code2"
+            required
+            defaultValue={editingService?.icon || 'Palette'}
           />
           <div className="md:col-span-2">
-            <TextAreaField 
-              label="Description" 
+            <TextAreaField
+              label="Description"
               name="description"
-              placeholder="Describe what this service includes..." 
-              required 
+              placeholder="Describe what this service includes..."
+              required
               defaultValue={editingService?.description}
             />
           </div>
@@ -167,4 +175,3 @@ export default function ServicesPage() {
     </div>
   );
 }
-

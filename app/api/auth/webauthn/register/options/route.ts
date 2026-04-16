@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     // 1. Verify Enrollment Token (New device_invites first, then legacy enrollment_tokens)
     let inviterId = null;
-    
+
     const { data: inviteData } = await supabase
       .from('device_invites')
       .select('*')
@@ -35,27 +35,30 @@ export async function POST(request: Request) {
         .eq('is_used', false)
         .gt('expires_at', new Date().toISOString())
         .single();
-        
+
       if (!tokenData) {
-        return NextResponse.json({ error: 'Invalid or expired enrollment token/invite' }, { status: 401 });
+        return NextResponse.json(
+          { error: 'Invalid or expired enrollment token/invite' },
+          { status: 401 },
+        );
       }
     }
 
     // 2. Get User ID (Assume user exists)
-    // For device_invites, we use the creator's ID. 
+    // For device_invites, we use the creator's ID.
     const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-    
+
     if (userError || !userData?.users) {
       console.error('[API] listUsers error:', userError);
       return NextResponse.json({ error: 'Failed to fetch user list' }, { status: 500 });
     }
 
     const { users } = userData;
-    
+
     // If we have an inviterId from device_invites, that IS our target user
-    const user = inviterId 
-      ? users.find(u => u.id === inviterId)
-      : users.find(u => u.email === email);
+    const user = inviterId
+      ? users.find((u) => u.id === inviterId)
+      : users.find((u) => u.email === email);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -65,10 +68,18 @@ export async function POST(request: Request) {
     // Prioritize x-forwarded-host for custom domains on Vercel
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
     const overrideRpId = host.split(':')[0]; // Remove port if present
-    
-    console.log(`[API] Registration Options request for ${user.email}. Host: ${host}, Hint: ${rpIdHint}`);
-    
-    const options = await webauthnUtils.getRegistrationOptions(user.email!, user.id, [], overrideRpId, rpIdHint);
+
+    console.log(
+      `[API] Registration Options request for ${user.email}. Host: ${host}, Hint: ${rpIdHint}`,
+    );
+
+    const options = await webauthnUtils.getRegistrationOptions(
+      user.email!,
+      user.id,
+      [],
+      overrideRpId,
+      rpIdHint,
+    );
 
     // 4. Store Challenge in Cookie for Verification
     const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');

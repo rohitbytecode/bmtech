@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation';
 
 export default async function AdminRoot() {
   const cookieStore = await cookies();
@@ -10,10 +10,10 @@ export default async function AdminRoot() {
 
   // Attempt to find the auth cookie
   const allCookies = cookieStore.getAll();
-  const authCookie = allCookies.find(c => c.name.includes('auth-token'));
+  const authCookie = allCookies.find((c) => c.name.includes('auth-token'));
 
   if (!authCookie) {
-    redirect("/admin/login");
+    redirect('/admin/login');
   }
 
   try {
@@ -25,16 +25,21 @@ export default async function AdminRoot() {
     }
 
     const token = sessionData?.access_token || sessionData?.[0]?.access_token;
-    if (!token) redirect("/admin/login");
+    if (!token) redirect('/admin/login');
 
-    const { data: { user } } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser(token);
 
-    if (user && (user.user_metadata?.role === 'admin' || user.user_metadata?.is_super_admin === true)) {
-      redirect("/admin/dashboard");
+    if (
+      user &&
+      (user.user_metadata?.role === 'admin' || user.user_metadata?.is_super_admin === true)
+    ) {
+      redirect('/admin/dashboard');
     }
   } catch (e) {
     // Fallback to login on error
   }
 
-  redirect("/admin/login");
+  redirect('/admin/login');
 }

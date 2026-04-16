@@ -1,6 +1,6 @@
-"use client";
-import { LucideIcon } from "lucide-react";
-import * as Icons from "lucide-react";
+'use client';
+import { LucideIcon } from 'lucide-react';
+import * as Icons from 'lucide-react';
 
 interface ServiceCardProps {
   title: string;
@@ -20,9 +20,7 @@ export default function ServiceCard({ title, description, iconName }: ServiceCar
       <h3 className="text-xl font-semibold mb-2 group-hover:text-accent-blue transition-colors">
         {title}
       </h3>
-      <p className="text-text-secondary leading-relaxed">
-        {description}
-      </p>
+      <p className="text-text-secondary leading-relaxed">{description}</p>
     </div>
   );
 }

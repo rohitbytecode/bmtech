@@ -1,13 +1,13 @@
-"use client";
-import React, { useState } from "react";
-import { Button } from "./ui/Button";
-import { dataService, Settings } from "@/services/dataService";
-import { useData } from "@/hooks/useData";
+'use client';
+import React, { useState } from 'react';
+import { Button } from './ui/Button';
+import { dataService, Settings } from '@/services/dataService';
+import { useData } from '@/hooks/useData';
 
 export default function Contact() {
   const { data: settings } = useData<Settings>('settings');
   const s = settings?.[0];
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,17 +25,15 @@ export default function Contact() {
       });
 
       if (!result.success) {
-        throw new Error(result.error || "Unable to submit lead.");
+        throw new Error(result.error || 'Unable to submit lead.');
       }
 
       setSuccess(true);
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: '', email: '', message: '' });
     } catch (submitError) {
       const message =
-        submitError instanceof Error
-          ? submitError.message
-          : String(submitError ?? "Unknown error");
-      console.error("Lead submission failed:", message);
+        submitError instanceof Error ? submitError.message : String(submitError ?? 'Unknown error');
+      console.error('Lead submission failed:', message);
       setError(message);
     } finally {
       setLoading(false);
@@ -47,13 +45,14 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Let’s Start Growing Your Business.</h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
+              Let’s Start Growing Your Business.
+            </h2>
             <p className="text-lg text-text-secondary mb-12">
-              Ready to take your digital presence to the next level? Fill out the form and
-              our team will get back to you within 24 hours.
+              Ready to take your digital presence to the next level? Fill out the form and our team
+              will get back to you within 24 hours.
             </p>
             <div className="space-y-8">
-
               {/* PHONE */}
               <div className="flex items-start gap-5">
                 <div className="w-12 h-12 shrink-0 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
@@ -67,11 +66,9 @@ export default function Contact() {
 
                   <div className="space-y-1">
                     <p className="text-lg font-semibold text-white">
-                      {s?.contact_phone || "+91 77788-64972"}
+                      {s?.contact_phone || '+91 77788-64972'}
                     </p>
-                    <p className="text-lg font-semibold text-white/80">
-                      +91 77788-64972
-                    </p>
+                    <p className="text-lg font-semibold text-white/80">+91 77788-64972</p>
                   </div>
                 </div>
               </div>
@@ -88,11 +85,10 @@ export default function Contact() {
                   </p>
 
                   <p className="text-lg font-semibold text-white break-all">
-                    {s?.contact_email || "brothersmediatech@gmail.com"}
+                    {s?.contact_email || 'brothersmediatech@gmail.com'}
                   </p>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -111,7 +107,9 @@ export default function Contact() {
                   </div>
                 ) : null}
                 <div>
-                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">Name</label>
+                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">
+                    Name
+                  </label>
                   <input
                     required
                     type="text"
@@ -122,7 +120,9 @@ export default function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">Email</label>
+                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">
+                    Email
+                  </label>
                   <input
                     required
                     type="email"
@@ -133,7 +133,9 @@ export default function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">Message</label>
+                  <label className="block text-sm font-bold text-text-secondary uppercase mb-2">
+                    Message
+                  </label>
                   <textarea
                     required
                     rows={4}
@@ -144,7 +146,7 @@ export default function Contact() {
                   />
                 </div>
                 <Button disabled={loading} type="submit" className="w-full h-14">
-                  {loading ? "Sending..." : "Submit Inquiry"}
+                  {loading ? 'Sending...' : 'Submit Inquiry'}
                 </Button>
               </form>
             )}

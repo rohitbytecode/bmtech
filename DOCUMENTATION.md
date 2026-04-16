@@ -5,6 +5,7 @@ This folder contains comprehensive guides for the BMTech Supabase integration. *
 ## Quick Navigation
 
 ### For Developers
+
 1. **[SUPABASE_INTEGRATION.md](SUPABASE_INTEGRATION.md)** - Complete technical architecture
    - Authentication flow
    - Database schema
@@ -29,6 +30,7 @@ This folder contains comprehensive guides for the BMTech Supabase integration. *
    - Database seeding
 
 ### For Operations/DevOps
+
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Production checklist
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Debugging procedures
 - Emergency contacts & escalation
@@ -51,19 +53,20 @@ Supabase API
 
 ### Key Components
 
-| Component | Purpose | Config Location |
-|-----------|---------|-----------------|
-| **Auth** | User signup, login, email verification | Supabase Dashboard |
-| **Database** | Services, projects, packages, leads | `SUPABASE_SETUP.md` |
-| **RLS Policies** | Data access control | Supabase Dashboard |
-| **Environment Variables** | App configuration | `.env.local`, `.env` |
-| **Email Verification** | Confirmation links | [Email Verification Guide](#email-verification) |
+| Component                 | Purpose                                | Config Location                                 |
+| ------------------------- | -------------------------------------- | ----------------------------------------------- |
+| **Auth**                  | User signup, login, email verification | Supabase Dashboard                              |
+| **Database**              | Services, projects, packages, leads    | `SUPABASE_SETUP.md`                             |
+| **RLS Policies**          | Data access control                    | Supabase Dashboard                              |
+| **Environment Variables** | App configuration                      | `.env.local`, `.env`                            |
+| **Email Verification**    | Confirmation links                     | [Email Verification Guide](#email-verification) |
 
 ---
 
 ## Getting Started (5 Minutes)
 
 ### 1. Setup Environment
+
 ```bash
 # Copy template
 cp .env.example .env.local
@@ -73,6 +76,7 @@ cp .env.example .env.local
 ```
 
 ### 2. Initialize Database
+
 ```bash
 # Go to Supabase Dashboard → SQL Editor
 # Run SQL from: SUPABASE_SETUP.md
@@ -80,12 +84,14 @@ cp .env.example .env.local
 ```
 
 ### 3. Enable Authentication
+
 ```bash
 # In Supabase Dashboard → Authentication → URL Configuration
 # Add redirect URL: http://localhost:3000/auth/callback
 ```
 
 ### 4. Test the App
+
 ```bash
 npm install
 npm run dev
@@ -102,6 +108,7 @@ npm run dev
 **This is the most common issue!** Follow exactly:
 
 1. **Set Environment Variable** (.env.local):
+
    ```
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
@@ -189,7 +196,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function MyComponent() {
   const { user, isAuthenticated, role } = useAuth();
-  
+
   if (!isAuthenticated) return <p>Please log in</p>;
   return <p>Welcome {user?.email}!</p>;
 }
@@ -205,8 +212,8 @@ const response = await fetch('/api/submit-lead', {
     name: 'John',
     email: 'john@example.com',
     message: 'Hello',
-    service_id: 'uuid-here'
-  })
+    service_id: 'uuid-here',
+  }),
 });
 ```
 
@@ -214,13 +221,13 @@ const response = await fetch('/api/submit-lead', {
 
 ## Environment Variables Explained
 
-| Variable | Where | Purpose |
-|----------|-------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → API | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → API | Public API key |
-| `NEXT_SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → API | **SECRET** - server only |
-| `NEXT_PUBLIC_APP_URL` | .env.local | Your app's domain |
-| `NODE_ENV` | .env | development or production |
+| Variable                         | Where                    | Purpose                   |
+| -------------------------------- | ------------------------ | ------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`       | Supabase Dashboard → API | Supabase project URL      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Supabase Dashboard → API | Public API key            |
+| `NEXT_SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → API | **SECRET** - server only  |
+| `NEXT_PUBLIC_APP_URL`            | .env.local               | Your app's domain         |
+| `NODE_ENV`                       | .env                     | development or production |
 
 **⚠️ Security**: Never commit `.env` file or expose service role key.
 
@@ -245,17 +252,16 @@ Before deploying:
 ## Performance Tips
 
 1. **Enable RLS indexes**:
+
    ```sql
    CREATE INDEX idx_leads_service ON leads(service_id);
    ```
 
 2. **Use select() efficiently**:
+
    ```typescript
    // Good: fetch only needed columns
-   supabase
-     .from('services')
-     .select('id, name, price')
-     .limit(10)
+   supabase.from('services').select('id, name, price').limit(10);
    ```
 
 3. **Enable caching**:
@@ -279,13 +285,13 @@ Before deploying:
 
 ## Troubleshooting Quick Links
 
-| Issue | Guide |
-|-------|-------|
-| Email verification not working | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#email-verification-link-not-working) |
-| Can't sign up | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#cant-sign-up---email-already-registered) |
-| Data access denied | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#cant-see-data-from-tables) |
-| API returns 500 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#submit-lead-api-returns-500-error) |
-| Deployment issues | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md#rollback-procedure) |
+| Issue                          | Guide                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------- |
+| Email verification not working | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#email-verification-link-not-working)     |
+| Can't sign up                  | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#cant-sign-up---email-already-registered) |
+| Data access denied             | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#cant-see-data-from-tables)               |
+| API returns 500                | [TROUBLESHOOTING.md](TROUBLESHOOTING.md#submit-lead-api-returns-500-error)       |
+| Deployment issues              | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md#rollback-procedure)                    |
 
 ---
 
@@ -309,21 +315,21 @@ Before deploying:
 
 ## Updates & Maintenance
 
-| Task | Frequency | Owner |
-|------|-----------|-------|
-| Review error logs | Daily | DevOps |
-| Database backups | Automatic | Supabase |
-| Update dependencies | Monthly | Dev team |
-| Security audit | Quarterly | Security team |
-| Performance review | Monthly | DevOps |
+| Task                | Frequency | Owner         |
+| ------------------- | --------- | ------------- |
+| Review error logs   | Daily     | DevOps        |
+| Database backups    | Automatic | Supabase      |
+| Update dependencies | Monthly   | Dev team      |
+| Security audit      | Quarterly | Security team |
+| Performance review  | Monthly   | DevOps        |
 
 ---
 
 ## Documentation Versions
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | Jan 2025 | Initial release - complete guides |
+| Version | Date     | Changes                           |
+| ------- | -------- | --------------------------------- |
+| 1.0     | Jan 2025 | Initial release - complete guides |
 
 ---
 

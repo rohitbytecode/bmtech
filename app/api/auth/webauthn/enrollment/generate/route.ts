@@ -17,10 +17,13 @@ export async function POST(request: Request) {
     // In a real app, check the requester's session/role
     const cookieStore = await cookies();
     const isHardwareVerified = cookieStore.get('bmtech_hardware_verified')?.value === 'true';
-    
+
     // For now, we enforce that only a hardware-verified admin can generate new invites
     if (!isHardwareVerified) {
-      return NextResponse.json({ error: 'Hardware verification required to generate invites' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Hardware verification required to generate invites' },
+        { status: 403 },
+      );
     }
 
     // 2. Generate a secure one-time token
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
         user_id: userId,
         token_hash: tokenHash,
         expires_at: expiresAt,
-        is_used: false
+        is_used: false,
       })
       .select()
       .single();
@@ -42,10 +45,10 @@ export async function POST(request: Request) {
     if (error) throw error;
 
     // 3. Return the raw token (only shown once)
-    return NextResponse.json({ 
+    return NextResponse.json({
       token: rawToken,
       expiresAt,
-      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/enroll?token=${rawToken}`
+      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/enroll?token=${rawToken}`,
     });
   } catch (error: any) {
     console.error('Enrollment token generation error:', error);

@@ -28,7 +28,7 @@ export const getEmailVerificationUrl = (): string => {
  */
 export const validateAppUrl = (): boolean => {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  
+
   if (!appUrl) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('⚠️  NEXT_PUBLIC_APP_URL is not set. Using default: http://localhost:3000');

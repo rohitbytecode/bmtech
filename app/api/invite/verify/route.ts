@@ -29,10 +29,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invitation has expired' }, { status: 410 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       type: invite.type,
-      expiresAt: invite.expires_at
+      expiresAt: invite.expires_at,
     });
   } catch (error: any) {
     console.error('Invite verification error:', error);

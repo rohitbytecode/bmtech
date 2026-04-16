@@ -1,6 +1,7 @@
 # Supabase Integration Documentation
 
 ## Table of Contents
+
 1. [Architecture Overview](#architecture-overview)
 2. [Environment Setup](#environment-setup)
 3. [Authentication Configuration](#authentication-configuration)
@@ -17,12 +18,14 @@
 ## Architecture Overview
 
 This application uses Supabase as the backend-as-a-service (BaaS) provider for:
+
 - **Authentication**: Email/password signup and login, with email verification
 - **Database**: PostgreSQL for storing services, projects, packages, leads, and maintenance plans
 - **Row Level Security**: Policies to control data access at the database level
 - **Authorization**: Role-based access control (admin, team, client)
 
 ### Technology Stack
+
 - **Frontend**: Next.js 16+ with TypeScript
 - **Auth**: Supabase Auth with email verification
 - **Database**: Supabase PostgreSQL
@@ -94,6 +97,7 @@ NODE_ENV=production
 2. Add **Redirect URLs**:
 
 #### Development
+
 ```
 http://localhost:3000/auth/callback
 http://localhost:3000/login
@@ -101,6 +105,7 @@ http://localhost:3000/dashboard
 ```
 
 #### Production
+
 ```
 https://yourdomain.com/auth/callback
 https://yourdomain.com/login
@@ -135,6 +140,7 @@ await supabase.auth.signUp({
 ```
 
 Access user role in your app:
+
 ```typescript
 const role = user?.user_metadata?.role || 'client';
 ```
@@ -146,6 +152,7 @@ const role = user?.user_metadata?.role || 'client';
 ### Tables Overview
 
 #### 1. **services**
+
 - `id` (UUID, primary key)
 - `name` (TEXT)
 - `description` (TEXT)
@@ -154,6 +161,7 @@ const role = user?.user_metadata?.role || 'client';
 - `created_at` (TIMESTAMP)
 
 #### 2. **projects**
+
 - `id` (UUID, primary key)
 - `title` (TEXT)
 - `category` (TEXT)
@@ -164,6 +172,7 @@ const role = user?.user_metadata?.role || 'client';
 - `created_at` (TIMESTAMP)
 
 #### 3. **packages**
+
 - `id` (TEXT, primary key)
 - `name` (TEXT)
 - `price` (TEXT)
@@ -172,6 +181,7 @@ const role = user?.user_metadata?.role || 'client';
 - `created_at` (TIMESTAMP)
 
 #### 4. **maintenance_plans**
+
 - `id` (TEXT, primary key)
 - `name` (TEXT)
 - `price` (TEXT)
@@ -179,6 +189,7 @@ const role = user?.user_metadata?.role || 'client';
 - `created_at` (TIMESTAMP)
 
 #### 5. **leads**
+
 - `id` (UUID, primary key)
 - `name` (TEXT)
 - `email` (TEXT)
@@ -268,13 +279,13 @@ CREATE POLICY "Public Insert Leads" ON leads FOR INSERT WITH CHECK (true);
 
 ```sql
 -- Only authenticated admins can update services
-CREATE POLICY "Admin Update Services" ON services 
-  FOR UPDATE 
+CREATE POLICY "Admin Update Services" ON services
+  FOR UPDATE
   USING (auth.uid() IS NOT NULL AND auth.jwt() ->> 'role' = 'admin');
 
 -- Only authenticated admins can delete leads
-CREATE POLICY "Admin Delete Leads" ON leads 
-  FOR DELETE 
+CREATE POLICY "Admin Delete Leads" ON leads
+  FOR DELETE
   USING (auth.uid() IS NOT NULL AND auth.jwt() ->> 'role' = 'admin');
 ```
 
@@ -329,6 +340,7 @@ Production: https://yourdomain.com
 **Endpoint**: `POST /api/submit-lead`
 
 **Request Body**:
+
 ```json
 {
   "name": "John Doe",
@@ -339,6 +351,7 @@ Production: https://yourdomain.com
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -354,6 +367,7 @@ Production: https://yourdomain.com
 ```
 
 **Error Response**:
+
 ```json
 {
   "success": false,
@@ -364,28 +378,29 @@ Production: https://yourdomain.com
 ### Authentication API
 
 **Sign Up**:
+
 ```typescript
 const { data, error } = await authService.signUp(
   'user@example.com',
   'password123',
-  'client' // role: 'admin' | 'team' | 'client'
+  'client', // role: 'admin' | 'team' | 'client'
 );
 ```
 
 **Sign In**:
+
 ```typescript
-const { data, error } = await authService.signIn(
-  'user@example.com',
-  'password123'
-);
+const { data, error } = await authService.signIn('user@example.com', 'password123');
 ```
 
 **Sign Out**:
+
 ```typescript
 const { error } = await authService.signOut();
 ```
 
 **Get Current User**:
+
 ```typescript
 const { user, session } = useAuth();
 ```
@@ -399,6 +414,7 @@ const { user, session } = useAuth();
 **Symptom**: Email link redirects to `http://localhost:3000` instead of your domain.
 
 **Solutions**:
+
 1. Verify `NEXT_PUBLIC_APP_URL` is set in `.env`
 2. Check Supabase **Authentication → URL Configuration** has the correct redirect URLs
 3. Ensure both the app and Supabase use the same base URL
@@ -407,6 +423,7 @@ const { user, session } = useAuth();
 ### Users Can't Sign Up
 
 **Checks**:
+
 - Is the Email provider enabled in **Authentication → Providers**?
 - Are there RLS policies blocking the auth schema?
 - Check browser console for error messages
@@ -416,6 +433,7 @@ const { user, session } = useAuth();
 **Cause**: Email token has expired or is invalid.
 
 **Solutions**:
+
 - Request a new sign-up link
 - Check email client's spam folder
 - Verify email forwarding rules
@@ -425,6 +443,7 @@ const { user, session } = useAuth();
 **Symptom**: Frontend can't fetch data from tables.
 
 **Solutions**:
+
 1. Ensure RLS is enabled with proper policies
 2. For public read access, use `USING (true)`
 3. Test policies with `--` prefixed comments
@@ -441,6 +460,7 @@ SELECT * FROM services;
 **Issue**: `NEXT_SUPABASE_SERVICE_ROLE_KEY` causes 401/403 errors.
 
 **Check**:
+
 - key is properly copied from Supabase dashboard
 - Never expose in frontend code (server-side only)
 - Used only for admin operations via API routes
@@ -450,6 +470,7 @@ SELECT * FROM services;
 ## Pending Setup Tasks
 
 ### ✅ Completed
+
 - [x] Supabase project created
 - [x] Environment variables configured
 - [x] Database tables created
@@ -458,6 +479,7 @@ SELECT * FROM services;
 - [x] Auth callback route implemented
 
 ### ⏳ Recommended for Later
+
 - [ ] Custom email templates (branded confirmation emails)
 - [ ] Social authentication (Google, GitHub OAuth)
 - [ ] Advanced RLS policies (user-scoped data access)
@@ -471,28 +493,34 @@ SELECT * FROM services;
 ## Common Pitfalls
 
 ### 1. Hardcoded URLs
+
 ❌ **Bad**: `const verifyUrl = 'http://localhost:3000/verify'`
 ✅ **Good**: `const verifyUrl = getEmailVerificationUrl()`
 
 Use the `lib/appUrl.ts` utility for all URL generation.
 
 ### 2. Mixing Development & Production Credentials
+
 ❌ Don't use production DB credentials in development
 ✅ Create separate Supabase projects for dev & prod
 
 ### 3. Service Role Key in Browser
+
 ❌ Never use `NEXT_SUPABASE_SERVICE_ROLE_KEY` in client code
 ✅ Use only in `/app/api/` routes (server-side)
 
 ### 4. Missing RLS Policies
+
 ❌ Tables without RLS are vulnerable
 ✅ Always enable RLS with explicit policies
 
 ### 5. Forgetting to Update Redirect URLs
+
 ❌ Leaving Supabase with `localhost:3000` when deploying to production
 ✅ Update **Authentication → URL Configuration** for each environment
 
 ### 6. Email Template Issues
+
 ❌ Removing `{{ .ConfirmationURL }}` placeholder
 ✅ Keep the placeholder and customize only the styling/text
 

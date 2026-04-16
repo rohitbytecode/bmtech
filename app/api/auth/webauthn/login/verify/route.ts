@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch user list' }, { status: 500 });
     }
 
-    const user = userData.users.find(u => u.email === email);
+    const user = userData.users.find((u) => u.email === email);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -64,10 +64,7 @@ export async function POST(request: Request) {
     }
 
     // HARD VALIDATION (fixes crash)
-    if (
-      !dbAuthenticator.credential_id ||
-      !dbAuthenticator.public_key
-    ) {
+    if (!dbAuthenticator.credential_id || !dbAuthenticator.public_key) {
       console.error('[INVALID AUTHENTICATOR DATA]', dbAuthenticator);
       return NextResponse.json({ error: 'Corrupted authenticator data' }, { status: 500 });
     }
@@ -83,15 +80,12 @@ export async function POST(request: Request) {
     const overrideRpId = host.split(':')[0];
 
     if (body.id !== dbAuthenticator.credential_id) {
-  console.error('[CRITICAL] Credential mismatch');
-  console.log('Client ID:', body.id);
-  console.log('DB ID:', dbAuthenticator.credential_id);
+      console.error('[CRITICAL] Credential mismatch');
+      console.log('Client ID:', body.id);
+      console.log('DB ID:', dbAuthenticator.credential_id);
 
-  return NextResponse.json(
-    { error: 'Credential ID mismatch' },
-    { status: 401 }
-  );
-}
+      return NextResponse.json({ error: 'Credential ID mismatch' }, { status: 401 });
+    }
 
     // Verify authentication
     const verification = await webauthnUtils.verifyAuthentication(
@@ -102,11 +96,14 @@ export async function POST(request: Request) {
       dbAuthenticator.counter ?? 0, // SAFE COUNTER FIX
       origin,
       overrideRpId,
-      rpIdHint
+      rpIdHint,
     );
 
     if (!verification.verified || !verification.authenticationInfo) {
-      return NextResponse.json({ error: 'Hardware signature verification failed' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Hardware signature verification failed' },
+        { status: 401 },
+      );
     }
 
     // Update counter
@@ -114,7 +111,7 @@ export async function POST(request: Request) {
       .from('authorized_devices')
       .update({
         counter: verification.authenticationInfo.newCounter,
-        last_used_at: new Date().toISOString()
+        last_used_at: new Date().toISOString(),
       })
       .eq('id', dbAuthenticator.id);
 
@@ -147,7 +144,6 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-
   } catch (error: any) {
     console.error('Auth verification error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
