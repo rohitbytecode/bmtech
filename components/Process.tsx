@@ -14,7 +14,7 @@ export default function Process() {
   return (
     <section className="py-24 px-6 sm:px-12 md:px-24 bg-background overflow-hidden relative">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
-        <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center text-white">How We Work</h2>
+        <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center text-foreground">How We Work</h2>
 
         <div className="relative w-full">
           {/* Connector Line */}
@@ -29,7 +29,7 @@ export default function Process() {
                     className="text-text-secondary group-hover:text-accent-blue transition-colors"
                   />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">{step.name}</h3>
+                <h3 className="text-xl font-bold text-foreground mb-2">{step.name}</h3>
                 <p className="text-sm text-text-secondary">{step.desc}</p>
               </div>
             ))}

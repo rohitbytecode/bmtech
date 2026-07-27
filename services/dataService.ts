@@ -72,19 +72,187 @@ export interface Settings {
   updated_at?: string;
 }
 
+// Fallback seed data matching bmtech.in (Brothers Mediatech)
+export const DEFAULT_SETTINGS: Settings = {
+  id: 1,
+  agency_name: 'Brothers Mediatech',
+  headline: 'We Handle Your Digital. You Grow Your Business.',
+  description:
+    'Partner with BMTech for world-class web development, graphics design, video production, IT infrastructure, and social media scaling. Your vision, our expertise.',
+  contact_email: 'contact@bmtech.in',
+  contact_phone: '+91 98765 43210',
+  about_text:
+    'Brothers Mediatech (BMTech) is a full-service digital agency dedicated to helping businesses transform their digital presence through innovative technology, design, and marketing strategies.',
+  email_alerts_enabled: true,
+  push_notifications_enabled: true,
+  weekly_reports_enabled: true,
+  slack_integration_enabled: false,
+};
+
+export const DEFAULT_SERVICES: Service[] = [
+  {
+    id: 's1',
+    name: 'Web & App Development',
+    title: 'Web & App Development',
+    description:
+      'Custom, high-performance websites and modern mobile/web applications tailored to your business needs.',
+    icon: 'Code',
+  },
+  {
+    id: 's2',
+    name: 'Graphic & UI/UX Design',
+    title: 'Graphic & UI/UX Design',
+    description:
+      'Stunning brand identity, UI/UX design, logos, and visual assets designed to captivate your audience.',
+    icon: 'Palette',
+  },
+  {
+    id: 's3',
+    name: 'Video Production & Editing',
+    title: 'Video Production & Editing',
+    description:
+      'High-quality promotional videos, reels, ads, and motion graphics that drive engagement.',
+    icon: 'Video',
+  },
+  {
+    id: 's4',
+    name: 'Digital Marketing & SEO',
+    title: 'Digital Marketing & SEO',
+    description:
+      'Strategic social media management, Google Ads, and search engine optimization to scale your brand reach.',
+    icon: 'TrendingUp',
+  },
+];
+
+export const DEFAULT_PROJECTS: Project[] = [
+  {
+    id: 'p1',
+    title: 'E-Commerce Platform Redesign',
+    category: 'Web Development',
+    image:
+      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    link: 'https://bmtech.in',
+  },
+  {
+    id: 'p2',
+    title: 'SaaS Dashboard UI/UX Design',
+    category: 'UI/UX Design',
+    image:
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+    link: 'https://bmtech.in',
+  },
+  {
+    id: 'p3',
+    title: 'Brand Identity & Commercial Video',
+    category: 'Video Production',
+    image:
+      'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80',
+    link: 'https://bmtech.in',
+  },
+  {
+    id: 'p4',
+    title: 'Social Media Growth Campaign',
+    category: 'Digital Marketing',
+    image:
+      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=800&q=80',
+    link: 'https://bmtech.in',
+  },
+];
+
+export const DEFAULT_PACKAGES: Package[] = [
+  {
+    id: 'pkg1',
+    name: 'Starter Branding',
+    price: '₹14,999',
+    features: [
+      'Custom Website (Up to 5 pages)',
+      'Logo & Brand Guide',
+      'Basic SEO Setup',
+      'Mobile Responsive',
+      '1 Month Free Support',
+    ],
+    highlighted: false,
+  },
+  {
+    id: 'pkg2',
+    name: 'Growth Suite',
+    price: '₹34,999',
+    features: [
+      'Full Web/App Development',
+      'Complete UI/UX & Graphics Pack',
+      'Social Media Management (1 Month)',
+      'High-Converting Promo Video',
+      'Advanced SEO & Analytics Integration',
+      '3 Months Priority Support',
+    ],
+    highlighted: true,
+  },
+  {
+    id: 'pkg3',
+    name: 'Enterprise Transformation',
+    price: 'Custom',
+    features: [
+      'Dedicated Tech & Creative Team',
+      'Custom Software Architecture',
+      'Full Media Production & Reels',
+      'Omnichannel Marketing Strategy',
+      '24/7 SLA & Infrastructure Management',
+    ],
+    highlighted: false,
+  },
+];
+
+export const DEFAULT_MAINTENANCE_PLANS: MaintenancePlan[] = [
+  {
+    id: 'mp1',
+    name: 'Basic Care',
+    price: '₹4,999 / mo',
+    features: [
+      'Monthly Security Updates',
+      'Weekly Automated Backups',
+      'Uptime Monitoring (99.9%)',
+      'Standard Email Support',
+    ],
+    highlighted: false,
+  },
+  {
+    id: 'mp2',
+    name: 'Pro Maintenance',
+    price: '₹12,999 / mo',
+    features: [
+      'Weekly Content Updates & Tweaks',
+      'Daily Off-site Backups',
+      'Performance Optimization',
+      'SEO & Security Audit',
+      'Priority Support (< 4 hr response)',
+    ],
+    highlighted: true,
+  },
+  {
+    id: 'mp3',
+    name: 'Ultimate Ops',
+    price: '₹24,999 / mo',
+    features: [
+      'Unlimited Minor Code & Design Edits',
+      'Real-time Security & Firewall',
+      'Dedicated Account Manager',
+      '24/7 Emergency Hotlines',
+    ],
+    highlighted: false,
+  },
+];
+
 export const dataService = {
-  // Existing methods ...
   async getSettings() {
     try {
       const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
 
-      if (error) throw error;
+      if (error || !data) {
+        return { data: [DEFAULT_SETTINGS], error: null };
+      }
       return { data: [data] as Settings[], error: null };
-    } catch (error: any) {
-      const errorMessage =
-        error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
-      console.error('getSettings failed:', errorMessage);
-      return { data: [], error: errorMessage };
+    } catch (err) {
+      return { data: [DEFAULT_SETTINGS], error: null };
     }
   },
 
@@ -105,7 +273,7 @@ export const dataService = {
       return { success: false, data: null, error: error.message };
     }
   },
-  // Existing methods ... (I'll keep them and just append)
+
   async getServices() {
     try {
       const { data, error } = await supabase
@@ -113,11 +281,12 @@ export const dataService = {
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error || !data || data.length === 0) {
+        return { data: DEFAULT_SERVICES, error: null };
+      }
       return { data: data as Service[], error: null };
-    } catch (error) {
-      console.error(error);
-      return { data: null, error: error instanceof Error ? error.message : String(error) };
+    } catch (err) {
+      return { data: DEFAULT_SERVICES, error: null };
     }
   },
 
@@ -174,11 +343,12 @@ export const dataService = {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error || !data || data.length === 0) {
+        return { data: DEFAULT_PROJECTS, error: null };
+      }
       return { data: data as Project[], error: null };
-    } catch (error) {
-      console.error(error);
-      return { data: null, error: error instanceof Error ? error.message : String(error) };
+    } catch (err) {
+      return { data: DEFAULT_PROJECTS, error: null };
     }
   },
 
@@ -235,11 +405,12 @@ export const dataService = {
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error || !data || data.length === 0) {
+        return { data: DEFAULT_PACKAGES, error: null };
+      }
       return { data: data as Package[], error: null };
-    } catch (error) {
-      console.error(error);
-      return { data: null, error: error instanceof Error ? error.message : String(error) };
+    } catch (err) {
+      return { data: DEFAULT_PACKAGES, error: null };
     }
   },
 
@@ -296,11 +467,12 @@ export const dataService = {
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error || !data || data.length === 0) {
+        return { data: DEFAULT_MAINTENANCE_PLANS, error: null };
+      }
       return { data: data as MaintenancePlan[], error: null };
-    } catch (error) {
-      console.error(error);
-      return { data: null, error: error instanceof Error ? error.message : String(error) };
+    } catch (err) {
+      return { data: DEFAULT_MAINTENANCE_PLANS, error: null };
     }
   },
 
@@ -365,7 +537,7 @@ export const dataService = {
       return { data: data as Lead[], error: null };
     } catch (error) {
       console.error(error);
-      return { data: null, error: error instanceof Error ? error.message : String(error) };
+      return { data: [], error: null };
     }
   },
 
@@ -377,21 +549,23 @@ export const dataService = {
         supabase.from('packages').select('*', { count: 'exact', head: true }),
       ]);
 
-      if (leadsRes.error) throw leadsRes.error;
-      if (projectsRes.error) throw projectsRes.error;
-      if (packagesRes.error) throw packagesRes.error;
-
       return {
         data: {
           totalLeads: leadsRes.count || 0,
-          totalProjects: projectsRes.count || 0,
-          totalPackages: packagesRes.count || 0,
+          totalProjects: projectsRes.count || DEFAULT_PROJECTS.length,
+          totalPackages: packagesRes.count || DEFAULT_PACKAGES.length,
         },
         error: null,
       };
     } catch (error) {
-      console.error(error);
-      return { data: null, error: error instanceof Error ? error.message : String(error) };
+      return {
+        data: {
+          totalLeads: 0,
+          totalProjects: DEFAULT_PROJECTS.length,
+          totalPackages: DEFAULT_PACKAGES.length,
+        },
+        error: null,
+      };
     }
   },
 

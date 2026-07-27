@@ -13,7 +13,7 @@ export default function About() {
       className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50 border-y border-border"
     >
       <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white">
+        <h2 className="text-3xl md:text-5xl font-bold mb-8 text-foreground">
           About {s?.agency_name || 'BMTech'}
         </h2>
         <p className="text-lg md:text-xl text-text-secondary font-body leading-relaxed">

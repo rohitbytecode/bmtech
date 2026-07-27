@@ -45,7 +45,7 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-foreground">
               Let’s Start Growing Your Business.
             </h2>
             <p className="text-lg text-text-secondary mb-12">
@@ -65,10 +65,10 @@ export default function Contact() {
                   </p>
 
                   <div className="space-y-1">
-                    <p className="text-lg font-semibold text-white">
+                    <p className="text-lg font-semibold text-foreground">
                       {s?.contact_phone || '+91 77788-64972'}
                     </p>
-                    <p className="text-lg font-semibold text-white/80">+91 77788-64972</p>
+                    <p className="text-lg font-semibold text-foreground/80">+91 77788-64972</p>
                   </div>
                 </div>
               </div>
@@ -84,7 +84,7 @@ export default function Contact() {
                     Email Us
                   </p>
 
-                  <p className="text-lg font-semibold text-white break-all">
+                  <p className="text-lg font-semibold text-foreground break-all">
                     {s?.contact_email || 'brothersmediatech@gmail.com'}
                   </p>
                 </div>
@@ -95,7 +95,7 @@ export default function Contact() {
           <div className="bg-surface p-8 rounded-2xl border border-border shadow-2xl">
             {success ? (
               <div className="h-full flex flex-col items-center justify-center text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">Message Sent!</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-4">Message Sent!</h2>
                 <p className="text-text-secondary mb-8">We'll get back to you soon.</p>
                 <Button onClick={() => setSuccess(false)}>Send another message</Button>
               </div>
@@ -113,7 +113,7 @@ export default function Contact() {
                   <input
                     required
                     type="text"
-                    className="w-full bg-[#0B0F19] border border-border rounded-lg h-12 px-4 focus:outline-none focus:border-accent-blue transition-colors text-white"
+                    className="w-full bg-background dark:bg-[#0B0F19] border border-border rounded-lg h-12 px-4 focus:outline-none focus:border-accent-blue transition-colors text-foreground"
                     placeholder="Enter your name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -126,7 +126,7 @@ export default function Contact() {
                   <input
                     required
                     type="email"
-                    className="w-full bg-[#0B0F19] border border-border rounded-lg h-12 px-4 focus:outline-none focus:border-accent-blue transition-colors text-white"
+                    className="w-full bg-background dark:bg-[#0B0F19] border border-border rounded-lg h-12 px-4 focus:outline-none focus:border-accent-blue transition-colors text-foreground"
                     placeholder="Enter your email address"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -139,7 +139,7 @@ export default function Contact() {
                   <textarea
                     required
                     rows={4}
-                    className="w-full bg-[#0B0F19] border border-border rounded-lg p-4 focus:outline-none focus:border-accent-blue transition-colors text-white resize-none"
+                    className="w-full bg-background dark:bg-[#0B0F19] border border-border rounded-lg p-4 focus:outline-none focus:border-accent-blue transition-colors text-foreground resize-none"
                     placeholder="How can we help?"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
