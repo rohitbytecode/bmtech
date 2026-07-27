@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
 const clients = [
   { id: 1, x: 1500, y: 850 }, // USA
@@ -40,9 +41,14 @@ export default function WorldMap() {
   }, [isLoaded]);
 
   return (
-    <div className="w-full">
+    <motion.div
+      initial={{ opacity: 0, y: 25 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.2, delay: 2.8, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
+    >
       {/* Text ABOVE the image */}
-      <p className="text-center text-xs text-white/60 uppercase tracking-[0.25em] mb-4">
+      <p className="text-center text-xs text-text-secondary uppercase tracking-[0.25em] mb-4">
         Global Client Presence
       </p>
       <div className="relative w-full h-[350px] overflow-hidden rounded-xl">
@@ -103,6 +109,6 @@ export default function WorldMap() {
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }

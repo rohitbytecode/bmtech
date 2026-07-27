@@ -26,8 +26,8 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
         </div>
       )}
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-text-primary mb-2 line-clamp-1">{name}</h3>
-        <p className="text-4xl font-bold text-white mb-2">{price}</p>
+        <h3 className="text-xl font-bold text-foreground mb-2 line-clamp-1">{name}</h3>
+        <p className="text-4xl font-bold text-foreground mb-2">{price}</p>
         <p className="text-sm text-text-secondary">Comprehensive setup & support</p>
       </div>
 

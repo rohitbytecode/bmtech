@@ -11,7 +11,7 @@ export default function Maintenance() {
     <section id="maintenance" className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">Maintenance Plans</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 text-foreground">Maintenance Plans</h2>
           <p className="text-text-secondary max-w-2xl mx-auto">
             Secure, scale, and optimize your digital presence with our monthly support tiers.
           </p>

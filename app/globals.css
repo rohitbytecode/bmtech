@@ -1,32 +1,59 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-heading: var(--font-sora), ui-sans-serif, system-ui;
   --font-body: var(--font-inter), ui-sans-serif, system-ui;
 
-  --color-background: #0b0f19;
-  --color-sidebar: #0f172a;
-  --color-surface: #111827;
-  --color-border: #1f2937;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #9ca3af;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
   --color-accent-blue: #2563eb;
-
-  --radius-sm: 0.125rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
 }
 
 :root {
+  --background: #fbfbfa;
+  --foreground: #0d0d0d;
+  --surface: #ffffff;
+  --text-secondary: #4b5563;
+  --border: #e5e7eb;
+}
+
+html.dark {
   --background: #0b0f19;
   --foreground: #f9fafb;
+  --surface: #111827;
+  --text-secondary: #9ca3af;
+  --border: #1f2937;
+}
+
+html.light {
+  --background: #fbfbfa;
+  --foreground: #0d0d0d;
+  --surface: #ffffff;
+  --text-secondary: #4b5563;
+  --border: #e5e7eb;
+}
+
+html,
+body,
+a,
+button,
+input,
+select,
+textarea,
+[role="button"] {
+  cursor: none !important;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1,
@@ -40,13 +67,11 @@ h6 {
 }
 
 @keyframes glowPulse {
-
   0%,
   100% {
     opacity: 0.6;
     transform: scale(0.95);
   }
-
   50% {
     opacity: 1;
     transform: scale(1.05);
@@ -54,12 +79,10 @@ h6 {
 }
 
 @keyframes coreGlow {
-
   0%,
   100% {
     box-shadow: 0 0 6px #3b82f6;
   }
-
   50% {
     box-shadow: 0 0 14px #3b82f6;
   }
@@ -74,13 +97,11 @@ h6 {
 }
 
 @keyframes softGlow {
-
   0%,
   100% {
     opacity: 0.55;
     filter: blur(5px);
   }
-
   50% {
     opacity: 0.85;
     filter: blur(9px);
@@ -89,4 +110,26 @@ h6 {
 
 .glow-text {
   animation: softGlow 5.5s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+
+.stroke-text {
+  -webkit-text-stroke: 1px #0f172a;
+}
+
+html.dark .stroke-text {
+  -webkit-text-stroke: 1px #f8fafc;
 }
