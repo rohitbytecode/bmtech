@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3557",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@scalar/nextjs-api-reference": "^0.11.13",
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "^13.3.0",
     "@supabase/supabase-js": "^2.101.1",
