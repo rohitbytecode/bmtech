@@ -15,7 +15,7 @@
 }
 
 :root {
-  --background: #fbfbfa;
+  --background: #faf9f5;
   --foreground: #0d0d0d;
   --surface: #ffffff;
   --text-secondary: #4b5563;
@@ -31,7 +31,7 @@ html.dark {
 }
 
 html.light {
-  --background: #fbfbfa;
+  --background: #faf9f5;
   --foreground: #0d0d0d;
   --surface: #ffffff;
   --text-secondary: #4b5563;
@@ -132,4 +132,13 @@ h6 {
 
 html.dark .stroke-text {
   -webkit-text-stroke: 1px #f8fafc;
+}
+
+@keyframes flowDash {
+  0% {
+    stroke-dashoffset: 20;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }

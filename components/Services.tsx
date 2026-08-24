@@ -8,7 +8,7 @@ export default function Services() {
   const { data: services, loading, error } = useData<Service>('services');
 
   return (
-    <section id="services" className="py-24 px-6 sm:px-12 md:px-24 bg-slate-50/50 dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
+    <section id="services" className="py-24 px-6 sm:px-12 md:px-24 bg-background dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-white">Our Services</h2>

@@ -2,7 +2,6 @@
 
 import IntroPreloader from '@/components/IntroPreloader';
 import Hero from '@/components/Hero';
-import Services from '@/components/Services';
 import Portfolio from '@/components/Portfolio';
 import Packages from '@/components/Packages';
 import Maintenance from '@/components/Maintenance';
@@ -10,8 +9,8 @@ import Process from '@/components/Process';
 import About from '@/components/About';
 import Contact from '@/components/Contact';
 import DiscountBanner from '@/components/DiscountBanner';
-import WorldMap from '@/components/Globalpresence';
 import TechSlider from '@/components/TechSlider';
+import GrowthStage from '@/components/GrowthStage';
 import { useData } from '@/hooks/useData';
 import { Settings } from '@/services/dataService';
 
@@ -62,8 +61,7 @@ export default function Home() {
       <DiscountBanner />
       <Hero />
       <TechSlider />
-      <WorldMap />
-      <Services />
+      <GrowthStage />
       <Portfolio />
       <Packages />
       <Maintenance />
@@ -72,7 +70,7 @@ export default function Home() {
       <Contact />
 
       {/* Mini Footer */}
-      <footer className="py-12 border-t border-border bg-background px-6 sm:px-12 md:px-24">
+      <footer className="py-12 bg-background px-6 sm:px-12 md:px-24">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h2 className="text-2xl font-bold tracking-tight text-foreground mb-2">

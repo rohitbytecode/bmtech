@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 
 export default function CustomCursor() {
+  const [mounted, setMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [cursorText, setCursorText] = useState('');
   const [isVisible, setIsVisible] = useState(false);
@@ -17,6 +18,7 @@ export default function CustomCursor() {
   const smoothY = useSpring(cursorY, springConfig);
 
   useEffect(() => {
+    setMounted(true);
     const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
     if (isTouchDevice) return;
 
@@ -35,10 +37,10 @@ export default function CustomCursor() {
         return;
       }
 
-      // 1. Check explicitly targeted header action buttons (Theme Toggle, Phone, Let's Talk)
+      // 1. Check explicitly targeted action buttons & cards with data-cursor-badge
       const badgeTarget = target.closest('[data-cursor-badge]') as HTMLElement | null;
       if (badgeTarget) {
-        const type = badgeTarget.getAttribute('data-cursor-badge');
+        const type = badgeTarget.getAttribute('data-cursor-badge') || '';
         if (type === 'theme') {
           const isDark = document.documentElement.classList.contains('dark');
           setCursorText(isDark ? 'LIGHT MODE' : 'DARK MODE');
@@ -48,6 +50,8 @@ export default function CustomCursor() {
           setCursorText('TALK');
         } else if (type === 'dashboard') {
           setCursorText('ADMIN');
+        } else {
+          setCursorText(type.toUpperCase());
         }
         setIsHovered(true);
         return;
@@ -64,8 +68,7 @@ export default function CustomCursor() {
         return;
       }
 
-      // 3. For standard navbar links (Home, Services, Portfolio, About Us, Case Studies, Pricing, Contact)
-      // and general buttons: Expand cursor circle, but NO text badge box!
+      // 3. For standard navbar links and general interactive items
       const isInteractive =
         target.closest('a') ||
         target.closest('button') ||
@@ -74,6 +77,7 @@ export default function CustomCursor() {
         target.closest('select') ||
         target.closest('[role="button"]') ||
         target.closest('.interactive') ||
+        target.closest('.group') ||
         target.tagName === 'BUTTON' ||
         target.tagName === 'A' ||
         target.tagName === 'H1' ||
@@ -99,7 +103,7 @@ export default function CustomCursor() {
     };
   }, [cursorX, cursorY]);
 
-  if (!isVisible) return null;
+  if (!mounted || !isVisible) return null;
 
   return (
     <>

@@ -36,7 +36,7 @@ export default function TechSlider() {
   const marqueeList = [...technologies, ...technologies, ...technologies];
 
   return (
-    <section className="relative py-10 sm:py-14 md:py-16 my-6 sm:my-10 bg-[#faf9f5] dark:bg-[#0b0f19] border-y border-slate-200/70 dark:border-slate-800/70 overflow-hidden select-none transition-colors duration-300">
+    <section className="relative py-10 sm:py-14 md:py-16 my-6 sm:my-10 bg-[#faf9f5] dark:bg-[#0b0f19] overflow-hidden select-none transition-colors duration-300">
       {/* Refined Calligraphy Badge Header Inside Lines */}
       <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
         <p className="font-serif italic text-base sm:text-lg md:text-xl text-blue-600 dark:text-blue-400 font-medium tracking-wide">

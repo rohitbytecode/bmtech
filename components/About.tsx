@@ -10,7 +10,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50 border-y border-border"
+      className="py-24 px-6 sm:px-12 md:px-24 bg-background"
     >
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl md:text-5xl font-bold mb-8 text-foreground">

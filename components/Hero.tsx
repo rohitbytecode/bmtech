@@ -113,7 +113,7 @@ export default function Hero() {
   const router = useRouter();
 
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center pt-8 pb-16 px-6 sm:px-12 md:px-20 overflow-hidden bg-[#faf9f5] dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
+    <section className="relative min-h-[92vh] flex items-center justify-center pt-32 sm:pt-36 md:pt-40 pb-16 px-6 sm:px-12 md:px-20 overflow-hidden bg-[#faf9f5] dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
       {/* 1. Dark Mode Background Image (hero-bg.png) */}
       <div className="absolute inset-0 z-0 hidden dark:block">
         <Image
