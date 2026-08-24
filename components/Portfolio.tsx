@@ -10,7 +10,7 @@ export default function Portfolio() {
   return (
     <section
       id="portfolio"
-      className="py-24 px-6 sm:px-12 md:px-24 bg-white dark:bg-[#0b0f19] border-y border-slate-200 dark:border-slate-800 transition-colors duration-300"
+      className="py-24 px-6 sm:px-12 md:px-24 bg-background dark:bg-[#0b0f19] transition-colors duration-300"
     >
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">

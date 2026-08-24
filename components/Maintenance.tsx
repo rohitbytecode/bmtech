@@ -8,7 +8,7 @@ export default function Maintenance() {
   const { data: plans, loading, error } = useData<MaintenancePlan>('maintenancePlans');
 
   return (
-    <section id="maintenance" className="py-24 px-6 sm:px-12 md:px-24 bg-surface/50">
+    <section id="maintenance" className="py-24 px-6 sm:px-12 md:px-24 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-4 text-foreground">Maintenance Plans</h2>
