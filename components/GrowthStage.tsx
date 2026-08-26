@@ -28,7 +28,7 @@ export default function GrowthStage() {
       <div className="max-w-[1360px] mx-auto">
         
         {/* ==================== SECTION HEADER ==================== */}
-        <div className="text-center mb-24 max-w-4xl mx-auto">
+        <div className="text-center mb-12 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
