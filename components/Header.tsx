@@ -3,7 +3,7 @@
 import { useAuth } from '../hooks/useAuth';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Sun, Moon, Phone, ArrowRight } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeContext';
 import { motion } from 'framer-motion';
@@ -19,12 +19,11 @@ export default function Header() {
   }
 
   const navLinks = [
-    { label: 'Home', href: '/' },
     { label: 'Services', href: '#services' },
     { label: 'Portfolio', href: '#portfolio' },
-    { label: 'About Us', href: '#about' },
-    { label: 'Case Studies', href: '#portfolio' },
+    { label: 'Process', href: '#process' },
     { label: 'Pricing', href: '#packages' },
+    { label: 'About Us', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ];
 
@@ -33,13 +32,14 @@ export default function Header() {
       initial={{ y: -30, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed top-5 sm:top-6 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 pointer-events-none"
+      className="fixed top-0 left-0 right-0 z-50 flex pointer-events-none"
     >
-      <nav className="pointer-events-auto w-full max-w-[1360px] bg-[#222326] dark:bg-[#18191c] text-white rounded-full px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 shadow-2xl border border-slate-700/60 dark:border-slate-800/80 backdrop-blur-xl flex items-center justify-between transition-colors duration-300">
+      <nav className="pointer-events-auto w-full bg-[#121212]/40 backdrop-blur-md text-white px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between border-b border-white/10 transition-colors duration-300">
+        
         {/* Left: Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group shrink-0">
+        <Link href="/" className="flex items-center gap-3 shrink-0 flex-1">
           <div className="flex items-center justify-center">
-            <span className="text-2xl sm:text-3xl font-black italic tracking-tighter text-blue-500 font-sans">
+            <span className="text-2xl sm:text-3xl font-black italic tracking-tighter text-accent-blue font-sans">
               BM
             </span>
           </div>
@@ -53,77 +53,65 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* Center Navigation Links (Desktop) */}
-        <div className="hidden lg:flex items-center gap-2.5 lg:gap-4 xl:gap-8">
+        {/* Center: Navigation Links (Desktop) */}
+        <div className="hidden lg:flex items-center justify-center gap-7 xl:gap-10 flex-[2]">
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="text-xs lg:text-xs xl:text-sm font-semibold text-slate-200 hover:text-white transition-colors duration-200 whitespace-nowrap"
+              className="text-[13px] xl:text-sm font-semibold text-slate-300 hover:text-white transition-colors duration-200 whitespace-nowrap"
             >
               {link.label}
             </a>
           ))}
         </div>
 
-        {/* Right Actions: Theme Toggle + Phone + CTA Button */}
-        <div className="hidden md:flex items-center gap-2 lg:gap-3 shrink-0">
-          {/* Theme Toggle Button */}
+        {/* Right Actions: Theme Toggle + CTA Button */}
+        <div className="hidden md:flex items-center justify-end gap-5 shrink-0 flex-1">
+          {/* Square Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="p-2 lg:p-2.5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 border border-slate-600 text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center h-10 w-10"
             aria-label="Toggle Theme"
             data-cursor-badge="theme"
           >
-            {theme === 'dark' ? <Sun size={19} className="text-amber-400" /> : <Moon size={19} />}
+            {theme === 'dark' ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} />}
           </button>
 
-          {/* Phone Call Button */}
-          <a
-            href="tel:+917778864972"
-            className="p-2 lg:p-2.5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="Call Us"
-            data-cursor-badge="call"
-          >
-            <Phone size={18} />
-          </a>
-
-          {/* Primary Action Button */}
+          {/* Solid Square CTA Button with White Shadow */}
           {loading ? (
-            <div className="h-11 w-28 bg-slate-700 rounded-full animate-pulse"></div>
+            <div className="h-10 w-32 bg-slate-700 animate-pulse"></div>
           ) : isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 lg:px-5 xl:px-7 py-2.5 lg:py-3 text-xs lg:text-sm font-bold transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+              className="bg-accent-blue hover:bg-accent-blue/90 text-white px-6 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 shadow-[4px_4px_0_white]"
               data-cursor-badge="dashboard"
             >
               Dashboard
-              <ArrowRight size={15} />
             </Link>
           ) : (
             <a
               href="#contact"
-              className="rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 lg:px-5 xl:px-7 py-2.5 lg:py-3 text-xs lg:text-sm font-bold transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2 whitespace-nowrap"
+              className="bg-accent-blue hover:bg-accent-blue/90 text-white px-6 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 shadow-[4px_4px_0_white]"
               data-cursor-badge="talk"
             >
-              Let&apos;s Talk
-              <ArrowRight size={15} />
+              Start Project
             </a>
           )}
         </div>
 
         {/* Mobile Controls */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex md:hidden items-center justify-end flex-1 gap-3">
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full text-slate-300 hover:text-white"
+            className="p-2 border border-slate-600 text-slate-300 hover:text-white h-10 w-10 flex items-center justify-center"
             aria-label="Toggle Theme"
           >
-            {theme === 'dark' ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} />}
+            {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} />}
           </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-white"
+            className="p-2 text-white h-10 w-10 flex items-center justify-center"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -134,16 +122,16 @@ export default function Header() {
       {/* Mobile Navigation Dropdown */}
       {mobileMenuOpen && (
         <motion.div
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute top-20 left-4 right-4 pointer-events-auto max-w-md mx-auto bg-[#222326] text-white rounded-3xl p-6 shadow-2xl border border-slate-700/80 space-y-3.5 md:hidden z-50"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-full left-0 right-0 pointer-events-auto bg-[#121212] text-white p-6 shadow-2xl border-b border-slate-700/80 md:hidden z-50 flex flex-col gap-2"
         >
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-2.5 text-base font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-2xl transition-colors"
+              className="block px-4 py-3 text-base font-semibold text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
             >
               {link.label}
             </a>
@@ -151,9 +139,9 @@ export default function Header() {
           <a
             href="#contact"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-center rounded-full bg-blue-600 text-white px-5 py-3 text-base font-bold mt-4 shadow-lg"
+            className="block text-center bg-accent-blue text-white px-5 py-3 text-base font-bold mt-4 shadow-[4px_4px_0_white]"
           >
-            Let&apos;s Talk →
+            Start Project
           </a>
         </motion.div>
       )}

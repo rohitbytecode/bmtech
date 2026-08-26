@@ -93,6 +93,23 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ── Custom Branded Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-blue);
+}
+
+/* ── Tactile Noise Overlay (Removed based on feedback) ── */
+
 h1,
 h2,
 h3,

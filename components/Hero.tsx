@@ -133,8 +133,24 @@ export default function Hero() {
       </div>
 
       {/* Decorative Orbs */}
-      <div className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-sky-300/30 dark:bg-blue-600/20 blur-[140px] rounded-full pointer-events-none animate-pulse"></div>
-      <div className="absolute bottom-[5%] left-[5%] w-[400px] h-[400px] bg-amber-100/40 dark:bg-blue-900/10 blur-[130px] rounded-full pointer-events-none"></div>
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.15, 1],
+          opacity: [0.3, 0.6, 0.3],
+          rotate: [0, 90, 0]
+        }}
+        transition={{ duration: 15, ease: "easeInOut", repeat: Infinity }}
+        className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-sky-300/30 dark:bg-blue-600/20 blur-[140px] rounded-full pointer-events-none"
+      />
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.25, 1],
+          opacity: [0.25, 0.55, 0.25],
+          y: [0, -40, 0]
+        }}
+        transition={{ duration: 18, ease: "easeInOut", repeat: Infinity, delay: 2 }}
+        className="absolute bottom-[5%] left-[5%] w-[400px] h-[400px] bg-amber-100/40 dark:bg-blue-900/10 blur-[130px] rounded-full pointer-events-none"
+      />
 
       {/* Hero Content Grid (Left Text + Right idom 3D Knot PNG) */}
       <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
