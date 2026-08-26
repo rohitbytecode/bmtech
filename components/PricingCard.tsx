@@ -14,20 +14,20 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
   return (
     <div
       className={cn(
-        'h-full flex flex-col p-8 rounded-2xl border transition-all duration-300 relative overflow-hidden group',
-        'hover:-translate-y-1 hover:shadow-lg',
+        'h-full flex flex-col p-10 rounded-3xl border transition-all duration-500 relative overflow-hidden group',
+        'hover:-translate-y-2 hover:shadow-2xl',
         highlighted
-          ? 'bg-surface border-accent-blue shadow-2xl shadow-accent-blue/15 scale-105'
-          : 'bg-surface border-border hover:border-accent-blue/30',
+          ? 'bg-surface border-accent-blue/50 shadow-2xl shadow-accent-blue/20 scale-105 hover:shadow-accent-blue/40'
+          : 'bg-surface border-border hover:border-accent-blue/50 hover:shadow-accent-blue/10',
       )}
     >
       {/* Top accent bar for highlighted card */}
       {highlighted && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-accent-blue via-rose-500 to-orange-500" />
       )}
 
       {highlighted && (
-        <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-lg">
+        <div className="absolute top-6 right-6 flex items-center gap-1.5 bg-gradient-to-r from-accent-blue to-rose-600 text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-lg shadow-accent-blue/30">
           <Sparkles size={12} />
           Most Popular
         </div>
@@ -65,8 +65,8 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
         <Button
           variant={highlighted ? 'primary' : 'outline'}
           className={cn(
-            'w-full rounded-xl',
-            highlighted && 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-600/20',
+            'w-full rounded-xl transition-all duration-300 group-hover:scale-[1.02]',
+            highlighted && 'bg-gradient-to-r from-accent-blue to-rose-600 hover:from-rose-600 hover:to-accent-blue shadow-[0_0_15px_rgba(219,53,69,0.3)] hover:shadow-[0_0_25px_rgba(219,53,69,0.5)] border-0 text-white',
           )}
         >
           Choose Plan

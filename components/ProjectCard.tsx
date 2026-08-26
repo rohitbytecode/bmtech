@@ -69,7 +69,7 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
 
   return (
     <div
-      className="group rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-600 dark:hover:border-blue-500 shadow-sm hover:shadow-xl transition-all duration-300"
+      className="group rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-accent-blue/50 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.01]"
       onClick={() => setActive(!active)}
     >
       <div ref={thumbRef} className="relative h-48 sm:h-64 md:h-72 w-full overflow-hidden">
@@ -87,10 +87,10 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
           />
           {/* Monogram mark */}
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-blue-600/5">
+            <div className="w-20 h-20 rounded-2xl bg-accent-blue/10 border border-accent-blue/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-accent-blue/5">
               <span className="text-3xl font-extrabold tracking-tighter leading-none">
                 <span className="text-slate-800 dark:text-white">B</span>
-                <span className="text-blue-600">M</span>
+                <span className="text-accent-blue">M</span>
               </span>
             </div>
             <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
@@ -131,7 +131,7 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
             <Button
               variant="outline"
               size="sm"
-              className="bg-white/10 text-white backdrop-blur border-white/20 hover:bg-white/20"
+              className="bg-white/10 text-white backdrop-blur-md border-white/20 hover:bg-white/30 rounded-full px-6 py-2 transition-all hover:scale-105"
             >
               Live Demo <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
@@ -141,7 +141,7 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
 
       {/* ── Card content — always visible ── */}
       <div className="p-5">
-        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase mb-1 block">
+        <span className="text-xs font-bold text-accent-blue dark:text-rose-500 tracking-wider uppercase mb-1 block">
           {category}
         </span>
         <h4 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h4>

@@ -202,10 +202,12 @@ export default function Hero() {
                 const contactSection = document.getElementById('contact');
                 contactSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="w-full sm:w-auto h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-blue-500/25 transition-all flex items-center justify-center gap-2 group"
+              className="relative w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-accent-blue to-rose-600 text-white font-bold text-sm rounded-xl shadow-[0_0_20px_rgba(219,53,69,0.3)] hover:shadow-[0_0_30px_rgba(219,53,69,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group overflow-hidden"
             >
-              Start Your Project
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <span className="relative z-10 flex items-center gap-2">
+                Start Your Project
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </span>
             </button>
 
             <button
@@ -213,7 +215,7 @@ export default function Hero() {
                 const portfolioSection = document.getElementById('portfolio');
                 portfolioSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="w-full sm:w-auto h-14 px-8 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-sm rounded-xl transition-all shadow-sm flex items-center justify-center"
+              className="w-full sm:w-auto h-14 px-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:bg-white dark:hover:bg-slate-800 font-bold text-sm rounded-xl transition-all hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center"
             >
               Our Work
             </button>

@@ -34,7 +34,7 @@ export default function Header() {
       transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className="fixed top-0 left-0 right-0 z-50 flex pointer-events-none"
     >
-      <nav className="pointer-events-auto w-full bg-[#121212]/40 backdrop-blur-md text-white px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between border-b border-white/10 transition-colors duration-300">
+      <nav className="pointer-events-auto w-full bg-[#121212]/20 backdrop-blur-xl text-white px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.1)] transition-colors duration-300">
         
         {/* Left: Brand Logo */}
         <Link href="/" className="flex items-center gap-3 shrink-0 flex-1">
@@ -59,9 +59,10 @@ export default function Header() {
             <a
               key={link.label}
               href={link.href}
-              className="text-[13px] xl:text-sm font-semibold text-slate-300 hover:text-white transition-colors duration-200 whitespace-nowrap"
+              className="group relative text-[13px] xl:text-sm font-semibold text-slate-300 hover:text-white transition-colors duration-200 whitespace-nowrap"
             >
               {link.label}
+              <span className="absolute -bottom-1.5 left-0 w-0 h-[2px] bg-accent-blue transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
           ))}
         </div>
@@ -80,22 +81,22 @@ export default function Header() {
 
           {/* Solid Square CTA Button with White Shadow */}
           {loading ? (
-            <div className="h-10 w-32 bg-slate-700 animate-pulse"></div>
+            <div className="h-10 w-32 bg-slate-700/50 rounded-xl animate-pulse"></div>
           ) : isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="bg-accent-blue hover:bg-accent-blue/90 text-white px-6 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 shadow-[4px_4px_0_white]"
+              className="relative overflow-hidden bg-gradient-to-r from-accent-blue to-rose-600 hover:from-rose-600 hover:to-accent-blue text-white px-6 py-2.5 text-sm font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(219,53,69,0.4)] group"
               data-cursor-badge="dashboard"
             >
-              Dashboard
+              <span className="relative z-10">Dashboard</span>
             </Link>
           ) : (
             <a
               href="#contact"
-              className="bg-accent-blue hover:bg-accent-blue/90 text-white px-6 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 shadow-[4px_4px_0_white]"
+              className="relative overflow-hidden bg-gradient-to-r from-accent-blue to-rose-600 hover:from-rose-600 hover:to-accent-blue text-white px-6 py-2.5 text-sm font-bold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(219,53,69,0.4)] group"
               data-cursor-badge="talk"
             >
-              Start Project
+              <span className="relative z-10">Start Project</span>
             </a>
           )}
         </div>
@@ -139,7 +140,7 @@ export default function Header() {
           <a
             href="#contact"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-center bg-accent-blue text-white px-5 py-3 text-base font-bold mt-4 shadow-[4px_4px_0_white]"
+            className="block text-center bg-gradient-to-r from-accent-blue to-rose-600 text-white px-5 py-3 text-base font-bold mt-4 rounded-xl shadow-[0_0_20px_rgba(219,53,69,0.4)]"
           >
             Start Project
           </a>
