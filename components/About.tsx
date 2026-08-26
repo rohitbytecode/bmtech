@@ -128,7 +128,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="py-16 md:py-20 px-6 sm:px-12 md:px-24 bg-background"
+      className="pt-8 md:pt-12 pb-16 md:pb-20 px-6 sm:px-12 md:px-24 bg-background"
     >
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-2xl md:text-4xl font-bold mb-8 text-foreground">
