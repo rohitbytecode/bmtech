@@ -5,6 +5,8 @@ import './globals.css';
 import Header from '../components/Header';
 import CustomCursor from '../components/CustomCursor';
 import { ThemeProvider } from '../components/ThemeContext';
+import SmoothScrollProvider from '../components/SmoothScrollProvider';
+import ScrollProgress from '../components/ScrollProgress';
 
 const sora = Sora({
   subsets: ['latin'],
@@ -34,11 +36,14 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${sora.variable} ${inter.variable} antialiased`}>
       <body className="font-body bg-background text-foreground overflow-x-hidden transition-colors duration-300">
-        <ThemeProvider>
-          <CustomCursor />
-          {!isMaintenance && <Header />}
-          {children}
-        </ThemeProvider>
+        <SmoothScrollProvider>
+          <ScrollProgress />
+          <ThemeProvider>
+            <CustomCursor />
+            {!isMaintenance && <Header />}
+            {children}
+          </ThemeProvider>
+        </SmoothScrollProvider>
       </body>
     </html>
   );
