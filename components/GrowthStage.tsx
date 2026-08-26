@@ -24,7 +24,7 @@ const springTransition = {
 
 export default function GrowthStage() {
   return (
-    <section id="services" className="w-full pt-0 pb-28 px-6 sm:px-12 md:px-20 bg-background dark:bg-[#0b0f19] text-foreground transition-colors duration-300 relative overflow-hidden font-sans">
+    <section id="services" className="w-full pt-0 pb-16 md:pb-20 px-6 sm:px-12 md:px-20 bg-background dark:bg-[#0b0f19] text-foreground transition-colors duration-300 relative overflow-hidden font-sans">
       <div className="max-w-[1360px] mx-auto">
         
         {/* ==================== SECTION HEADER ==================== */}
@@ -39,7 +39,7 @@ export default function GrowthStage() {
               <Megaphone className="w-4 h-4 text-accent-blue" />
               <span>Digital Marketing & Tech Powerhouse</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl md:text-[52px] font-extrabold text-foreground tracking-tight mb-6 leading-tight">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-6 leading-tight">
               Our Services & Growth Architecture
             </h2>
             <p className="text-text-secondary text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed">
@@ -89,11 +89,11 @@ export default function GrowthStage() {
             viewport={{ once: true }}
             className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-16"
           >
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-sky-400 dark:border-sky-500/50 bg-sky-50 dark:bg-sky-500/10 text-foreground font-bold text-xl shadow-sm">
-              <span className="w-3.5 h-3.5 rounded-full bg-sky-500 animate-pulse"></span>
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-sky-400 dark:border-sky-500/50 bg-sky-50 dark:bg-sky-500/10 text-foreground font-semibold text-sm sm:text-base shadow-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
               <span>For Businesses</span>
             </div>
-            <span className="text-text-secondary text-lg font-medium">
+            <span className="text-text-secondary text-sm sm:text-base font-medium">
               From first MVP launch to market-leading enterprise
             </span>
           </motion.div>
@@ -365,11 +365,11 @@ export default function GrowthStage() {
             viewport={{ once: true }}
             className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-24"
           >
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 text-foreground font-bold text-xl shadow-sm">
-              <span className="w-3.5 h-3.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 text-foreground font-semibold text-sm sm:text-base shadow-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
               <span>For Partners & Agencies</span>
             </div>
-            <span className="text-text-secondary text-lg font-medium">
+            <span className="text-text-secondary text-sm sm:text-base font-medium">
               From solo creator to white-label enterprise agency
             </span>
           </motion.div>

@@ -36,7 +36,7 @@ export default function TechSlider() {
   const marqueeList = [...technologies, ...technologies, ...technologies];
 
   return (
-    <section className="relative py-10 sm:py-14 md:py-16 my-6 sm:my-10 bg-[#faf9f5] dark:bg-[#0b0f19] overflow-hidden select-none transition-colors duration-300">
+    <section className="relative py-8 sm:py-12 my-6 sm:my-10 bg-[#faf9f5] dark:bg-[#0b0f19] overflow-hidden select-none transition-colors duration-300">
       {/* Refined Calligraphy Badge Header Inside Lines */}
       <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
         <p className="font-serif italic text-base sm:text-lg md:text-xl text-blue-600 dark:text-blue-400 font-medium tracking-wide">
@@ -59,14 +59,14 @@ export default function TechSlider() {
                   <img
                     src={tech.iconPath}
                     alt={`${tech.name} Official Logo`}
-                    className={`w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain ${
                       tech.isDarkMonochrome ? 'dark:invert' : ''
                     }`}
                     loading="eager"
                   />
                 </div>
                 <span
-                  className={`text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-black tracking-tight transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 ${
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-black tracking-tight transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 ${
                     isOutlined
                       ? 'text-transparent stroke-text'
                       : 'text-slate-900 dark:text-white'

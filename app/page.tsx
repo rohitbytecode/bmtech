@@ -73,13 +73,13 @@ export default function Home() {
       {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-accent-blue/30 to-transparent" />
 
-      <footer className="py-16 bg-background px-6 sm:px-12 md:px-24">
+      <footer className="py-12 bg-background px-6 sm:px-12 md:px-24">
         <div className="max-w-7xl mx-auto">
           {/* Footer grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
             {/* Brand column */}
             <div className="sm:col-span-2 lg:col-span-1">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground mb-3">
+              <h2 className="text-lg font-bold tracking-tight text-foreground mb-3">
                 {s ? (
                   <>
                     {s.agency_name.split(' ')[0]}
@@ -130,7 +130,7 @@ export default function Home() {
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">Quick Links</h3>
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Quick Links</h3>
               <ul className="space-y-3">
                 {[
                   { label: 'Services', href: '#services' },
@@ -154,7 +154,7 @@ export default function Home() {
 
             {/* Services */}
             <div>
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">Services</h3>
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Services</h3>
               <ul className="space-y-3">
                 {['Web Development', 'UI/UX Design', 'Video Production', 'Digital Marketing'].map(
                   (service) => (
@@ -174,7 +174,7 @@ export default function Home() {
 
             {/* Contact info */}
             <div>
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">Get In Touch</h3>
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Contact Info</h3>
               <ul className="space-y-3">
                 <li className="text-sm text-text-secondary">
                   {s?.contact_email || 'brothersmediatech@gmail.com'}

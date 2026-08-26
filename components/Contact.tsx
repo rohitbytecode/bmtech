@@ -86,11 +86,11 @@ export default function Contact() {
   const isFieldActive = (field: string, value: string) => focusedField === field || value.length > 0;
 
   return (
-    <section id="contact" className="py-24 px-6 sm:px-12 md:px-24 bg-background">
+    <section id="contact" className="py-16 md:py-20 px-6 sm:px-12 md:px-24 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-foreground">
+            <h2 className="text-xl md:text-3xl font-extrabold mb-6 text-foreground">
               Let&apos;s Start{' '}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
                 Growing

@@ -29,6 +29,7 @@ function CardReveal({ children, delay = 0 }: { children: React.ReactNode; delay?
   return (
     <div
       ref={ref}
+      className="h-full"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(24px)',
@@ -44,13 +45,13 @@ export default function Maintenance() {
   const { data: plans, loading, error } = useData<MaintenancePlan>('maintenancePlans');
 
   return (
-    <section id="maintenance" className="py-24 px-6 sm:px-12 md:px-24 bg-background">
+    <section id="maintenance" className="pb-16 md:pb-20 pt-0 px-6 sm:px-12 md:px-24 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
           <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-accent-blue bg-accent-blue/8 px-4 py-1.5 rounded-full mb-4">
             🛡️ Support Tiers
           </span>
-          <h2 className="text-3xl md:text-5xl font-bold mb-4 text-foreground">Maintenance Plans</h2>
+          <h2 className="text-xl md:text-3xl font-extrabold mb-4 text-foreground">Maintenance Plans</h2>
           <p className="text-text-secondary max-w-2xl mx-auto">
             Secure, scale, and optimize your digital presence with our monthly support tiers.
           </p>

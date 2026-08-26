@@ -14,7 +14,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
   return (
     <div
       className={cn(
-        'p-8 rounded-2xl border transition-all duration-300 relative overflow-hidden group',
+        'h-full flex flex-col p-8 rounded-2xl border transition-all duration-300 relative overflow-hidden group',
         'hover:-translate-y-1 hover:shadow-lg',
         highlighted
           ? 'bg-surface border-accent-blue shadow-2xl shadow-accent-blue/15 scale-105'
@@ -61,7 +61,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
         ))}
       </ul>
 
-      <a href="#contact" className="block w-full">
+      <a href="#contact" className="block w-full mt-auto">
         <Button
           variant={highlighted ? 'primary' : 'outline'}
           className={cn(

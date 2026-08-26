@@ -56,9 +56,9 @@ function StepReveal({
 
 export default function Process() {
   return (
-    <section className="py-24 px-6 sm:px-12 md:px-24 bg-background overflow-hidden relative">
+    <section className="py-16 md:py-20 px-6 sm:px-12 md:px-24 bg-background overflow-hidden relative">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
-        <h2 className="text-3xl md:text-5xl font-bold mb-16 text-center text-foreground">How We Work</h2>
+        <h2 className="text-2xl md:text-4xl font-bold mb-16 text-center text-foreground">How We Work</h2>
 
         <div className="relative w-full">
           {/* Connector Line */}

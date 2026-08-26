@@ -113,7 +113,7 @@ export default function Hero() {
   const router = useRouter();
 
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center pt-32 sm:pt-36 md:pt-40 pb-16 px-6 sm:px-12 md:px-20 overflow-hidden bg-[#faf9f5] dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
+    <section className="relative min-h-[92vh] flex items-center justify-center pt-24 sm:pt-28 md:pt-32 pb-16 px-6 sm:px-12 md:px-20 overflow-hidden bg-[#faf9f5] dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
       {/* 1. Dark Mode Background Image (hero-bg.png) */}
       <div className="absolute inset-0 z-0 hidden dark:block">
         <Image
@@ -141,7 +141,7 @@ export default function Hero() {
         {/* Left Column: Text & CTAs */}
         <div className="lg:col-span-7 flex flex-col items-start text-left">
           {/* Headline (Cuberto Kinetic Typography Style) */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] mb-8 font-heading text-slate-900 dark:text-white max-w-2xl flex flex-col gap-0.5">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15] mb-8 font-heading text-slate-900 dark:text-white max-w-2xl flex flex-col gap-0.5">
             <div>
               <MagneticWord delay={1.8} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 Engineering
