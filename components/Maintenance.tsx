@@ -44,6 +44,10 @@ function CardReveal({ children, delay = 0 }: { children: React.ReactNode; delay?
 export default function Maintenance() {
   const { data: plans, loading, error } = useData<MaintenancePlan>('maintenancePlans');
 
+  if (!loading && !error && (!plans || plans.length === 0)) {
+    return null;
+  }
+
   return (
     <section id="maintenance" className="pb-16 md:pb-20 pt-0 px-6 sm:px-12 md:px-24 bg-background">
       <div className="max-w-7xl mx-auto">

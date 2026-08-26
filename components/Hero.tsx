@@ -44,7 +44,7 @@ function MagneticWord({ children, className = '', delay = 0 }: { children: React
           onMouseLeave={handleMouseLeave}
           animate={{ x: position.x, y: position.y, rotate: position.rotate }}
           transition={{ type: 'spring', stiffness: 220, damping: 18, mass: 0.2 }}
-          className={`inline-block cursor-pointer select-none ${className}`}
+          className={`inline-block cursor-pointer select-none transform-gpu will-change-transform ${className}`}
         >
           {children}
         </motion.span>
@@ -132,7 +132,7 @@ export default function Hero() {
         <div className="absolute inset-0 opacity-35 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px]" />
       </div>
 
-      {/* Decorative Orbs */}
+      {/* Decorative Orbs - Optimized with Radial Gradients instead of heavy CSS blurs */}
       <motion.div 
         animate={{ 
           scale: [1, 1.15, 1],
@@ -140,7 +140,7 @@ export default function Hero() {
           rotate: [0, 90, 0]
         }}
         transition={{ duration: 15, ease: "easeInOut", repeat: Infinity }}
-        className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-sky-300/30 dark:bg-blue-600/20 blur-[140px] rounded-full pointer-events-none"
+        className="absolute top-[10%] right-[10%] w-[350px] h-[350px] md:w-[500px] md:h-[500px] bg-[radial-gradient(closest-side,_var(--tw-gradient-stops))] from-sky-300/40 to-transparent dark:from-blue-600/30 pointer-events-none transform-gpu will-change-transform"
       />
       <motion.div 
         animate={{ 
@@ -149,7 +149,7 @@ export default function Hero() {
           y: [0, -40, 0]
         }}
         transition={{ duration: 18, ease: "easeInOut", repeat: Infinity, delay: 2 }}
-        className="absolute bottom-[5%] left-[5%] w-[400px] h-[400px] bg-amber-100/40 dark:bg-blue-900/10 blur-[130px] rounded-full pointer-events-none"
+        className="absolute bottom-[5%] left-[5%] w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-[radial-gradient(closest-side,_var(--tw-gradient-stops))] from-amber-100/40 to-transparent dark:from-blue-900/20 pointer-events-none transform-gpu will-change-transform"
       />
 
       {/* Hero Content Grid (Left Text + Right idom 3D Knot PNG) */}
@@ -159,22 +159,22 @@ export default function Hero() {
           {/* Headline (Cuberto Kinetic Typography Style) */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15] mb-8 font-heading text-slate-900 dark:text-white max-w-2xl flex flex-col gap-0.5">
             <div>
-              <MagneticWord delay={1.8} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              <MagneticWord delay={0.2} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 Engineering
               </MagneticWord>
             </div>
             <div className="pl-6 sm:pl-10">
-              <MagneticWord delay={1.95} className="text-blue-600 dark:text-blue-500 hover:text-sky-500 transition-colors">
+              <MagneticWord delay={0.35} className="text-blue-600 dark:text-blue-500 hover:text-sky-500 transition-colors">
                 Digital Excellence.
               </MagneticWord>
             </div>
             <div>
-              <MagneticWord delay={2.1} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              <MagneticWord delay={0.5} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 For Businesses
               </MagneticWord>
             </div>
             <div className="pl-6 sm:pl-10">
-              <MagneticWord delay={2.25} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              <MagneticWord delay={0.65} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 That Want To Lead.
               </MagneticWord>
             </div>
@@ -184,7 +184,7 @@ export default function Hero() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 2.35 }}
+            transition={{ duration: 0.8, delay: 0.75 }}
             className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-xl font-body leading-relaxed font-medium"
           >
             We partner with forward-thinking enterprises to design, build, and scale world-class digital products and infrastructure.
@@ -194,7 +194,7 @@ export default function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 2.5 }}
+            transition={{ duration: 0.8, delay: 0.9 }}
             className="flex flex-wrap items-center gap-4 w-full sm:w-auto"
           >
             <button
@@ -226,7 +226,7 @@ export default function Hero() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 1.8 }}
+          transition={{ duration: 1, delay: 0.2 }}
           className="lg:col-span-5 relative flex items-center justify-center"
         >
           <motion.div
@@ -239,7 +239,7 @@ export default function Hero() {
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className="relative w-full max-w-[420px] aspect-square flex items-center justify-center"
+            className="relative w-full max-w-[420px] aspect-square flex items-center justify-center transform-gpu will-change-transform"
           >
             <Image
               src="/idom.png"

@@ -28,10 +28,6 @@ export default function DiscountBanner() {
       transition={{ duration: 1.0, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
       className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-2 flex items-center justify-center relative text-sm font-medium tracking-wide"
     >
-      <span>
-        Launch Offer: <strong>First 5 Clients Get 20% OFF</strong> - Limited Slots Available
-      </span>
-
       <button
         onClick={handleClose}
         className="absolute right-4 text-white hover:text-gray-300 text-lg font-bold"

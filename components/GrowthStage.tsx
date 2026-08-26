@@ -24,7 +24,7 @@ const springTransition = {
 
 export default function GrowthStage() {
   return (
-    <section id="services" className="w-full pt-0 pb-16 md:pb-20 px-6 sm:px-12 md:px-20 bg-background dark:bg-[#0b0f19] text-foreground transition-colors duration-300 relative overflow-hidden font-sans">
+    <section id="services" className="w-full scroll-mt-32 pt-0 pb-8 md:pb-0 px-6 sm:px-12 md:px-20 bg-background dark:bg-[#0b0f19] text-foreground transition-colors duration-300 relative overflow-hidden font-sans">
       <div className="max-w-[1360px] mx-auto">
         
         {/* ==================== SECTION HEADER ==================== */}
@@ -80,7 +80,7 @@ export default function GrowthStage() {
         </div>
 
         {/* ==================== TRACK 1: FOR BUSINESSES & PRODUCTS (WITH DYNAMIC CURSOR BADGES & HOVER LIFT) ==================== */}
-        <div className="mb-28">
+        <div id="process" className="mb-16 scroll-mt-32">
           
           {/* Track Heading */}
           <motion.div 
@@ -363,7 +363,7 @@ export default function GrowthStage() {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-24"
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8"
           >
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 text-foreground font-semibold text-sm sm:text-base shadow-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
@@ -375,7 +375,7 @@ export default function GrowthStage() {
           </motion.div>
 
           {/* ASCENDING STAIRCASE PATHWAY */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-8 relative items-start pt-6 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-8 relative items-start pt-6 pb-8 md:pb-32">
             
             {/* STEP 1 (Bottom Left) */}
             <motion.div 
@@ -385,23 +385,23 @@ export default function GrowthStage() {
               data-cursor-badge="CREATOR"
               className="flex flex-col items-center md:items-start text-center md:text-left group relative md:translate-y-24 cursor-pointer"
             >
-              <div className="flex items-center gap-3 px-7 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-amber-400 transition-colors duration-200 mb-5">
-                <span className="text-base font-bold text-foreground">Solo Founder / Creator</span>
-                <span className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <div className="flex w-full items-center justify-between gap-3 px-6 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-amber-400 transition-colors duration-200 mb-5 relative z-10">
+                <span className="text-sm xl:text-base font-bold text-foreground">Solo Founder / Creator</span>
+                <span className="w-6 h-6 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
                   ↑
                 </span>
+                
+                {/* Curved Animated SVG Connector 1 */}
+                <div className="hidden md:block absolute left-[calc(100%-8px)] top-1/2 -translate-y-1/2 w-12 h-16 pointer-events-none z-[-1]">
+                  <svg width="100%" height="100%" viewBox="0 0 48 64" fill="none" className="overflow-visible">
+                    <path d="M 0 32 C 24 32, 24 0, 48 0" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="5 5" className="animate-[flowDash_1.2s_linear_infinite]" strokeLinecap="round" />
+                  </svg>
+                </div>
               </div>
-              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-amber-400/50 transition-colors duration-200 w-full">
+              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-amber-400/50 transition-colors duration-200 w-full relative z-10">
                 <p className="text-sm text-text-secondary leading-relaxed">
                   Organic social media strategy, initial Meta ads setup, brand engagement & landing page
                 </p>
-              </div>
-
-              {/* Curved Animated SVG Connector 1 */}
-              <div className="hidden md:block absolute -right-11 -top-5 w-28 h-12 pointer-events-none z-10">
-                <svg width="110" height="44" viewBox="0 0 110 44" fill="none">
-                  <path d="M 5 44 C 45 44, 65 12, 105 12" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="5 5" className="animate-[flowDash_1.2s_linear_infinite]" />
-                </svg>
               </div>
             </motion.div>
 
@@ -413,23 +413,23 @@ export default function GrowthStage() {
               data-cursor-badge="AGENCY"
               className="flex flex-col items-center md:items-start text-center md:text-left group relative md:translate-y-16 cursor-pointer"
             >
-              <div className="flex items-center gap-3 px-7 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-purple-400 transition-colors duration-200 mb-5">
-                <span className="text-base font-bold text-foreground">Growing Agency</span>
-                <span className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <div className="flex w-full items-center justify-between gap-3 px-6 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-purple-400 transition-colors duration-200 mb-5 relative z-10">
+                <span className="text-sm xl:text-base font-bold text-foreground">Growing Agency</span>
+                <span className="w-6 h-6 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
                   ↑
                 </span>
+
+                {/* Curved Animated SVG Connector 2 */}
+                <div className="hidden md:block absolute left-[calc(100%-8px)] top-1/2 -translate-y-1/2 w-12 h-16 pointer-events-none z-[-1]">
+                  <svg width="100%" height="100%" viewBox="0 0 48 64" fill="none" className="overflow-visible">
+                    <path d="M 0 32 C 24 32, 24 0, 48 0" stroke="#a855f7" strokeWidth="2.5" strokeDasharray="5 5" className="animate-[flowDash_1.2s_linear_infinite]" strokeLinecap="round" />
+                  </svg>
+                </div>
               </div>
-              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-purple-400/50 transition-colors duration-200 w-full">
+              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-purple-400/50 transition-colors duration-200 w-full relative z-10">
                 <p className="text-sm text-text-secondary leading-relaxed">
                   High-converting Meta & Google ad campaigns, organic traffic growth & full stack web app
                 </p>
-              </div>
-
-              {/* Curved Animated SVG Connector 2 */}
-              <div className="hidden md:block absolute -right-11 -top-5 w-28 h-12 pointer-events-none z-10">
-                <svg width="110" height="44" viewBox="0 0 110 44" fill="none">
-                  <path d="M 5 44 C 45 44, 65 12, 105 12" stroke="#a855f7" strokeWidth="2.5" strokeDasharray="5 5" className="animate-[flowDash_1.2s_linear_infinite]" />
-                </svg>
               </div>
             </motion.div>
 
@@ -441,23 +441,23 @@ export default function GrowthStage() {
               data-cursor-badge="FIRM"
               className="flex flex-col items-center md:items-start text-center md:text-left group relative md:translate-y-8 cursor-pointer"
             >
-              <div className="flex items-center gap-3 px-7 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-emerald-400 transition-colors duration-200 mb-5">
-                <span className="text-base font-bold text-foreground">Multi-Branch Firm</span>
-                <span className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <div className="flex w-full items-center justify-between gap-3 px-6 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-emerald-400 transition-colors duration-200 mb-5 relative z-10">
+                <span className="text-sm xl:text-base font-bold text-foreground">Multi-Branch Firm</span>
+                <span className="w-6 h-6 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
                   ↑
                 </span>
+
+                {/* Curved Animated SVG Connector 3 */}
+                <div className="hidden md:block absolute left-[calc(100%-8px)] top-1/2 -translate-y-1/2 w-12 h-16 pointer-events-none z-[-1]">
+                  <svg width="100%" height="100%" viewBox="0 0 48 64" fill="none" className="overflow-visible">
+                    <path d="M 0 32 C 24 32, 24 0, 48 0" stroke="#10b981" strokeWidth="2.5" strokeDasharray="5 5" className="animate-[flowDash_1.2s_linear_infinite]" strokeLinecap="round" />
+                  </svg>
+                </div>
               </div>
-              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-emerald-400/50 transition-colors duration-200 w-full">
+              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-emerald-400/50 transition-colors duration-200 w-full relative z-10">
                 <p className="text-sm text-text-secondary leading-relaxed">
                   Omnichannel Meta ads, high-engagement Instagram management & custom iOS/Android apps
                 </p>
-              </div>
-
-              {/* Curved Animated SVG Connector 3 */}
-              <div className="hidden md:block absolute -right-11 -top-5 w-28 h-12 pointer-events-none z-10">
-                <svg width="110" height="44" viewBox="0 0 110 44" fill="none">
-                  <path d="M 5 44 C 45 44, 65 12, 105 12" stroke="#10b981" strokeWidth="2.5" strokeDasharray="5 5" className="animate-[flowDash_1.2s_linear_infinite]" />
-                </svg>
               </div>
             </motion.div>
 
@@ -469,13 +469,13 @@ export default function GrowthStage() {
               data-cursor-badge="PARTNER"
               className="flex flex-col items-center md:items-start text-center md:text-left group relative md:translate-y-0 cursor-pointer"
             >
-              <div className="flex items-center gap-3 px-7 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-indigo-400 transition-colors duration-200 mb-5">
-                <span className="text-base font-bold text-foreground">Enterprise Partner</span>
-                <span className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <div className="flex w-full items-center justify-between gap-3 px-6 py-3.5 rounded-full bg-surface border border-border shadow-xl group-hover:border-indigo-400 transition-colors duration-200 mb-5 relative z-10">
+                <span className="text-sm xl:text-base font-bold text-foreground">Enterprise Partner</span>
+                <span className="w-6 h-6 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
                   ↑
                 </span>
               </div>
-              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-indigo-400/50 transition-colors duration-200 w-full">
+              <div className="p-5 rounded-2xl bg-surface/80 border border-border/80 shadow-md group-hover:border-indigo-400/50 transition-colors duration-200 w-full relative z-10">
                 <p className="text-sm text-text-secondary leading-relaxed">
                   Full-scale ad budget management, viral organic traffic funnels & custom SaaS platforms
                 </p>
