@@ -4,7 +4,11 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isMaintenanceMode = process.env.MAINTENANCE_MODE === "true";
+  // Automatically disable maintenance mode on Vercel Preview deployments
+  const isMaintenanceMode = 
+    process.env.MAINTENANCE_MODE === "true" && 
+    process.env.VERCEL_ENV !== "preview" &&
+    request.nextUrl.searchParams.get("bypass") !== "true";
 
   // Maintenance Mode
   if (isMaintenanceMode && pathname !== "/maintenance") {
