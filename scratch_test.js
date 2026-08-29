@@ -1,30 +1,26 @@
-const fs = require('fs');
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 
-function walkDir(dir, callback) {
-  fs.readdirSync(dir).forEach(f => {
-    const dirPath = path.join(dir, f);
-    const isDirectory = fs.statSync(dirPath).isDirectory();
-    isDirectory ? walkDir(dirPath, callback) : callback(path.join(dir, f));
-  });
+async function clearDevices() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !serviceKey) {
+    console.log("Missing URL or Service Key");
+    return;
+  }
+  
+  const supabase = createClient(supabaseUrl, serviceKey);
+  
+  const { error } = await supabase
+    .from('authorized_devices')
+    .delete()
+    .neq('user_id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
+    
+  if (error) {
+    console.error("Failed to clear devices:", error.message);
+  } else {
+    console.log("Successfully cleared all registered devices.");
+  }
 }
 
-const targetString = "const authCookie = cookieStore.get('sb-auth-token');";
-const replacementString = `const allCookies = cookieStore.getAll();
-    const authCookie = allCookies.find(
-      (c) => c.name.includes("auth-token") || c.name.includes("supabase.auth.token")
-    );`;
-
-let count = 0;
-walkDir('d:\\Rohit 2.0\\bmtech\\app\\api', (filePath) => {
-  if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
-    let content = fs.readFileSync(filePath, 'utf8');
-    if (content.includes(targetString)) {
-      content = content.replace(targetString, replacementString);
-      fs.writeFileSync(filePath, content, 'utf8');
-      console.log('Fixed:', filePath);
-      count++;
-    }
-  }
-});
-console.log(`Replaced in ${count} files.`);
+clearDevices();
