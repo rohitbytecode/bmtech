@@ -9,7 +9,10 @@ export async function POST(request: Request) {
     // 1. Verify Session & Hardware
     const cookieStore = await cookies();
     const isHardwareVerified = cookieStore.get('bmtech_hardware_verified')?.value === 'true';
-    const authCookie = cookieStore.get('sb-auth-token');
+    const allCookies = cookieStore.getAll();
+    const authCookie = allCookies.find(
+      (c) => c.name.includes("auth-token") || c.name.includes("supabase.auth.token")
+    );
 
     if (!isHardwareVerified) {
       return NextResponse.json({ error: 'Hardware verification required' }, { status: 403 });

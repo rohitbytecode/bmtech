@@ -46,6 +46,8 @@ export default function HardwareAuthorizationPage() {
       );
       if (ok) {
         setSuccess(true);
+        // Set the hardware verification cookie so the proxy accepts this device
+        document.cookie = `bmtech_hardware_verified=${hwId}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
         // Force a full location change to ensure middleware picks up the new DB state and cookie
         setTimeout(() => {
           window.location.href = '/admin/dashboard';
