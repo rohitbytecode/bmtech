@@ -70,6 +70,7 @@ export const webauthnUtils = {
       authenticatorSelection: {
         residentKey: 'preferred',
         userVerification: 'preferred',
+        authenticatorAttachment: 'platform',
       },
       excludeCredentials: existingCredentials.map((cred) => ({
         id: cred.credential_id,
