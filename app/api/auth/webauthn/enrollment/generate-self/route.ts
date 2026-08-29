@@ -9,7 +9,10 @@ export async function POST(request: Request) {
 
     // 1. Get the current user from session
     const cookieStore = await cookies();
-    const authCookie = cookieStore.get('sb-auth-token');
+    const allCookies = cookieStore.getAll();
+    const authCookie = allCookies.find(
+      (c) => c.name.includes("auth-token") || c.name.includes("supabase.auth.token")
+    );
 
     if (!authCookie) {
       return NextResponse.json({ error: 'No session found' }, { status: 401 });

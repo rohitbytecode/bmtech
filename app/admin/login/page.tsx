@@ -17,11 +17,6 @@ export default function AdminLogin() {
   const [deviceFingerprint, setDeviceFingerprint] = useState('');
 
   React.useEffect(() => {
-    // ── DEV BYPASS: skip login entirely in local development ──
-    if (process.env.NODE_ENV === 'development') {
-      window.location.href = '/admin/dashboard';
-      return;
-    }
     setDeviceFingerprint(getDeviceFingerprint());
   }, []);
 
@@ -31,17 +26,19 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      // Step 1: Try WebAuthn first
+      // Step 1: Try WebAuthn first (Bypass in Development)
       let result;
 
-      try {
-        result = await webauthnClient.authenticate(email, password);
-      } catch (err: any) {
-        // If no hardware → fallback
-        if (err.message.includes('No hardware keys')) {
+      if (process.env.NODE_ENV === 'development') {
+        result = { fallback: true };
+      } else {
+        try {
+          result = await webauthnClient.authenticate(email, password);
+        } catch (err: any) {
+          // Any WebAuthn failure (no keys, user cancelled, not supported, etc.)
+          // → gracefully fall back to password login
+          console.warn('WebAuthn unavailable, falling back to password:', err.message);
           result = { fallback: true };
-        } else {
-          throw err;
         }
       }
 

@@ -107,16 +107,20 @@ export async function proxy(request: NextRequest) {
         }
 
         const isValidDevice = devices.some(
-          (d) => d.credential_id === hardwareVerifiedToken,
+          (d) => d.credential_id && d.credential_id === hardwareVerifiedToken,
         );
         if (!isValidDevice) {
-          // Device de-authorized! Clear cookies and kick out.
           const response = NextResponse.redirect(
             new URL("/admin/login", request.url),
           );
           response.cookies.delete("bmtech_hardware_verified");
           return response;
         }
+      } else {
+        // No devices registered yet — force first-device enrollment
+        return NextResponse.redirect(
+          new URL("/admin/hardware-authorization?auto=true", request.url),
+        );
       }
     } catch (e) {
       console.error("Proxy Error:", e);

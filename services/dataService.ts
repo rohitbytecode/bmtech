@@ -654,10 +654,14 @@ export const dataService = {
       const { data, error } = await supabase
         .from('authorized_devices')
         .upsert({
-          device_id: deviceId,
+          credential_id: deviceId,
           device_name: name,
           user_id: user.id,
-          last_used_at: new Date().toISOString(),
+          last_verified_at: new Date().toISOString(),
+          public_key: 'simple-enrollment-no-key',
+          counter: 0,
+          transports: ['internal'],
+          status: 'active'
         })
         .select()
         .single();
