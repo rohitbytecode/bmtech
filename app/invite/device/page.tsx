@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Monitor,
+  Fingerprint,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/admin/FormFields';
@@ -27,6 +28,8 @@ export default function DeviceOnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [deviceName, setDeviceName] = useState('');
   const [inviteData, setInviteData] = useState<any>(null);
+  const [webauthnFailed, setWebauthnFailed] = useState(false);
+  const [enrollMethod, setEnrollMethod] = useState<'webauthn' | 'token'>('webauthn');
 
   // 1. Verify token on mount
   useEffect(() => {
@@ -61,25 +64,65 @@ export default function DeviceOnboardingPage() {
     verifyToken();
   }, [token]);
 
-  // 2. Handle Registration
-  const handleOnboard = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 2. Handle WebAuthn Registration (primary method)
+  const handleWebauthnEnroll = async () => {
     if (!deviceName || !token) return;
-
     setStatus('registering');
+    setEnrollMethod('webauthn');
+
     try {
-      // We don't have the user's email here yet, so we pass the token.
-      // The upgraded API will find the user associated with this token.
       await webauthnClient.register('New Device', token, deviceName);
       setStatus('success');
+      setTimeout(() => {
+        router.push('/admin/login');
+      }, 3000);
+    } catch (err: any) {
+      console.warn('[Invite] WebAuthn registration failed:', err.message);
+      setWebauthnFailed(true);
+      setStatus('ready');
+      // Don't show an alert — the UI will now show the fallback option
+    }
+  };
 
-      // Auto-redirect after 3 seconds
+  // 3. Handle Token-Based Registration (fallback)
+  const handleTokenEnroll = async () => {
+    if (!deviceName || !token) return;
+    setStatus('registering');
+    setEnrollMethod('token');
+
+    try {
+      const res = await fetch('/api/auth/device-enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, deviceName }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Token enrollment failed');
+      }
+
+      // Store the credential ID in a secure cookie so the proxy accepts this device
+      document.cookie = `bmtech_hardware_verified=${result.credentialId}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax; Secure`;
+
+      setStatus('success');
       setTimeout(() => {
         router.push('/admin/login');
       }, 3000);
     } catch (err: any) {
       setStatus('ready');
-      alert('Registration failed: ' + err.message);
+      setError(err.message || 'Enrollment failed');
+    }
+  };
+
+  // 4. Combined handler — tries WebAuthn first, then falls back
+  const handleOnboard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (webauthnFailed) {
+      await handleTokenEnroll();
+    } else {
+      await handleWebauthnEnroll();
     }
   };
 
@@ -126,13 +169,31 @@ export default function DeviceOnboardingPage() {
           {status === 'ready' && (
             <form onSubmit={handleOnboard} className="space-y-6">
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-start gap-3">
-                  <CheckCircle2 size={20} className="text-emerald-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    This invitation is valid. Once you register this device, it will be added to
-                    your verified hardware list.
-                  </p>
-                </div>
+                {/* Show WebAuthn failure notice and fallback option */}
+                {webauthnFailed && (
+                  <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-start gap-3">
+                    <AlertTriangle size={20} className="text-amber-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-xs text-amber-300 font-semibold">
+                        Hardware passkey unavailable on this device
+                      </p>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        Your device doesn't support passkeys (Windows Hello PIN not set up, or browser restrictions).
+                        Using secure token enrollment instead — your device will still be cryptographically authorized.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {!webauthnFailed && (
+                  <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-start gap-3">
+                    <CheckCircle2 size={20} className="text-emerald-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                      This invitation is valid. Once you register this device, it will be added to
+                      your verified hardware list.
+                    </p>
+                  </div>
+                )}
 
                 <InputField
                   label="Device Friendly Name"
@@ -143,9 +204,29 @@ export default function DeviceOnboardingPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full h-12 text-lg">
-                Register Device
+              <Button type="submit" className="w-full h-12 text-lg gap-2">
+                {webauthnFailed ? (
+                  <>
+                    <Key size={18} />
+                    Authorize with Secure Token
+                  </>
+                ) : (
+                  <>
+                    <Fingerprint size={18} />
+                    Register Device
+                  </>
+                )}
               </Button>
+
+              {!webauthnFailed && (
+                <button
+                  type="button"
+                  onClick={() => setWebauthnFailed(true)}
+                  className="w-full text-xs text-text-secondary/60 hover:text-text-secondary transition-colors text-center"
+                >
+                  Having trouble? Use alternative enrollment →
+                </button>
+              )}
             </form>
           )}
 
@@ -156,9 +237,13 @@ export default function DeviceOnboardingPage() {
                 <Monitor className="absolute inset-0 m-auto text-white" size={24} />
               </div>
               <div className="space-y-2">
-                <h4 className="text-xl font-bold">Waiting for Hardware...</h4>
+                <h4 className="text-xl font-bold">
+                  {enrollMethod === 'webauthn' ? 'Waiting for Hardware...' : 'Authorizing Device...'}
+                </h4>
                 <p className="text-text-secondary text-sm italic">
-                  Follow the biometric prompt on your screen.
+                  {enrollMethod === 'webauthn'
+                    ? 'Follow the biometric prompt on your screen.'
+                    : 'Generating secure device token...'}
                 </p>
               </div>
             </div>
