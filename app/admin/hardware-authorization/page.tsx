@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ShieldAlert, Monitor, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Monitor, ArrowRight, Loader2, CheckCircle2, Key, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { getDeviceFingerprint } from '@/lib/device';
 import { dataService } from '@/services/dataService';
@@ -21,14 +21,12 @@ export default function HardwareAuthorizationPage() {
 
     // Auto-redirect if already authorized
     const checkAuth = async () => {
-      // Ensure we have an ID before checking
       const currentId = id || getDeviceFingerprint();
       if (!currentId) return;
 
       const { data } = await dataService.getAuthorizedDevices();
-      if (data?.some((d: any) => d.device_id === currentId)) {
+      if (data?.some((d: any) => d.credential_id === currentId)) {
         setSuccess(true);
-        // Add a tiny delay to ensure cookie is fully flushed in the browser
         setTimeout(() => {
           window.location.href = '/admin/dashboard';
         }, 500);
@@ -47,7 +45,7 @@ export default function HardwareAuthorizationPage() {
       if (ok) {
         setSuccess(true);
         // Set the hardware verification cookie so the proxy accepts this device
-        document.cookie = `bmtech_hardware_verified=${hwId}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+        document.cookie = `bmtech_hardware_verified=${hwId}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
         // Force a full location change to ensure middleware picks up the new DB state and cookie
         setTimeout(() => {
           window.location.href = '/admin/dashboard';
@@ -110,7 +108,7 @@ export default function HardwareAuthorizationPage() {
                 className="w-full h-14 gap-2"
                 disabled={loading || !hwId}
               >
-                {loading ? <Loader2 className="animate-spin" /> : <ArrowRight size={20} />}
+                {loading ? <Loader2 className="animate-spin" /> : <Key size={20} />}
                 {isAuto ? 'Enroll this Device' : 'Request Authorization'}
               </Button>
 
