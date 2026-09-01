@@ -12,9 +12,9 @@ export function Navbar() {
   const formattedTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
 
   return (
-    <header className="h-20 bg-background border-b border-border px-8 flex items-center justify-between sticky top-0 z-40">
+    <header className="h-16 bg-background/80 backdrop-blur-md border-b border-border/50 px-6 md:px-8 flex items-center justify-between sticky top-0 z-40">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary capitalize">
+        <h1 className="text-xl font-bold tracking-tight text-text-primary capitalize">
           {formattedTitle}
         </h1>
       </div>

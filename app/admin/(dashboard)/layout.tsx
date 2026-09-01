@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
       >
         <Navbar />
-        <main className="flex-1 p-8 md:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <main className="flex-1 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="max-w-[1400px] mx-auto">{children}</div>
         </main>
       </div>

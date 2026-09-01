@@ -24,14 +24,14 @@ export function InputField({ label, error, className, id, ...props }: InputField
     <div className={cn('space-y-2', className)}>
       <label
         htmlFor={inputId}
-        className="text-sm font-semibold text-text-primary tracking-wide uppercase"
+        className="text-xs font-medium text-text-secondary"
       >
         {label}
       </label>
       <input
         id={inputId}
         className={cn(
-          'w-full h-12 px-4 bg-background border border-border rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue transition-all duration-200',
+          'w-full h-10 px-3 bg-background border border-border/60 rounded-md text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all duration-200 shadow-sm',
           error && 'border-rose-500 focus:ring-rose-500/20',
           props.disabled && 'opacity-50 cursor-not-allowed grayscale',
         )}
@@ -49,7 +49,7 @@ export function TextAreaField({ label, error, className, id, ...props }: TextAre
     <div className={cn('space-y-2', className)}>
       <label
         htmlFor={inputId}
-        className="text-sm font-semibold text-text-primary tracking-wide uppercase"
+        className="text-xs font-medium text-text-secondary"
       >
         {label}
       </label>
@@ -57,7 +57,7 @@ export function TextAreaField({ label, error, className, id, ...props }: TextAre
         id={inputId}
         rows={4}
         className={cn(
-          'w-full p-4 bg-background border border-border rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue transition-all duration-200 resize-none',
+          'w-full p-3 bg-background border border-border/60 rounded-md text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all duration-200 resize-none shadow-sm',
           error && 'border-rose-500 focus:ring-rose-500/20',
           props.disabled && 'opacity-50 cursor-not-allowed grayscale',
         )}
@@ -75,7 +75,7 @@ export function SelectField({ label, error, className, id, options, ...props }: 
     <div className={cn('space-y-2', className)}>
       <label
         htmlFor={inputId}
-        className="text-sm font-semibold text-text-primary tracking-wide uppercase"
+        className="text-xs font-medium text-text-secondary"
       >
         {label}
       </label>
@@ -83,7 +83,7 @@ export function SelectField({ label, error, className, id, options, ...props }: 
         <select
           id={inputId}
           className={cn(
-            'w-full h-12 px-4 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue transition-all duration-200 cursor-pointer appearance-none',
+            'w-full h-10 px-3 bg-background border border-border/60 rounded-md text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue transition-all duration-200 cursor-pointer appearance-none shadow-sm',
             error && 'border-rose-500 focus:ring-rose-500/20',
             props.disabled && 'opacity-50 cursor-not-allowed grayscale',
           )}
