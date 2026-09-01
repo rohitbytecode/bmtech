@@ -126,9 +126,12 @@ export const marketingService = {
   // --------------------------------------------------------
   // CALLER ASSIGNMENTS
   // --------------------------------------------------------
-  async getAssignmentsForCaller(callerId: string, status?: string) {
+  async getAssignmentsForCaller(callerId?: string, status?: string) {
     try {
-      let query = supabase.from('caller_assignments').select('*, prospects(*)').eq('caller_id', callerId);
+      let query = supabase.from('caller_assignments').select('*, prospects(*)');
+      if (callerId) {
+        query = query.eq('caller_id', callerId);
+      }
       if (status) {
         query = query.eq('status', status);
       }
@@ -137,6 +140,22 @@ export const marketingService = {
       return { data, error: null };
     } catch (error: any) {
       return { data: [], error: error.message };
+    }
+  },
+
+  async getAssignmentForProspect(prospectId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('caller_assignments')
+        .select('*')
+        .eq('prospect_id', prospectId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error; // Ignore not found error
+      return { data, error: null };
+    } catch (error: any) {
+      return { data: null, error: error.message };
     }
   },
 
@@ -189,6 +208,51 @@ export const marketingService = {
       return { success: true, data: data as CallAttempt, error: null };
     } catch (error: any) {
       return { success: false, data: null, error: error.message };
+    }
+  },
+
+  async logCallOutcome(assignmentId: string, prospectId: string, callerId: string, outcome: string) {
+    try {
+      // 1. Mark the assignment as completed
+      const { error: assignError } = await supabase
+        .from('caller_assignments')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', assignmentId);
+        
+      if (assignError) throw assignError;
+
+      // 2. Map the outcome to the prospect's new status
+      let newStatus = 'discovered';
+      if (outcome === 'interested') newStatus = 'qualified';
+      else if (outcome === 'not_interested' || outcome === 'invalid_number') newStatus = 'rejected';
+      else if (outcome === 'callback_required' || outcome === 'no_answer') newStatus = 'callback';
+
+      // 3. Update the prospect status
+      const { error: prospectError } = await supabase
+        .from('prospects')
+        .update({ status: newStatus })
+        .eq('id', prospectId);
+        
+      if (prospectError) throw prospectError;
+      
+      // 4. Log the call attempt
+      const { error: attemptError } = await supabase
+        .from('call_attempts')
+        .insert([{
+          prospect_id: prospectId,
+          assignment_id: assignmentId,
+          caller_id: callerId,
+          outcome: outcome,
+          notes: '',
+          duration_seconds: 0,
+          called_at: new Date().toISOString()
+        }]);
+        
+      if (attemptError) throw attemptError;
+
+      return { success: true, error: null };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   },
 

@@ -11,28 +11,42 @@ export default function CallerDashboard() {
   const [assignedProspects, setAssignedProspects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     loadAssignments();
   }, []);
 
   const loadAssignments = async () => {
     setLoading(true);
-    // Determine caller ID from current session
     const { data: session } = await supabase.auth.getSession();
     const userId = session?.session?.user?.id;
+    const userRole = session?.session?.user?.user_metadata?.role;
+    const isSuperAdmin = session?.session?.user?.user_metadata?.is_super_admin === true;
+    const isAdmin = userRole === 'admin' || isSuperAdmin;
     
     if (userId) {
-      const { data } = await marketingService.getAssignmentsForCaller(userId, 'assigned');
+      // Admins see all assigned prospects. Callers only see their own.
+      const targetCallerId = isAdmin ? undefined : userId;
+      const { data } = await marketingService.getAssignmentsForCaller(targetCallerId, 'assigned');
       if (data) {
-        setAssignedProspects(data.map((d: any) => ({ ...d.prospects, assignment_id: d.id })));
+        setAssignedProspects(data.map((d: any) => ({ ...d.prospects, assignment_id: d.id, caller_id: d.caller_id })));
       }
     }
     setLoading(false);
   };
 
-  const handleOutcome = async (prospectId: string, outcome: string) => {
-    // TODO: Implement actual call logging
-    console.log(`Logged ${outcome} for prospect ${prospectId}`);
+  const handleOutcome = async (assignmentId: string, prospectId: string, callerId: string, outcome: string) => {
+    setIsSubmitting(true);
+    const result = await marketingService.logCallOutcome(assignmentId, prospectId, callerId, outcome);
+    
+    if (result.success) {
+      // Remove from current UI list
+      setAssignedProspects(prev => prev.filter(p => p.id !== prospectId));
+    } else {
+      alert("Failed to log outcome: " + result.error);
+    }
+    setIsSubmitting(false);
   };
 
   if (loading) {
@@ -110,19 +124,19 @@ export default function CallerDashboard() {
         <div className="bg-surface rounded-[32px] p-8 border border-border space-y-6">
           <h3 className="text-lg font-bold mb-4">Log Outcome</h3>
           <div className="space-y-3">
-            <Button onClick={() => handleOutcome(currentProspect.id, 'interested')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
+            <Button disabled={isSubmitting} onClick={() => handleOutcome(currentProspect.assignment_id, currentProspect.id, currentProspect.caller_id, 'interested')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
               <CheckCircle size={18} /> Interested
             </Button>
-            <Button onClick={() => handleOutcome(currentProspect.id, 'callback_required')} variant="outline" className="w-full">
+            <Button disabled={isSubmitting} onClick={() => handleOutcome(currentProspect.assignment_id, currentProspect.id, currentProspect.caller_id, 'callback_required')} variant="outline" className="w-full">
               Callback Required
             </Button>
-            <Button onClick={() => handleOutcome(currentProspect.id, 'not_interested')} variant="outline" className="w-full">
+            <Button disabled={isSubmitting} onClick={() => handleOutcome(currentProspect.assignment_id, currentProspect.id, currentProspect.caller_id, 'not_interested')} variant="outline" className="w-full">
               Not Interested
             </Button>
-            <Button onClick={() => handleOutcome(currentProspect.id, 'no_answer')} variant="outline" className="w-full">
+            <Button disabled={isSubmitting} onClick={() => handleOutcome(currentProspect.assignment_id, currentProspect.id, currentProspect.caller_id, 'no_answer')} variant="outline" className="w-full">
               No Answer
             </Button>
-            <Button onClick={() => handleOutcome(currentProspect.id, 'invalid_number')} className="w-full hover:bg-rose-500/10 hover:text-rose-500 border-none">
+            <Button disabled={isSubmitting} onClick={() => handleOutcome(currentProspect.assignment_id, currentProspect.id, currentProspect.caller_id, 'invalid_number')} className="w-full hover:bg-rose-500/10 hover:text-rose-500 border-none">
               <XCircle size={18} className="mr-2" /> Invalid Number
             </Button>
           </div>

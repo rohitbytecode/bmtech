@@ -75,10 +75,18 @@ export default function ProspectsPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenAssign = (prospect: Prospect) => {
+  const handleOpenAssign = async (prospect: Prospect) => {
     setAssigningProspect(prospect);
-    setSelectedCallerId('');
+    setSelectedCallerId(''); // reset initially
     setIsAssignModalOpen(true);
+    
+    // If it's already assigned, fetch the caller and populate the dropdown
+    if (prospect.status === 'assigned') {
+      const { data } = await marketingService.getAssignmentForProspect(prospect.id);
+      if (data && data.caller_id) {
+        setSelectedCallerId(data.caller_id);
+      }
+    }
   };
 
   const handleDelete = async (prospect: Prospect) => {
@@ -94,7 +102,12 @@ export default function ProspectsPage() {
 
   const handleAssignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!assigningProspect || !selectedCallerId) return;
+    if (!assigningProspect) return;
+    
+    if (!selectedCallerId) {
+      alert("Please select a caller from the dropdown first!");
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -112,10 +125,21 @@ export default function ProspectsPage() {
 
     if (assignmentResult.success) {
       // 2. Update prospect status
-      await marketingService.updateProspect(assigningProspect.id, {
+      const updateResult = await marketingService.updateProspect(assigningProspect.id, {
         status: 'assigned'
       });
+      
+      if (!updateResult.success) {
+        alert("Assignment created, but failed to update prospect status: " + updateResult.error);
+      } else {
+        // Manually update the state to immediately reflect in UI without relying on network cache
+        setProspects(prev => prev.map(p => 
+          p.id === assigningProspect.id ? { ...p, status: 'assigned' } : p
+        ));
+      }
+      
       setIsAssignModalOpen(false);
+      // We also trigger a background fetch just in case
       loadProspects();
     } else {
       alert("Failed to assign prospect: " + assignmentResult.error);
@@ -290,7 +314,7 @@ export default function ProspectsPage() {
       >
         <div className="space-y-4 min-h-[150px]">
           <SelectField
-            label="Select Caller"
+            label="Caller"
             value={selectedCallerId}
             onChange={(e) => setSelectedCallerId(e.target.value)}
             options={callers.map(caller => ({
