@@ -81,13 +81,24 @@ export async function proxy(request: NextRequest) {
         error,
       } = await supabase.auth.getUser(token);
 
-      if (
-        error ||
-        !user ||
-        (user.user_metadata?.role !== "admin" &&
-          user.user_metadata?.is_super_admin !== true)
-      ) {
+      if (error || !user) {
         return NextResponse.redirect(new URL("/admin/login", request.url));
+      }
+
+      const userRole = user.user_metadata?.role;
+      const isSuperAdmin = user.user_metadata?.is_super_admin === true;
+      const isAdmin = userRole === 'admin' || isSuperAdmin;
+      const isCaller = userRole === 'caller';
+
+      if (!isAdmin && !isCaller) {
+        return NextResponse.redirect(new URL("/admin/login", request.url));
+      }
+
+      // Restrict callers to only their specific dashboard
+      if (isCaller && !isAdmin) {
+        if (!pathname.startsWith('/admin/marketing/caller')) {
+          return NextResponse.redirect(new URL("/admin/marketing/caller", request.url));
+        }
       }
 
       const hardwareVerifiedToken = request.cookies.get(

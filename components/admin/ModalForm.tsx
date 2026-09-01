@@ -54,28 +54,28 @@ export function ModalForm({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         ref={modalRef}
-        className="w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-3xl overflow-hidden relative animate-in zoom-in-95 duration-300"
+        className="w-full max-w-xl bg-surface border border-border/50 rounded-xl shadow-2xl shadow-black/10 overflow-hidden relative animate-in zoom-in-95 duration-300"
       >
-        <div className="p-8 border-b border-border bg-background flex items-center justify-between">
+        <div className="p-6 border-b border-border/50 bg-background/50 flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-text-primary tracking-tight">{title}</h2>
-            {description && <p className="text-sm text-text-secondary">{description}</p>}
+            <h2 className="text-lg font-bold text-text-primary tracking-tight">{title}</h2>
+            {description && <p className="text-xs text-text-secondary">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-border transition-colors outline-none"
+            className="p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-border transition-colors outline-none"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
         <form onSubmit={onSubmit}>
-          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar" data-lenis-prevent>
             {children}
           </div>
 
           {!hideFooter && (
-            <div className="p-8 pt-0 flex flex-col sm:flex-row items-center justify-end gap-4 bg-surface">
+            <div className="p-6 pt-0 flex flex-col sm:flex-row items-center justify-end gap-3 bg-surface">
               <Button
                 type="button"
                 variant="secondary"

@@ -41,7 +41,7 @@ export function DataTable<T extends { id: string | number }>({
 
   if (data.length === 0) {
     return (
-      <div className="w-full bg-surface border border-border rounded-xl p-20 flex flex-col items-center justify-center text-center">
+      <div className="w-full bg-surface border border-border rounded-lg p-16 flex flex-col items-center justify-center text-center">
         <div className="h-20 w-20 bg-accent-blue/5 rounded-full flex items-center justify-center text-accent-blue/40 mb-6">
           <MoreVertical size={40} />
         </div>
@@ -54,16 +54,16 @@ export function DataTable<T extends { id: string | number }>({
   }
 
   return (
-    <div className="w-full bg-surface border border-border rounded-xl overflow-hidden shadow-2xl shadow-black/20">
+    <div className="w-full bg-surface border border-border/50 rounded-lg overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-background border-b border-border">
+          <thead className="bg-background/80 backdrop-blur-sm border-b border-border/50">
             <tr>
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   className={cn(
-                    'px-6 py-5 text-sm font-semibold text-text-secondary uppercase tracking-wider',
+                    'px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-widest',
                     col.className,
                   )}
                 >
@@ -71,13 +71,13 @@ export function DataTable<T extends { id: string | number }>({
                 </th>
               ))}
               {(onEdit || onDelete || onView) && (
-                <th className="px-6 py-5 text-sm font-semibold text-text-secondary uppercase tracking-wider text-right">
+                <th className="px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-widest text-right">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/50">
             {data.map((item, itemIdx) => (
               <tr
                 key={item.id || itemIdx}
@@ -87,7 +87,7 @@ export function DataTable<T extends { id: string | number }>({
                   <td
                     key={colIdx}
                     className={cn(
-                      'px-6 py-5 text-text-primary font-medium whitespace-nowrap',
+                      'px-4 py-3 text-sm text-text-primary font-medium whitespace-nowrap',
                       col.className,
                     )}
                   >
@@ -97,7 +97,7 @@ export function DataTable<T extends { id: string | number }>({
                   </td>
                 ))}
                 {(onEdit || onDelete || onView) && (
-                  <td className="px-6 py-5 text-right whitespace-nowrap">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       {onView && (
                         <Button
