@@ -256,6 +256,50 @@ export const marketingService = {
     }
   },
 
+  async getMarketingDashboardStats() {
+    try {
+      // Run multiple count queries in parallel for performance
+      const [
+        { count: totalProspects },
+        { count: readyToCall },
+        { count: assigned },
+        { count: callbacks },
+        { count: qualified },
+        { count: rejected },
+        { count: totalCalls }
+      ] = await Promise.all([
+        supabase.from('prospects').select('*', { count: 'exact', head: true }),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'discovered'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'assigned'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'callback'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'qualified'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
+        supabase.from('call_attempts').select('*', { count: 'exact', head: true })
+      ]);
+
+      const q = qualified || 0;
+      const r = rejected || 0;
+      const conversionRate = (q + r) > 0 ? Math.round((q / (q + r)) * 100) : 0;
+
+      return {
+        data: {
+          totalProspects: totalProspects || 0,
+          readyToCall: readyToCall || 0,
+          assigned: assigned || 0,
+          callbacks: callbacks || 0,
+          qualified: q,
+          rejected: r,
+          totalCalls: totalCalls || 0,
+          conversionRate
+        },
+        error: null
+      };
+    } catch (error: any) {
+      console.error('Failed to load marketing stats:', error);
+      return { data: null, error: error.message };
+    }
+  },
+
   // --------------------------------------------------------
   // STICKY NOTES
   // --------------------------------------------------------
