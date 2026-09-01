@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { marketingService } from '@/services/marketingService';
+import { supabase } from '@/lib/supabaseClient';
 import type { Prospect } from '@/types/marketing';
 import { DataTable } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/Button';
@@ -11,11 +12,16 @@ import { InputField, TextAreaField, SelectField } from '@/components/admin/FormF
 
 export default function ProspectsPage() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [callers, setCallers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [assigningProspect, setAssigningProspect] = useState<Prospect | null>(null);
+  const [selectedCallerId, setSelectedCallerId] = useState('');
   
   const [formData, setFormData] = useState({
     business_name: '',
@@ -28,6 +34,7 @@ export default function ProspectsPage() {
 
   useEffect(() => {
     loadProspects();
+    loadCallers();
   }, []);
 
   const loadProspects = async () => {
@@ -35,6 +42,11 @@ export default function ProspectsPage() {
     const { data } = await marketingService.getProspects();
     if (data) setProspects(data);
     setLoading(false);
+  };
+
+  const loadCallers = async () => {
+    const { data } = await marketingService.getCallers();
+    if (data) setCallers(data);
   };
 
   const handleOpenNew = () => {
@@ -63,6 +75,12 @@ export default function ProspectsPage() {
     setIsModalOpen(true);
   };
 
+  const handleOpenAssign = (prospect: Prospect) => {
+    setAssigningProspect(prospect);
+    setSelectedCallerId('');
+    setIsAssignModalOpen(true);
+  };
+
   const handleDelete = async (prospect: Prospect) => {
     if (window.confirm(`Are you sure you want to delete the prospect "${prospect.business_name}"?`)) {
       const { success } = await marketingService.deleteProspect(prospect.id);
@@ -72,6 +90,38 @@ export default function ProspectsPage() {
         alert("Failed to delete prospect");
       }
     }
+  };
+
+  const handleAssignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assigningProspect || !selectedCallerId) return;
+    
+    setIsSubmitting(true);
+    
+    const { data: session } = await supabase.auth.getSession();
+    const assignedBy = session?.session?.user?.id || 'unknown';
+
+    // 1. Create the assignment record
+    const assignmentResult = await marketingService.assignProspect({
+      prospect_id: assigningProspect.id,
+      caller_id: selectedCallerId,
+      assigned_by: assignedBy,
+      status: 'assigned',
+      assigned_at: new Date().toISOString()
+    });
+
+    if (assignmentResult.success) {
+      // 2. Update prospect status
+      await marketingService.updateProspect(assigningProspect.id, {
+        status: 'assigned'
+      });
+      setIsAssignModalOpen(false);
+      loadProspects();
+    } else {
+      alert("Failed to assign prospect: " + assignmentResult.error);
+    }
+    
+    setIsSubmitting(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,9 +213,11 @@ export default function ProspectsPage() {
           data={prospects}
           onEdit={handleOpenEdit}
           onDelete={handleDelete}
+          onAssign={handleOpenAssign}
         />
       )}
 
+      {/* CREATE / EDIT MODAL */}
       <ModalForm
         title={editingId ? "Edit Prospect" : "Add Prospect"}
         description={editingId ? "Update existing prospect details." : "Manually insert a business into the marketing pipeline."}
@@ -223,6 +275,35 @@ export default function ProspectsPage() {
               { label: 'Very High', value: 'very_high' },
             ]}
           />
+        </div>
+      </ModalForm>
+
+      {/* ASSIGN MODAL */}
+      <ModalForm
+        title="Assign Prospect"
+        description={`Assign "${assigningProspect?.business_name}" to a caller.`}
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        onSubmit={handleAssignSubmit}
+        isSubmitting={isSubmitting}
+        submitLabel="Confirm Assignment"
+      >
+        <div className="space-y-4 min-h-[150px]">
+          <SelectField
+            label="Select Caller"
+            value={selectedCallerId}
+            onChange={(e) => setSelectedCallerId(e.target.value)}
+            options={callers.map(caller => ({
+              label: caller.name || caller.email,
+              value: caller.id
+            }))}
+            required
+          />
+          {callers.length === 0 && (
+            <p className="text-sm text-yellow-600 bg-yellow-500/10 p-3 rounded-md border border-yellow-500/20">
+              No users with the 'caller' role were found.
+            </p>
+          )}
         </div>
       </ModalForm>
     </div>

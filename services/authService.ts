@@ -191,4 +191,47 @@ export const authService = {
       return { error: errorMessage };
     }
   },
+
+  /**
+   * Get all team members (Requires Admin API route)
+   */
+  async getTeamMembers(): Promise<{ data: any[]; error: string | null }> {
+    try {
+      const response = await fetch('/api/admin/team', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch team members');
+      }
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return { data: data.team, error: null };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Get team error:', errorMessage);
+      return { data: [], error: errorMessage };
+    }
+  },
+
+  /**
+   * Invite a new team member
+   */
+  async inviteTeamMember(email: string, name: string, role: string): Promise<{ success: boolean; password?: string; error: string | null }> {
+    try {
+      const response = await fetch('/api/admin/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, role }),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error || 'Failed to invite user');
+      }
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return { success: true, password: data.password, error: null };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Invite team member error:', errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
 };
