@@ -41,6 +41,7 @@ const menuSections = [
   {
     title: 'System',
     items: [
+      { name: 'Team', icon: Users, href: '/admin/team' },
       { name: 'Settings', icon: Settings, href: '/admin/settings' },
     ],
   },

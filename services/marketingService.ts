@@ -140,6 +140,21 @@ export const marketingService = {
     }
   },
 
+  async getCallers() {
+    try {
+      const response = await fetch('/api/admin/callers', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch callers');
+      }
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return { data: data.callers, error: null };
+    } catch (error: any) {
+      console.error('getCallers error:', error);
+      return { data: [], error: error.message };
+    }
+  },
+
   async assignProspect(assignment: Omit<CallerAssignment, 'id' | 'created_at' | 'completed_at'>) {
     try {
       const { data, error } = await supabase.from('caller_assignments').insert([assignment]).select().single();

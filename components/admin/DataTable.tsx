@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Edit2, Trash2, MoreVertical, ExternalLink } from 'lucide-react';
+import { Edit2, Trash2, MoreVertical, ExternalLink, Users } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +17,7 @@ interface DataTableProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onView?: (item: T) => void;
+  onAssign?: (item: T) => void;
   isLoading?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function DataTable<T extends { id: string | number }>({
   onEdit,
   onDelete,
   onView,
+  onAssign,
   isLoading = false,
 }: DataTableProps<T>) {
   if (isLoading) {
@@ -70,7 +72,7 @@ export function DataTable<T extends { id: string | number }>({
                   {col.header}
                 </th>
               ))}
-              {(onEdit || onDelete || onView) && (
+              {(onEdit || onDelete || onView || onAssign) && (
                 <th className="px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-widest text-right">
                   Actions
                 </th>
@@ -96,9 +98,20 @@ export function DataTable<T extends { id: string | number }>({
                       : (item[col.accessor] as React.ReactNode)}
                   </td>
                 ))}
-                {(onEdit || onDelete || onView) && (
+                {(onEdit || onDelete || onView || onAssign) && (
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      {onAssign && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onAssign(item)}
+                          title="Assign to Caller"
+                          className="h-8 w-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+                        >
+                          <Users size={16} />
+                        </Button>
+                      )}
                       {onView && (
                         <Button
                           variant="ghost"
