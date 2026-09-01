@@ -1,5 +1,6 @@
 import { createServiceClient } from '../_shared/supabase.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { OpenStreetMapDiscoveryProvider } from './providers/osm.ts';
 
 const BATCH_SIZE = 10;
 const LOCK_TIMEOUT_MINUTES = 10;
@@ -70,19 +71,93 @@ async function processDiscoverTask(
   supabase: ReturnType<typeof createServiceClient>,
   task: CrawlerTask,
 ) {
-  /*
-   * Discovery provider will be implemented later.
-   *
-   * For now we only prove that the queue can execute
-   * a discovery task successfully.
-   */
+  const strategyId = task.payload.strategy_id as string;
+  if (!strategyId) {
+    throw new Error('DISCOVER task has no strategy_id');
+  }
 
-  await logEvent(
-    supabase,
-    task,
-    'discovery_placeholder',
-    'Discovery task executed. No provider configured yet.',
-  );
+  await logEvent(supabase, task, 'discovery_started', 'Started discovery task');
+
+  const { data: strategy, error: strategyError } = await supabase
+    .from('strategies')
+    .select('id, target_industries, target_countries, target_regions, target_cities')
+    .eq('id', strategyId)
+    .single();
+
+  if (strategyError || !strategy) {
+    throw new Error(`Failed to load strategy: ${strategyError?.message}`);
+  }
+
+  const provider = new OpenStreetMapDiscoveryProvider();
+  
+  await logEvent(supabase, task, 'discovery_provider_request', `Requesting data from ${provider.name}`);
+
+  const candidates = await provider.discover(strategy, { limit: 10 });
+
+  await logEvent(supabase, task, 'discovery_results_received', `Received ${candidates.length} raw results from ${provider.name}`);
+
+  for (const candidate of candidates) {
+    const { data: existing } = await supabase
+      .from('discovery_candidates')
+      .select('id')
+      .eq('provider', candidate.provider)
+      .eq('external_id', candidate.externalId || '')
+      .maybeSingle();
+
+    if (existing) {
+      continue;
+    }
+
+      const { data: savedCandidate, error: saveError } = await supabase
+        .from('discovery_candidates')
+        .insert({
+          job_id: task.job_id,
+          strategy_id: strategyId,
+          provider: candidate.provider,
+          external_id: candidate.externalId,
+          business_name: candidate.businessName,
+          website: candidate.website,
+          phone: candidate.phone,
+          email: candidate.email,
+          address: candidate.address,
+          city: candidate.city,
+          state_region: candidate.stateRegion,
+          postal_code: candidate.postalCode,
+          country: candidate.country,
+          latitude: candidate.latitude,
+          longitude: candidate.longitude,
+          industry: candidate.industry,
+          raw_data: candidate.rawData,
+          status: candidate.status || 'discovered',
+          rejection_reason: candidate.rejectionReason,
+        })
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error(`Failed to save candidate: ${saveError.message}`);
+        continue;
+      }
+
+      await logEvent(supabase, task, 'discovery_candidate_saved', `Saved candidate ${candidate.businessName}`, { candidate_id: savedCandidate.id });
+
+      // If the candidate was rejected (e.g. geographic bounds failed), don't spawn next tasks.
+      if (candidate.status === 'rejected') {
+        continue;
+      }
+
+      // Enqueue next task
+      const nextTaskType = savedCandidate.website ? 'fetch_website' : 'validate';
+      await createNextTask(supabase, { ...task, candidate_id: savedCandidate.id }, nextTaskType);
+  }
+
+  await logEvent(supabase, task, 'discovery_completed', `Discovery completed. Inserted candidates and queued next tasks.`);
+  
+  // Update raw results count explicitly
+  await supabase
+    .from('crawler_jobs')
+    .update({ raw_discovered_count: candidates.length })
+    .eq('id', task.job_id);
 }
 
 async function processFetchWebsiteTask(
@@ -259,60 +334,18 @@ async function claimTasks(
     );
 
   /*
-   * Get available tasks.
+   * Atomic claim via Postgres FOR UPDATE SKIP LOCKED
    */
-  const { data, error } = await supabase
-    .from('crawler_tasks')
-    .select('*')
-    .in('status', ['pending', 'retry'])
-    .lte('available_at', new Date().toISOString())
-    .order('priority', { ascending: false })
-    .order('created_at', { ascending: true })
-    .limit(BATCH_SIZE);
+  const { data, error } = await supabase.rpc('claim_crawler_tasks', {
+    p_batch_size: BATCH_SIZE,
+    p_worker_id: worker,
+  });
 
   if (error) {
-    throw new Error(`Failed to fetch crawler tasks: ${error.message}`);
+    throw new Error(`Failed to claim crawler tasks: ${error.message}`);
   }
 
-  if (!data?.length) {
-    return [];
-  }
-
-  const claimed: CrawlerTask[] = [];
-
-  /*
-   * Optimistic claim.
-   *
-   * Multiple workers may see the same task, but only one
-   * should successfully transition it from pending/retry
-   * to processing.
-   */
-  for (const task of data) {
-    const { data: updated, error: updateError } = await supabase
-      .from('crawler_tasks')
-      .update({
-        status: 'processing',
-        locked_at: new Date().toISOString(),
-        locked_by: worker,
-        started_at: new Date().toISOString(),
-        attempts: task.attempts + 1,
-      })
-      .eq('id', task.id)
-      .in('status', ['pending', 'retry'])
-      .select('*')
-      .maybeSingle();
-
-    if (updateError) {
-      console.error('Task claim failed:', updateError);
-      continue;
-    }
-
-    if (updated) {
-      claimed.push(updated as CrawlerTask);
-    }
-  }
-
-  return claimed;
+  return (data || []) as CrawlerTask[];
 }
 
 async function completeTask(
@@ -369,27 +402,13 @@ async function updateJobCounters(
   supabase: ReturnType<typeof createServiceClient>,
   jobId: string,
 ) {
-  const { data: tasks } = await supabase
-    .from('crawler_tasks')
-    .select('status');
+  const { error } = await supabase.rpc('update_crawler_job_status', {
+    p_job_id: jobId,
+  });
 
-  /*
-   * We intentionally keep this simple for V1.
-   * Job-level aggregation can later be moved into a SQL
-   * function once the crawler is producing real volume.
-   */
-  if (!tasks) return;
-
-  const completed = tasks.filter(
-    (task) => task.status === 'completed',
-  ).length;
-
-  await supabase
-    .from('crawler_jobs')
-    .update({
-      processed_count: completed,
-    })
-    .eq('id', jobId);
+  if (error) {
+    console.error(`Failed to update job counters for job ${jobId}:`, error.message);
+  }
 }
 
 Deno.serve(async (req) => {
