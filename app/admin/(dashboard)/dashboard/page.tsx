@@ -6,6 +6,7 @@ import { StatCard } from '@/components/admin/StatCard';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import Link from 'next/link';
 import { dataService, Lead } from '@/services/dataService';
+import { marketingService } from '@/services/marketingService';
 
 const leadsColumns: Column<Lead>[] = [
   { header: 'Name', accessor: 'name' },
@@ -54,6 +55,16 @@ export default function Dashboard() {
     totalProjects: 0,
     totalPackages: 0,
   });
+  const [marketingStats, setMarketingStats] = useState({
+    totalProspects: 0,
+    readyToCall: 0,
+    assigned: 0,
+    callbacks: 0,
+    qualified: 0,
+    rejected: 0,
+    totalCalls: 0,
+    conversionRate: 0
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,16 +72,21 @@ export default function Dashboard() {
     async function fetchDashboardData() {
       try {
         setLoading(true);
-        const [leadsRes, statsRes] = await Promise.all([
+        const [leadsRes, statsRes, mktStatsRes] = await Promise.all([
           dataService.getLeads(),
           dataService.getDashboardStats(),
+          marketingService.getMarketingDashboardStats()
         ]);
 
         if (leadsRes.error) throw new Error(leadsRes.error);
         if (statsRes.error) throw new Error(statsRes.error);
+        if (mktStatsRes.error) throw new Error(mktStatsRes.error);
 
         setLeads(leadsRes.data || []);
         setStats(statsRes.data || { totalLeads: 0, totalProjects: 0, totalPackages: 0 });
+        if (mktStatsRes.data) {
+          setMarketingStats(mktStatsRes.data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
       } finally {
@@ -123,7 +139,49 @@ export default function Dashboard() {
         <StatCard label="Active Packages" value={stats.totalPackages} icon={Package} />
       </div>
 
-      <div className="space-y-6">
+        <div className="space-y-6 mt-12">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-text-primary tracking-tight">Marketing Overview</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Total Prospects</span>
+              <span className="text-3xl font-bold mt-2 text-text-primary">{marketingStats.totalProspects}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Ready to Call</span>
+              <span className="text-3xl font-bold mt-2 text-accent-blue">{marketingStats.readyToCall}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Assigned to Callers</span>
+              <span className="text-3xl font-bold mt-2 text-emerald-400">{marketingStats.assigned}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Total Calls Logged</span>
+              <span className="text-3xl font-bold mt-2 text-indigo-400">{marketingStats.totalCalls}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Callbacks Required</span>
+              <span className="text-3xl font-bold mt-2 text-amber-400">{marketingStats.callbacks}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Qualified Leads</span>
+              <span className="text-3xl font-bold mt-2 text-emerald-500">{marketingStats.qualified}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Rejected Leads</span>
+              <span className="text-3xl font-bold mt-2 text-rose-500">{marketingStats.rejected}</span>
+            </div>
+            <div className="p-6 bg-surface rounded-2xl border border-accent-blue/30 bg-accent-blue/5 flex flex-col justify-between relative overflow-hidden">
+              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Conversion Rate</span>
+              <div className="flex items-end gap-2 mt-2">
+                <span className="text-4xl font-black text-accent-blue">{marketingStats.conversionRate}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      <div className="space-y-6 mt-12">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-primary tracking-tight">Recent Leads</h2>
           <Link
