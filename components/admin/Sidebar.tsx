@@ -53,10 +53,53 @@ interface SidebarProps {
 }
 
 import { authService } from '@/services/authService';
+import { supabase } from '@/lib/supabaseClient';
 
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchRole = async () => {
+      const { data } = await supabase.auth.getSession();
+      const role = data?.session?.user?.user_metadata?.role;
+      const isSuperAdmin = data?.session?.user?.user_metadata?.is_super_admin === true;
+      if (isSuperAdmin || role === 'admin') {
+        setUserRole('admin');
+      } else if (role === 'caller') {
+        setUserRole('caller');
+      } else {
+        setUserRole('user');
+      }
+    };
+    fetchRole();
+  }, []);
+
+  const displayedSections = React.useMemo(() => {
+    if (userRole === 'caller') {
+      return [
+        {
+          title: 'Marketing',
+          items: [
+            { name: 'My Calls', icon: FileText, href: '/admin/marketing/caller' },
+          ],
+        },
+        {
+          title: 'System',
+          items: [
+            { name: 'Settings', icon: Settings, href: '/admin/settings' },
+          ],
+        },
+      ];
+    }
+    
+    // For Admins and other roles, return all sections but hide the Caller dashboard
+    return menuSections.map(section => ({
+      ...section,
+      items: section.items.filter(item => item.name !== 'Caller' && item.name !== 'My Calls')
+    }));
+  }, [userRole]);
 
   const handleLogout = async () => {
     try {
@@ -87,7 +130,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-4 mt-4 space-y-6 overflow-y-auto custom-scrollbar" data-lenis-prevent>
-        {menuSections.map((section) => (
+        {displayedSections.map((section) => (
           <div key={section.title} className="space-y-2">
             {!isCollapsed && (
               <h3 className="px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
@@ -104,11 +147,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all duration-200 group relative',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group relative',
                     isActive
-                      ? 'bg-accent-blue/10 text-accent-blue font-semibold shadow-sm'
-                      : 'text-text-secondary hover:bg-surface hover:text-text-primary font-medium',
+                      ? 'bg-accent-blue/10 text-accent-blue'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface border border-transparent hover:border-border/50',
                   )}
+                  title={isCollapsed ? item.name : undefined}
                 >
                   <Icon
                     size={16}
