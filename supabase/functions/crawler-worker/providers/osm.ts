@@ -96,30 +96,55 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       let candidateStatus: 'discovered' | 'rejected' = 'discovered';
       let rejectionReason: string | undefined = undefined;
 
-      // Ensure that if a city is targeted, the actual candidate has a verifiable city tag matching it.
-      if (city && city.trim().length > 0) {
-        if (!elCity || !elCity.toLowerCase().includes(city.toLowerCase())) {
-          candidateStatus = 'rejected';
-          rejectionReason = 'geographic_city_mismatch';
-        }
-      }
+      // Because our Overpass query strictly enforces geographic boundary containment 
+      // (e.g. area.city and area.country), if this element was returned, it is physically 
+      // inside the requested boundaries.
+      const passedGeographicContainment = !!searchArea; // searchArea means we used boundary filter
+      const validationMethod = searchArea ? 'geographic_boundary_intersection' : 'text_fallback';
 
-      // If a country tag is provided by OSM, it must match the strategy country.
-      // Note: Overpass area containment filters are strong, but if OSM explicitly specifies a mismatched country code, reject it.
-      if (country && elCountry) {
-         if (!elCountry.toLowerCase().includes(country.toLowerCase()) && 
-             // Common edge case: GB/UK code vs "United Kingdom"
+      if (passedGeographicContainment) {
+        // If it passed containment, we accept it. The only reason to reject is if 
+        // there is an EXPLICIT contradictory tag that proves OSM data is corrupted.
+        if (country && elCountry && !elCountry.toLowerCase().includes(country.toLowerCase()) && 
              !(country.toLowerCase() === 'united kingdom' && (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK'))) {
            candidateStatus = 'rejected';
            rejectionReason = 'geographic_country_mismatch';
-         }
+        }
+      } else {
+        // Fallback logic if we didn't use strict area filtering
+        if (city && city.trim().length > 0) {
+          if (!elCity || !elCity.toLowerCase().includes(city.toLowerCase())) {
+            candidateStatus = 'rejected';
+            rejectionReason = 'geographic_city_mismatch';
+          }
+        }
+        if (country && elCountry) {
+           if (!elCountry.toLowerCase().includes(country.toLowerCase()) && 
+               !(country.toLowerCase() === 'united kingdom' && (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK'))) {
+             candidateStatus = 'rejected';
+             rejectionReason = 'geographic_country_mismatch';
+           }
+        }
       }
 
-      // If coordinates are missing, we cannot verify geographic scope
+      // If coordinates are completely missing, we cannot verify geographic scope
       if (!el.lat && !el.center?.lat) {
          candidateStatus = 'rejected';
          rejectionReason = 'geographic_location_unverified';
       }
+
+      const rawDataWithMetadata = {
+        ...el,
+        validation_metadata: {
+          target_country: country,
+          target_city: city,
+          candidate_coordinates: { lat: el.lat || el.center?.lat, lon: el.lon || el.center?.lon },
+          validation_method: validationMethod,
+          containment_passed: passedGeographicContainment,
+          explicit_addr_city: elCity,
+          explicit_addr_country: elCountry
+        }
+      };
 
       return {
         provider: this.name,
@@ -138,7 +163,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
         latitude: el.lat || el.center?.lat,
         longitude: el.lon || el.center?.lon,
         industry: rawIndustry,
-        rawData: el,
+        rawData: rawDataWithMetadata,
         status: candidateStatus,
         rejectionReason: rejectionReason,
       };

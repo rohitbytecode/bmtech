@@ -32,10 +32,10 @@ export function DataTable<T extends { id: string | number }>({
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className="w-full bg-surface border border-border rounded-xl overflow-hidden animate-pulse">
-        <div className="h-14 bg-border/20 border-b border-border"></div>
+      <div className="w-full bg-surface border border-border rounded-lg overflow-hidden animate-pulse">
+        <div className="h-10 bg-border/20 border-b border-border"></div>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 border-b border-border last:border-0 bg-surface/50"></div>
+          <div key={i} className="h-12 border-b border-border last:border-0 bg-surface/50"></div>
         ))}
       </div>
     );
@@ -43,29 +43,29 @@ export function DataTable<T extends { id: string | number }>({
 
   if (data.length === 0) {
     return (
-      <div className="w-full bg-surface border border-border rounded-lg p-16 flex flex-col items-center justify-center text-center">
-        <div className="h-20 w-20 bg-accent-blue/5 rounded-full flex items-center justify-center text-accent-blue/40 mb-6">
-          <MoreVertical size={40} />
+      <div className="w-full bg-surface border border-border rounded-lg p-8 flex flex-col items-center justify-center text-center">
+        <div className="h-12 w-12 bg-accent-blue/5 rounded-full flex items-center justify-center text-accent-blue/40 mb-4">
+          <MoreVertical size={24} />
         </div>
-        <h3 className="text-xl font-bold text-text-primary mb-2">No data found</h3>
-        <p className="text-text-secondary max-w-sm">
-          It looks like there’s nothing here yet. Add your first entry to get started.
+        <h3 className="text-base font-bold text-text-primary mb-1">No data found</h3>
+        <p className="text-sm text-text-secondary max-w-sm">
+          It looks like there’s nothing here yet.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-surface border border-border/50 rounded-lg overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-background/80 backdrop-blur-sm border-b border-border/50">
+    <div className="w-full bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col max-h-[calc(100vh-250px)]">
+      <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+        <table className="w-full text-left border-collapse min-w-max relative">
+          <thead className="bg-background/95 backdrop-blur-sm sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
             <tr>
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   className={cn(
-                    'px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-widest',
+                    'px-4 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap',
                     col.className,
                   )}
                 >
@@ -73,7 +73,7 @@ export function DataTable<T extends { id: string | number }>({
                 </th>
               ))}
               {(onEdit || onDelete || onView || onAssign) && (
-                <th className="px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-widest text-right">
+                <th className="px-4 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right whitespace-nowrap sticky right-0 bg-background/95 shadow-[-1px_0_0_0_var(--border)]">
                   Actions
                 </th>
               )}
@@ -83,13 +83,13 @@ export function DataTable<T extends { id: string | number }>({
             {data.map((item, itemIdx) => (
               <tr
                 key={item.id || itemIdx}
-                className="group hover:bg-background transition-colors duration-200"
+                className="group hover:bg-background/50 transition-colors duration-150"
               >
                 {columns.map((col, colIdx) => (
                   <td
                     key={colIdx}
                     className={cn(
-                      'px-4 py-3 text-sm text-text-primary font-medium whitespace-nowrap',
+                      'px-4 py-2 text-sm text-text-primary font-medium',
                       col.className,
                     )}
                   >
@@ -99,17 +99,17 @@ export function DataTable<T extends { id: string | number }>({
                   </td>
                 ))}
                 {(onEdit || onDelete || onView || onAssign) && (
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <td className="px-4 py-2 text-right whitespace-nowrap sticky right-0 bg-surface group-hover:bg-background/50 transition-colors duration-150 shadow-[-1px_0_0_0_var(--border)]">
+                    <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity duration-150">
                       {onAssign && (
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onAssign(item)}
                           title="Assign to Caller"
-                          className="h-8 w-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+                          className="h-7 w-7 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
                         >
-                          <Users size={16} />
+                          <Users size={14} />
                         </Button>
                       )}
                       {onView && (
@@ -117,19 +117,21 @@ export function DataTable<T extends { id: string | number }>({
                           variant="ghost"
                           size="icon"
                           onClick={() => onView(item)}
-                          className="h-8 w-8 text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10"
+                          title="View Details"
+                          className="h-7 w-7 text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10"
                         >
-                          <ExternalLink size={16} />
+                          <ExternalLink size={14} />
                         </Button>
                       )}
                       {onEdit && (
                         <Button
-                          variant="secondary"
+                          variant="ghost"
                           size="icon"
                           onClick={() => onEdit(item)}
-                          className="h-8 w-8 border-border hover:border-accent-blue hover:text-accent-blue"
+                          title="Edit"
+                          className="h-7 w-7 text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={14} />
                         </Button>
                       )}
                       {onDelete && (
@@ -137,9 +139,10 @@ export function DataTable<T extends { id: string | number }>({
                           variant="ghost"
                           size="icon"
                           onClick={() => onDelete(item)}
-                          className="h-8 w-8 text-rose-400 hover:text-rose-500 hover:bg-rose-500/10"
+                          title="Delete"
+                          className="h-7 w-7 text-rose-400 hover:text-rose-500 hover:bg-rose-500/10"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </Button>
                       )}
                     </div>

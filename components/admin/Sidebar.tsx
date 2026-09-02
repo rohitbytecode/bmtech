@@ -115,25 +115,25 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
   return (
     <>
-      <div className="p-6 flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between border-b border-border/50">
         {!isCollapsed && (
-          <span className="text-xl font-bold text-accent-blue tracking-tight">
+          <span className="text-lg font-bold text-accent-blue tracking-tight">
             BMTech <span className="text-text-primary">Admin</span>
           </span>
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 rounded-lg bg-surface border border-border hover:bg-border transition-colors ml-auto"
+          className="p-1 rounded-md bg-surface border border-border/60 hover:bg-border/50 transition-colors ml-auto"
         >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
 
-      <nav className="flex-1 px-4 mt-4 space-y-6 overflow-y-auto custom-scrollbar" data-lenis-prevent>
+      <nav className="flex-1 px-3 mt-4 space-y-5 overflow-y-auto custom-scrollbar" data-lenis-prevent>
         {displayedSections.map((section) => (
-          <div key={section.title} className="space-y-2">
+          <div key={section.title} className="space-y-1">
             {!isCollapsed && (
-              <h3 className="px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              <h3 className="px-2 pb-1 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">
                 {section.title}
               </h3>
             )}
@@ -147,10 +147,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group relative',
+                    'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] font-medium transition-colors duration-150 group relative',
                     isActive
                       ? 'bg-accent-blue/10 text-accent-blue'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface border border-transparent hover:border-border/50',
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface border border-transparent hover:border-border/40',
                   )}
                   title={isCollapsed ? item.name : undefined}
                 >

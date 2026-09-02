@@ -1,22 +1,52 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { marketingService } from '@/services/marketingService';
 import { supabase } from '@/lib/supabaseClient';
 import type { Prospect } from '@/types/marketing';
 import { DataTable } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/Button';
-import { Plus, Users, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { ModalForm } from '@/components/admin/ModalForm';
-import { InputField, TextAreaField, SelectField } from '@/components/admin/FormFields';
+import { InputField, SelectField } from '@/components/admin/FormFields';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { FilterBar, FilterDefinition } from '@/components/admin/FilterBar';
+import { Pagination } from '@/components/admin/Pagination';
+import { ExportActions } from '@/components/admin/ExportActions';
+import { ProspectDetailModal } from '@/components/admin/ProspectDetailModal';
+import { cn } from '@/lib/utils';
+
+const FILTERS: FilterDefinition[] = [
+  { key: 'search', label: 'Search name, phone...', type: 'search', options: [] },
+  { key: 'status', label: 'All Statuses', type: 'select', options: [
+      { label: 'Discovered', value: 'discovered' },
+      { label: 'Assigned', value: 'assigned' },
+      { label: 'Qualified', value: 'qualified' },
+      { label: 'Rejected', value: 'rejected' },
+  ]},
+  { key: 'sales_priority', label: 'All Priorities', type: 'select', options: [
+      { label: 'Very High', value: 'very_high' },
+      { label: 'High', value: 'high' },
+      { label: 'Medium', value: 'medium' },
+      { label: 'Low', value: 'low' },
+  ]},
+];
 
 export default function ProspectsPage() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [callers, setCallers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Pagination & Filters
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalItems, setTotalItems] = useState(0);
+  const [filters, setFilters] = useState<Record<string, string>>({});
+
+  // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [detailProspect, setDetailProspect] = useState<Prospect | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,21 +62,35 @@ export default function ProspectsPage() {
     sales_priority: 'medium' as any,
   });
 
-  useEffect(() => {
-    loadProspects();
-    loadCallers();
-  }, []);
-
-  const loadProspects = async () => {
+  const loadProspects = useCallback(async () => {
     setLoading(true);
-    const { data } = await marketingService.getProspects();
+    const { data, count } = await marketingService.getProspectsPaginated(page, pageSize, filters);
     if (data) setProspects(data);
+    if (count !== undefined) setTotalItems(count);
     setLoading(false);
-  };
+  }, [page, pageSize, filters]);
 
   const loadCallers = async () => {
     const { data } = await marketingService.getCallers();
     if (data) setCallers(data);
+  };
+
+  useEffect(() => {
+    loadProspects();
+  }, [loadProspects]);
+
+  useEffect(() => {
+    loadCallers();
+  }, []);
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPage(1); // Reset to first page on filter change
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    setPage(1);
   };
 
   const handleOpenNew = () => {
@@ -70,7 +114,7 @@ export default function ProspectsPage() {
       phone: prospect.phone || '',
       email: prospect.email || '',
       industry: prospect.industry || '',
-      sales_priority: prospect.sales_priority,
+      sales_priority: prospect.sales_priority || 'medium',
     });
     setIsModalOpen(true);
   };
@@ -103,18 +147,15 @@ export default function ProspectsPage() {
   const handleAssignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!assigningProspect) return;
-    
     if (!selectedCallerId) {
       alert("Please select a caller from the dropdown first!");
       return;
     }
     
     setIsSubmitting(true);
-    
     const { data: session } = await supabase.auth.getSession();
     const assignedBy = session?.session?.user?.id || 'unknown';
 
-    // 1. Create the assignment record
     const assignmentResult = await marketingService.assignProspect({
       prospect_id: assigningProspect.id,
       caller_id: selectedCallerId,
@@ -124,34 +165,18 @@ export default function ProspectsPage() {
     });
 
     if (assignmentResult.success) {
-      // 2. Update prospect status
-      const updateResult = await marketingService.updateProspect(assigningProspect.id, {
-        status: 'assigned'
-      });
-      
-      if (!updateResult.success) {
-        alert("Assignment created, but failed to update prospect status: " + updateResult.error);
-      } else {
-        // Manually update the state to immediately reflect in UI without relying on network cache
-        setProspects(prev => prev.map(p => 
-          p.id === assigningProspect.id ? { ...p, status: 'assigned' } : p
-        ));
-      }
-      
+      await marketingService.updateProspect(assigningProspect.id, { status: 'assigned' });
       setIsAssignModalOpen(false);
-      // We also trigger a background fetch just in case
       loadProspects();
     } else {
       alert("Failed to assign prospect: " + assignmentResult.error);
     }
-    
     setIsSubmitting(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
     let success = false;
 
     if (editingId) {
@@ -190,7 +215,7 @@ export default function ProspectsPage() {
         opportunity_marketing: null,
         opportunity_seo: null,
         opportunity_design: null,
-        data_quality_score: 100, // Manual entry assumed high quality
+        data_quality_score: 100,
         opportunity_score: 50,
         last_verified_at: new Date().toISOString()
       });
@@ -198,7 +223,6 @@ export default function ProspectsPage() {
     }
 
     setIsSubmitting(false);
-
     if (success) {
       setIsModalOpen(false);
       loadProspects();
@@ -208,38 +232,96 @@ export default function ProspectsPage() {
   };
 
   const columns = [
+    { header: 'Business', accessor: 'business_name' as keyof Prospect, className: 'font-bold' },
+    { header: 'Phone', accessor: 'phone' as keyof Prospect },
+    { header: 'Country', accessor: 'country' as keyof Prospect },
+    { header: 'Industry', accessor: (p: Prospect) => p.industry ? <span className="truncate max-w-[150px] inline-block">{p.industry}</span> : '-' },
+    { header: 'Status', accessor: (p: Prospect) => (
+      <span className={cn(
+        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+        p.status === 'qualified' ? 'bg-emerald-500/10 text-emerald-500' :
+        p.status === 'rejected' ? 'bg-rose-500/10 text-rose-500' :
+        p.status === 'assigned' || p.status === 'calling' ? 'bg-accent-blue/10 text-accent-blue' :
+        'bg-amber-500/10 text-amber-500'
+      )}>
+        {p.status.replace('_', ' ')}
+      </span>
+    )},
+    { header: 'Priority', accessor: (p: Prospect) => (
+      <span className={cn(
+        "text-xs font-semibold",
+        p.sales_priority === 'very_high' ? "text-accent-blue" :
+        p.sales_priority === 'high' ? "text-emerald-500" :
+        p.sales_priority === 'medium' ? "text-amber-500" :
+        "text-text-secondary"
+      )}>
+        {p.sales_priority ? p.sales_priority.replace('_', ' ').toUpperCase() : '-'}
+      </span>
+    )},
+    { header: 'Opp Score', accessor: (p: Prospect) => <span className="font-mono">{p.opportunity_score || '-'}</span> },
+    { header: 'Data Qual', accessor: (p: Prospect) => <span className="font-mono">{p.data_quality_score || '-'}</span> },
+  ];
+
+  const exportColumns = [
     { header: 'Business Name', accessor: 'business_name' as keyof Prospect },
+    { header: 'Phone', accessor: 'phone' as keyof Prospect },
+    { header: 'Email', accessor: 'email' as keyof Prospect },
+    { header: 'Website', accessor: 'website' as keyof Prospect },
+    { header: 'Country', accessor: 'country' as keyof Prospect },
+    { header: 'City', accessor: 'city' as keyof Prospect },
+    { header: 'Industry', accessor: 'industry' as keyof Prospect },
     { header: 'Status', accessor: 'status' as keyof Prospect },
-    { header: 'Opportunity Score', accessor: (p: Prospect) => p.opportunity_score || 'N/A' },
-    { header: 'Sales Priority', accessor: 'sales_priority' as keyof Prospect },
-    { header: 'Created At', accessor: (p: Prospect) => new Date(p.created_at).toLocaleDateString() },
+    { header: 'Priority', accessor: 'sales_priority' as keyof Prospect },
+    { header: 'Opportunity Score', accessor: 'opportunity_score' as keyof Prospect },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Prospects</h1>
-          <p className="text-text-secondary text-sm">Manage discovered and manually added business prospects.</p>
-        </div>
-        <Button onClick={handleOpenNew} className="gap-2">
-          <Plus size={16} /> Add Prospect
+    <div className="flex flex-col h-full">
+      <PageHeader 
+        title="Prospects" 
+        description="Manage discovered and manually added business prospects."
+      >
+        <ExportActions 
+          data={prospects} 
+          columns={exportColumns}
+          filename="BMTech_Prospects"
+          reportTitle="Prospects Report"
+          filtersActive={Object.keys(filters).length > 0}
+        />
+        <Button onClick={handleOpenNew}>
+          <Plus size={14} /> Add Prospect
         </Button>
-      </div>
+      </PageHeader>
 
-      {loading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="animate-spin text-accent-blue" size={32} />
-        </div>
-      ) : (
+      <FilterBar 
+        filters={FILTERS}
+        values={filters}
+        onChange={handleFilterChange}
+        onClear={handleClearFilters}
+      />
+
+      <div className="flex-1 min-h-0 bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col">
         <DataTable
           columns={columns}
           data={prospects}
+          isLoading={loading}
           onEdit={handleOpenEdit}
           onDelete={handleDelete}
           onAssign={handleOpenAssign}
+          onView={setDetailProspect}
         />
-      )}
+        <Pagination 
+          currentPage={page}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          totalPages={Math.ceil(totalItems / pageSize)}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      </div>
 
       {/* CREATE / EDIT MODAL */}
       <ModalForm
@@ -330,6 +412,13 @@ export default function ProspectsPage() {
           )}
         </div>
       </ModalForm>
+
+      {/* PROSPECT DETAIL MODAL */}
+      <ProspectDetailModal
+        prospect={detailProspect}
+        isOpen={!!detailProspect}
+        onClose={() => setDetailProspect(null)}
+      />
     </div>
   );
 }

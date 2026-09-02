@@ -13,7 +13,7 @@ export interface Strategy {
   target_regions: string[];
   target_cities: string[];
   target_services: string[];
-  qualification_criteria: string;
+  qualification_criteria: any | null;
   status: StrategyStatus;
   created_by: string;
   created_at: string;
@@ -35,10 +35,10 @@ export interface Prospect {
   timezone: string | null;
   industry: string | null;
   business_description: string | null;
-  has_website: boolean;
-  has_social_presence: boolean;
-  website_quality: string | null;
-  social_presence_quality: string | null;
+  has_website: boolean | null;
+  has_social_presence: boolean | null;
+  website_quality: number | null;
+  social_presence_quality: number | null;
   opportunity_web: number | null;
   opportunity_marketing: number | null;
   opportunity_seo: number | null;

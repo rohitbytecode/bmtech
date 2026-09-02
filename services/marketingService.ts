@@ -20,6 +20,25 @@ export const marketingService = {
     }
   },
 
+  async getStrategiesPaginated(page: number, pageSize: number) {
+    try {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await supabase
+        .from('strategies')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      return { data: data as Strategy[], count: count || 0, error: null };
+    } catch (error: any) {
+      console.error('getStrategiesPaginated error:', error);
+      return { data: [], count: 0, error: error.message };
+    }
+  },
+
   async createStrategy(strategy: Omit<Strategy, 'id' | 'created_at' | 'updated_at'>) {
     try {
       const { data, error } = await supabase.from('strategies').insert([strategy]).select().single();
@@ -75,6 +94,48 @@ export const marketingService = {
     } catch (error: any) {
       console.error('getProspects error:', error);
       return { data: [], error: error.message };
+    }
+  },
+
+  async getProspectsPaginated(
+    page: number, 
+    pageSize: number, 
+    filters?: { 
+      status?: string; 
+      strategy_id?: string;
+      country?: string;
+      city?: string;
+      industry?: string;
+      sales_priority?: string;
+      search?: string;
+    }
+  ) {
+    try {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
+        .from('prospects')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false });
+
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.strategy_id) query = query.eq('strategy_id', filters.strategy_id);
+      if (filters?.country) query = query.ilike('country', `%${filters.country}%`);
+      if (filters?.city) query = query.ilike('city', `%${filters.city}%`);
+      if (filters?.industry) query = query.ilike('industry', `%${filters.industry}%`);
+      if (filters?.sales_priority) query = query.eq('sales_priority', filters.sales_priority);
+      if (filters?.search) {
+        query = query.or(`business_name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,website.ilike.%${filters.search}%`);
+      }
+
+      const { data, error, count } = await query.range(from, to);
+      
+      if (error) throw error;
+      return { data: data as Prospect[], count: count || 0, error: null };
+    } catch (error: any) {
+      console.error('getProspectsPaginated error:', error);
+      return { data: [], count: 0, error: error.message };
     }
   },
 
