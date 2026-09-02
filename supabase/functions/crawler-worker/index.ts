@@ -1,6 +1,7 @@
 import { createServiceClient } from '../_shared/supabase.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { OpenStreetMapDiscoveryProvider } from './providers/osm.ts';
+import { fetchAndExtractWebsite, WebsiteEvidence } from './fetcher.ts';
 
 const BATCH_SIZE = 10;
 const LOCK_TIMEOUT_MINUTES = 10;
@@ -191,23 +192,51 @@ async function processFetchWebsiteTask(
     return;
   }
 
-  /*
-   * Actual website fetching will be implemented later.
-   *
-   * We deliberately do not crawl websites in this first worker version.
-   */
+  await logEvent(
+    supabase,
+    task,
+    'website_fetch_started',
+    `Starting website fetch for ${candidate.business_name}.`,
+    { website: candidate.website }
+  );
+
+  const evidence = await fetchAndExtractWebsite(candidate.website);
+
+  const { error: insertError } = await supabase
+    .from('prospect_website_crawls')
+    .insert({
+      candidate_id: candidate.id,
+      original_url: evidence.originalUrl,
+      final_url: evidence.finalUrl,
+      status_code: evidence.statusCode,
+      content_type: evidence.contentType,
+      response_size: evidence.responseSize,
+      fetch_duration_ms: evidence.fetchDurationMs,
+      is_https: evidence.isHttps,
+      extracted_title: evidence.extractedTitle,
+      extracted_description: evidence.extractedDescription,
+      extracted_canonical: evidence.extractedCanonical,
+      contact_data: evidence.contactData,
+      social_links: evidence.socialLinks,
+      json_ld: evidence.jsonLd,
+      extraction_status: evidence.extractionStatus,
+      error_message: evidence.errorMessage,
+    });
+
+  if (insertError) {
+    throw new Error(`Failed to save website evidence: ${insertError.message}`);
+  }
 
   await logEvent(
     supabase,
     task,
-    'website_placeholder',
-    `Website fetch queued for ${candidate.business_name}.`,
-    {
-      website: candidate.website,
-    },
+    evidence.extractionStatus === 'completed' ? 'website_extraction_completed' : 'website_fetch_failed',
+    `Website processing ${evidence.extractionStatus}`,
+    { statusCode: evidence.statusCode, error: evidence.errorMessage }
   );
 
-  await createNextTask(supabase, task, 'extract');
+  // Skip extract task as we did it in-memory
+  await createNextTask(supabase, task, 'validate');
 }
 
 async function processExtractTask(
@@ -228,11 +257,15 @@ async function processValidateTask(
   supabase: ReturnType<typeof createServiceClient>,
   task: CrawlerTask,
 ) {
+  if (!task.candidate_id) throw new Error('No candidate ID for validate task');
+
+  // We could implement strict validation here.
+  // For now, if the candidate made it this far, they are valid enough to deduplicate.
   await logEvent(
     supabase,
     task,
-    'validate_placeholder',
-    'Validation stage reached.',
+    'validation_completed',
+    'Candidate passed basic validation.',
   );
 
   await createNextTask(supabase, task, 'deduplicate');
@@ -242,11 +275,35 @@ async function processDeduplicateTask(
   supabase: ReturnType<typeof createServiceClient>,
   task: CrawlerTask,
 ) {
+  if (!task.candidate_id) throw new Error('No candidate ID for deduplicate task');
+
+  const { data: candidate } = await supabase
+    .from('discovery_candidates')
+    .select('provider, external_id, phone, website')
+    .eq('id', task.candidate_id)
+    .single();
+
+  if (!candidate) throw new Error('Candidate not found');
+
+  // Check deduplication via prospect_sources
+  const { data: duplicates } = await supabase
+    .from('prospect_sources')
+    .select('id')
+    .eq('source_type', candidate.provider)
+    .contains('source_data', { external_id: candidate.external_id })
+    .limit(1);
+
+  if (duplicates && duplicates.length > 0) {
+    await logEvent(supabase, task, 'duplicate_detected', 'Candidate is a duplicate based on provider ID');
+    await supabase.from('discovery_candidates').update({ status: 'duplicate' }).eq('id', task.candidate_id);
+    return; // Stop pipeline
+  }
+
   await logEvent(
     supabase,
     task,
-    'deduplicate_placeholder',
-    'Deduplication stage reached.',
+    'deduplication_passed',
+    'Candidate passed deduplication.',
   );
 
   await createNextTask(supabase, task, 'score');
@@ -270,11 +327,78 @@ async function processFinalizeTask(
   supabase: ReturnType<typeof createServiceClient>,
   task: CrawlerTask,
 ) {
+  if (!task.candidate_id) throw new Error('No candidate ID for finalize task');
+
+  const { data: candidate } = await supabase
+    .from('discovery_candidates')
+    .select('*')
+    .eq('id', task.candidate_id)
+    .single();
+
+  if (!candidate) throw new Error('Candidate not found');
+
+  // Fetch website evidence
+  const { data: crawls } = await supabase
+    .from('prospect_website_crawls')
+    .select('*')
+    .eq('candidate_id', candidate.id)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  const crawl = crawls && crawls.length > 0 ? crawls[0] : null;
+
+  // Insert into prospects
+  const { data: prospect, error: prospectError } = await supabase
+    .from('prospects')
+    .insert({
+      strategy_id: candidate.strategy_id,
+      business_name: candidate.business_name,
+      website: candidate.website,
+      phone: candidate.phone,
+      email: candidate.email,
+      address_line: candidate.address,
+      city: candidate.city,
+      state_region: candidate.state_region,
+      postal_code: candidate.postal_code,
+      country: candidate.country,
+      timezone: (candidate as any).timezone || null,
+      industry: candidate.industry,
+      has_website: !!candidate.website,
+      has_social_presence: crawl && crawl.social_links && Object.keys(crawl.social_links).length > 0 ? true : false,
+      status: 'discovered'
+    })
+    .select('id')
+    .single();
+
+  if (prospectError) {
+    throw new Error(`Failed to create prospect: ${prospectError.message}`);
+  }
+
+  // Insert prospect source
+  const { error: sourceError } = await supabase.from('prospect_sources').insert({
+    prospect_id: prospect.id,
+    source_type: candidate.provider,
+    source_url: '',
+    source_data: {
+      external_id: candidate.external_id,
+      candidate_id: candidate.id,
+      raw_data: candidate.raw_data
+    }
+  });
+
+  if (sourceError) {
+    throw new Error(`Failed to create prospect source: ${sourceError.message}`);
+  }
+
+  // Mark candidate as accepted
+  await supabase.from('discovery_candidates').update({ status: 'accepted' }).eq('id', candidate.id);
+
   await logEvent(
     supabase,
     task,
-    'finalize_placeholder',
-    'Finalization stage reached.',
+    'finalized',
+    'Candidate finalized and converted to prospect.',
+    { prospect_id: prospect.id }
   );
 }
 
