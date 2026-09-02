@@ -56,8 +56,8 @@ export function DataTable<T extends { id: string | number }>({
   }
 
   return (
-    <div className="w-full bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col max-h-[calc(100vh-250px)]">
-      <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+    <div className="w-full bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col">
+      <div className="overflow-x-auto flex-1 custom-scrollbar">
         <table className="w-full text-left border-collapse min-w-max relative">
           <thead className="bg-background/95 backdrop-blur-sm sticky top-0 z-10 shadow-[0_1px_0_0_var(--border)]">
             <tr>
