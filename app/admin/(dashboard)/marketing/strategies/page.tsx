@@ -31,6 +31,9 @@ export default function StrategiesPage() {
     name: '',
     description: '',
     status: 'draft' as any,
+    target_industries: '',
+    target_countries: '',
+    target_cities: '',
   });
 
   const loadStrategies = useCallback(async () => {
@@ -47,7 +50,14 @@ export default function StrategiesPage() {
 
   const handleOpenNew = () => {
     setEditingId(null);
-    setFormData({ name: '', description: '', status: 'draft' });
+    setFormData({ 
+      name: '', 
+      description: '', 
+      status: 'draft',
+      target_industries: '',
+      target_countries: '',
+      target_cities: ''
+    });
     setIsModalOpen(true);
   };
 
@@ -57,6 +67,9 @@ export default function StrategiesPage() {
       name: strategy.name,
       description: strategy.description || '',
       status: strategy.status,
+      target_industries: strategy.target_industries?.join(', ') || '',
+      target_countries: strategy.target_countries?.join(', ') || '',
+      target_cities: strategy.target_cities?.join(', ') || '',
     });
     setIsModalOpen(true);
   };
@@ -81,12 +94,19 @@ export default function StrategiesPage() {
     const userId = session?.session?.user?.id || 'unknown';
 
     let success = false;
+    
+    const parsedIndustries = formData.target_industries.split(',').map(s => s.trim()).filter(Boolean);
+    const parsedCountries = formData.target_countries.split(',').map(s => s.trim()).filter(Boolean);
+    const parsedCities = formData.target_cities.split(',').map(s => s.trim()).filter(Boolean);
 
     if (editingId) {
       const result = await marketingService.updateStrategy(editingId, {
         name: formData.name,
         description: formData.description,
         status: formData.status,
+        target_industries: parsedIndustries,
+        target_countries: parsedCountries,
+        target_cities: parsedCities,
       });
       success = result.success;
     } else {
@@ -94,10 +114,10 @@ export default function StrategiesPage() {
         name: formData.name,
         description: formData.description,
         status: formData.status,
-        target_industries: [],
-        target_countries: [],
+        target_industries: parsedIndustries,
+        target_countries: parsedCountries,
         target_regions: [],
-        target_cities: [],
+        target_cities: parsedCities,
         target_services: [],
         qualification_criteria: '',
         created_by: userId
@@ -197,6 +217,26 @@ export default function StrategiesPage() {
               { label: 'Active', value: 'active' },
               { label: 'Paused', value: 'paused' },
             ]}
+          />
+          <InputField
+            label="Target Industries (comma-separated)"
+            required
+            value={formData.target_industries}
+            onChange={(e) => setFormData({ ...formData, target_industries: e.target.value })}
+            placeholder="e.g. fitness center, gym"
+          />
+          <InputField
+            label="Target Countries (comma-separated)"
+            required
+            value={formData.target_countries}
+            onChange={(e) => setFormData({ ...formData, target_countries: e.target.value })}
+            placeholder="e.g. USA, Canada"
+          />
+          <InputField
+            label="Target Cities (comma-separated)"
+            value={formData.target_cities}
+            onChange={(e) => setFormData({ ...formData, target_cities: e.target.value })}
+            placeholder="e.g. New York, Austin"
           />
         </div>
       </ModalForm>

@@ -693,6 +693,25 @@ async function processFinalizeTask(
 
   const crawl = crawls && crawls.length > 0 ? crawls[0] : null;
 
+  // Extract and validate phone number
+  const normalizePhone = (p: string) => p.replace(/[^\d+]/g, '');
+  const isValidPhone = (p: string) => {
+    const n = normalizePhone(p);
+    return n.length >= 10 && n.length <= 15;
+  };
+
+  let validPhone: string | null = null;
+  if (candidate.phone && isValidPhone(candidate.phone)) {
+    validPhone = normalizePhone(candidate.phone);
+  } else if (crawl?.contact_data?.phones && Array.isArray(crawl.contact_data.phones)) {
+    for (const p of crawl.contact_data.phones) {
+      if (isValidPhone(p)) {
+        validPhone = normalizePhone(p);
+        break;
+      }
+    }
+  }
+
   // Insert into prospects
   const { data: prospect, error: prospectError } = await supabase
     .from('prospects')
@@ -700,7 +719,7 @@ async function processFinalizeTask(
       strategy_id: candidate.strategy_id,
       business_name: candidate.business_name,
       website: candidate.website,
-      phone: candidate.phone,
+      phone: validPhone,
       email: candidate.email,
       address_line: candidate.address,
       city: candidate.city,
@@ -711,7 +730,7 @@ async function processFinalizeTask(
       industry: candidate.industry,
       has_website: !!candidate.website,
       has_social_presence: crawl && crawl.social_links && Object.keys(crawl.social_links).length > 0 ? true : false,
-      status: 'discovered'
+      status: validPhone ? 'discovered' : 'rejected'
     })
     .select('id')
     .single();
