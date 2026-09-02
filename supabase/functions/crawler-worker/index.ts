@@ -2,6 +2,7 @@ import { createServiceClient } from '../_shared/supabase.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { OpenStreetMapDiscoveryProvider } from './providers/osm.ts';
 import { fetchAndExtractWebsite, WebsiteEvidence } from './fetcher.ts';
+import { calculateOpportunityScores } from './scoring/scoringEngine.ts';
 
 const BATCH_SIZE = 10;
 const LOCK_TIMEOUT_MINUTES = 10;
@@ -147,9 +148,8 @@ async function processDiscoverTask(
         continue;
       }
 
-      // Enqueue next task
-      const nextTaskType = savedCandidate.website ? 'fetch_website' : 'validate';
-      await createNextTask(supabase, { ...task, candidate_id: savedCandidate.id }, nextTaskType);
+      // Enqueue next task: validate
+      await createNextTask(supabase, { ...task, candidate_id: savedCandidate.id }, 'validate');
   }
 
   await logEvent(supabase, task, 'discovery_completed', `Discovery completed. Inserted candidates and queued next tasks.`);
@@ -175,21 +175,19 @@ async function processFetchWebsiteTask(
     .eq('id', task.candidate_id)
     .single();
 
-  if (error) {
-    throw new Error(`Failed to load candidate: ${error.message}`);
-  }
-
-  if (!candidate.website) {
+  if (!error && candidate && !candidate.website) {
     await logEvent(
       supabase,
       task,
       'website_skipped',
-      'Candidate has no website. Continuing without website crawl.',
+      'Candidate has no website. Continuing directly to deduplicate.',
     );
-
-    await createNextTask(supabase, task, 'validate');
-
+    await createNextTask(supabase, task, 'deduplicate');
     return;
+  }
+
+  if (error || !candidate) {
+    throw new Error(`Failed to load candidate: ${error?.message || 'Not found'}`);
   }
 
   await logEvent(
@@ -221,6 +219,20 @@ async function processFetchWebsiteTask(
       json_ld: evidence.jsonLd,
       extraction_status: evidence.extractionStatus,
       error_message: evidence.errorMessage,
+      additional_metadata: {
+        viewport: evidence.viewport,
+        ogTitle: evidence.ogTitle,
+        ogDescription: evidence.ogDescription,
+        ogUrl: evidence.ogUrl,
+        ogType: evidence.ogType,
+        ogImage: evidence.ogImage,
+        robots: evidence.robots,
+        hasNav: evidence.hasNav,
+        hasHeader: evidence.hasHeader,
+        hasMain: evidence.hasMain,
+        hasFooter: evidence.hasFooter,
+        hasForm: evidence.hasForm
+      }
     });
 
   if (insertError) {
@@ -235,8 +247,8 @@ async function processFetchWebsiteTask(
     { statusCode: evidence.statusCode, error: evidence.errorMessage }
   );
 
-  // Skip extract task as we did it in-memory
-  await createNextTask(supabase, task, 'validate');
+  // Advance to deduplication
+  await createNextTask(supabase, task, 'deduplicate');
 }
 
 async function processExtractTask(
@@ -247,10 +259,10 @@ async function processExtractTask(
     supabase,
     task,
     'extract_placeholder',
-    'Extraction stage reached. Extractor will be implemented next.',
+    'Extraction stage reached. Extractor is integrated with fetcher.',
   );
 
-  await createNextTask(supabase, task, 'validate');
+  await createNextTask(supabase, task, 'deduplicate');
 }
 
 async function processValidateTask(
@@ -259,16 +271,27 @@ async function processValidateTask(
 ) {
   if (!task.candidate_id) throw new Error('No candidate ID for validate task');
 
-  // We could implement strict validation here.
-  // For now, if the candidate made it this far, they are valid enough to deduplicate.
+  const { data: candidate, error } = await supabase
+    .from('discovery_candidates')
+    .select('id, website, business_name')
+    .eq('id', task.candidate_id)
+    .single();
+
+  if (error || !candidate) {
+    throw new Error(`Failed to load candidate in validate: ${error?.message || 'Not found'}`);
+  }
+
   await logEvent(
     supabase,
     task,
     'validation_completed',
     'Candidate passed basic validation.',
+    { has_website: !!candidate.website }
   );
 
-  await createNextTask(supabase, task, 'deduplicate');
+  // If candidate has a website, route to fetch_website; otherwise route directly to deduplicate
+  const nextTaskType = candidate.website ? 'fetch_website' : 'deduplicate';
+  await createNextTask(supabase, task, nextTaskType);
 }
 
 async function processDeduplicateTask(
@@ -296,7 +319,7 @@ async function processDeduplicateTask(
   if (duplicates && duplicates.length > 0) {
     await logEvent(supabase, task, 'duplicate_detected', 'Candidate is a duplicate based on provider ID');
     await supabase.from('discovery_candidates').update({ status: 'duplicate' }).eq('id', task.candidate_id);
-    return; // Stop pipeline
+    return; // Stop pipeline for duplicate
   }
 
   await logEvent(
@@ -306,21 +329,344 @@ async function processDeduplicateTask(
     'Candidate passed deduplication.',
   );
 
-  await createNextTask(supabase, task, 'score');
+  await createNextTask(supabase, task, 'finalize');
 }
 
+/**
+ * processScoreTask
+ * 
+ * SEMANTICS FOR PHASE 4A:
+ * This task performs DETERMINISTIC OPPORTUNITY SIGNAL GENERATION.
+ * It strictly creates factual, verifiable detection evidence rows in `prospect_opportunity_signals`.
+ * 
+ * CONFIDENCE SEMANTICS:
+ * "confidence" strictly represents the CONFIDENCE OF DETECTION (e.g. certainty that a meta tag was absent or URL was missing),
+ * NOT commercial value, sales priority, or opportunity score.
+ * 
+ * SCOPE BOUNDARY:
+ * Commercial scores (opportunity_score, opportunity_web, opportunity_seo, opportunity_marketing, 
+ * opportunity_design, sales_priority) are NOT calculated here and remain untouched / NULL until Phase 4B.
+ */
 async function processScoreTask(
   supabase: ReturnType<typeof createServiceClient>,
   task: CrawlerTask,
 ) {
+  if (!task.candidate_id) throw new Error('No candidate ID for score task');
+
+  const { data: candidate } = await supabase
+    .from('discovery_candidates')
+    .select('id, provider, website, phone, prospect_id, raw_data, latitude, longitude')
+    .eq('id', task.candidate_id)
+    .single();
+
+  if (!candidate || !candidate.prospect_id) {
+    throw new Error('Candidate not found or missing prospect_id (was finalize skipped?)');
+  }
+
+  // Fetch website evidence if crawled
+  const { data: crawls } = await supabase
+    .from('prospect_website_crawls')
+    .select('*')
+    .eq('candidate_id', candidate.id)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  const crawl = crawls && crawls.length > 0 ? crawls[0] : null;
+  const prospectId = candidate.prospect_id;
+  const signals: any[] = [];
+
+  const addSignal = (category: string, key: string, confidence: string, evidence: any = {}) => {
+    signals.push({ prospect_id: prospectId, category, signal_key: key, confidence, evidence });
+  };
+
+  // --- 1. DATA QUALITY SIGNALS ---
+  // Factual evidence describing data completeness, validity, provenance, and geographic verification.
+  if (candidate.provider === 'osm' && candidate.latitude && candidate.longitude) {
+    addSignal('data_quality', 'verified_location', 'high', {
+      provider: candidate.provider,
+      latitude: candidate.latitude,
+      longitude: candidate.longitude,
+      source: 'geocoded_coordinates'
+    });
+  }
+  if (candidate.phone) {
+    addSignal('data_quality', 'valid_phone', 'high', {
+      phone: candidate.phone,
+      source: 'discovery_provider'
+    });
+  }
+  if (candidate.website) {
+    addSignal('data_quality', 'website_discovered', 'high', {
+      url: candidate.website,
+      source: 'discovery_provider'
+    });
+  }
+
+  // --- 2. WEB SIGNALS ---
+  // Signals regarding web accessibility, connectivity, HTTPS, and markup format.
+  if (!candidate.website) {
+    addSignal('web', 'no_website', 'high', {
+      reason: 'No website URL provided during discovery',
+      website_present: false
+    });
+  } else if (!crawl) {
+    addSignal('web', 'website_unreachable', 'medium', {
+      reason: 'No crawl records recorded for provided URL',
+      url: candidate.website
+    });
+  } else {
+    if (crawl.extraction_status === 'failed' || !crawl.status_code) {
+      addSignal('web', 'website_unreachable', 'high', {
+        error: crawl.error_message || 'HTTP request failed or timed out',
+        final_url: crawl.final_url || crawl.original_url
+      });
+    } else if (crawl.status_code >= 400) {
+      addSignal('web', 'website_http_error', 'high', {
+        status_code: crawl.status_code,
+        error: crawl.error_message,
+        url: crawl.final_url || crawl.original_url
+      });
+    }
+    
+    if (crawl.extraction_status === 'skipped' && crawl.content_type && !crawl.content_type.toLowerCase().includes('text/html')) {
+      addSignal('web', 'non_html_site', 'high', {
+        content_type: crawl.content_type,
+        url: crawl.final_url || crawl.original_url
+      });
+    }
+
+    if (!crawl.is_https) {
+      addSignal('web', 'no_https', 'high', {
+        protocol: crawl.final_url ? new URL(crawl.final_url).protocol : 'http:',
+        is_https: false,
+        url: crawl.final_url || crawl.original_url
+      });
+    }
+
+    // --- 3. SEO SIGNALS ---
+    // Deterministic SEO markup detections.
+    if (!crawl.extracted_title) {
+      addSignal('seo', 'meta_title_missing', 'high', {
+        tag: '<title>',
+        found: false,
+        page_size_bytes: crawl.response_size
+      });
+    } else {
+      addSignal('seo', 'meta_title_present', 'high', {
+        title: crawl.extracted_title,
+        length: crawl.extracted_title.length
+      });
+    }
+
+    if (!crawl.extracted_description) {
+      addSignal('seo', 'meta_description_missing', 'high', {
+        tag: 'meta[name="description"]',
+        found: false
+      });
+    } else {
+      addSignal('seo', 'meta_description_present', 'high', {
+        description: crawl.extracted_description,
+        length: crawl.extracted_description.length
+      });
+    }
+
+    if (crawl.extracted_canonical) {
+      addSignal('seo', 'canonical_present', 'high', {
+        canonical_url: crawl.extracted_canonical
+      });
+    }
+
+    if (!crawl.json_ld || crawl.json_ld.length === 0) {
+      addSignal('seo', 'structured_data_missing', 'high', {
+        tag: 'script[type="application/ld+json"]',
+        found: 0
+      });
+    } else {
+      addSignal('seo', 'structured_data_present', 'high', {
+        count: crawl.json_ld.length,
+        types: crawl.json_ld.map((item: any) => item['@type']).filter(Boolean)
+      });
+    }
+
+    // --- 4. MARKETING SIGNALS ---
+    // Deterministic social presence and contact channel detections.
+    const socialLinks = crawl.social_links || {};
+    const platformKeys = Object.keys(socialLinks);
+    if (platformKeys.length === 0) {
+      addSignal('marketing', 'social_presence_missing', 'high', {
+        checked_platforms: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube', 'tiktok'],
+        found_count: 0
+      });
+    } else {
+      addSignal('marketing', 'social_presence_detected', 'high', {
+        platforms: platformKeys,
+        count: platformKeys.length,
+        links: socialLinks
+      });
+    }
+
+    const contactData = crawl.contact_data || {};
+    if (contactData.emails && contactData.emails.length > 0) {
+      addSignal('marketing', 'email_present', 'high', {
+        emails: contactData.emails,
+        count: contactData.emails.length
+      });
+    }
+    if (contactData.phones && contactData.phones.length > 0) {
+      addSignal('marketing', 'phone_present', 'high', {
+        phones: contactData.phones,
+        count: contactData.phones.length
+      });
+    }
+
+    // --- 5. DESIGN SIGNALS (from additional_metadata) ---
+    // Deterministic responsive viewport, OG image, and HTML5 layout element detections.
+    const meta = crawl.additional_metadata || {};
+    
+    if (!meta.viewport) {
+      addSignal('design', 'mobile_viewport_missing', 'high', {
+        tag: 'meta[name="viewport"]',
+        found: false
+      });
+    } else {
+      addSignal('design', 'mobile_viewport_present', 'high', {
+        viewport: meta.viewport
+      });
+    }
+
+    if (!meta.ogImage) {
+      addSignal('design', 'og_image_missing', 'high', {
+        tag: 'meta[property="og:image"]',
+        found: false
+      });
+    } else {
+      addSignal('design', 'og_image_present', 'high', {
+        og_image: meta.ogImage
+      });
+    }
+
+    if (meta.hasNav || meta.hasHeader || meta.hasMain || meta.hasFooter || meta.hasForm) {
+      addSignal('design', 'page_structure_detected', 'high', {
+        has_nav: !!meta.hasNav,
+        has_header: !!meta.hasHeader,
+        has_main: !!meta.hasMain,
+        has_footer: !!meta.hasFooter,
+        has_form: !!meta.hasForm
+      });
+    } else {
+      addSignal('design', 'minimal_content', 'medium', {
+        reason: 'No semantic HTML5 layout tags (nav, header, main, footer, form) detected'
+      });
+    }
+  }
+
+  // UPSERT signals idempotently
+  if (signals.length > 0) {
+    const { error: upsertError } = await supabase
+      .from('prospect_opportunity_signals')
+      .upsert(signals, { onConflict: 'prospect_id, category, signal_key' });
+      
+    if (upsertError) {
+      throw new Error(`Failed to save signals: ${upsertError.message}`);
+    }
+  }
+
   await logEvent(
     supabase,
     task,
-    'score_placeholder',
-    'Opportunity/data-quality scoring stage reached.',
+    'signals_generated',
+    `Generated ${signals.length} deterministic opportunity signals.`,
+    { signal_count: signals.length, prospect_id: prospectId }
   );
 
-  await createNextTask(supabase, task, 'finalize');
+  // --- PHASE 4B.2: DETERMINISTIC-V1 COMMERCIAL OPPORTUNITY SCORING ---
+  // Fetch full prospect context
+  const { data: prospect, error: prospectFetchError } = await supabase
+    .from('prospects')
+    .select('*')
+    .eq('id', prospectId)
+    .single();
+
+  if (prospectFetchError || !prospect) {
+    throw new Error(`Failed to load prospect for scoring: ${prospectFetchError?.message || 'Not found'}`);
+  }
+
+  const scoringContext = {
+    prospect_id: prospect.id,
+    business_name: prospect.business_name,
+    website: prospect.website,
+    has_website: prospect.has_website,
+    phone: prospect.phone,
+    city: prospect.city,
+    country: prospect.country,
+    industry: prospect.industry,
+    provider: candidate.provider,
+    latitude: candidate.latitude,
+    longitude: candidate.longitude,
+  };
+
+  // Run authoritative deterministic-v1 scoring engine
+  const scoringResult = calculateOpportunityScores(signals, scoringContext);
+
+  // Persist authoritative score record into prospect_opportunity_scores
+  const { error: scoreUpsertError } = await supabase
+    .from('prospect_opportunity_scores')
+    .upsert({
+      prospect_id: prospectId,
+      opportunity_web: scoringResult.opportunity_web,
+      opportunity_seo: scoringResult.opportunity_seo,
+      opportunity_marketing: scoringResult.opportunity_marketing,
+      opportunity_design: scoringResult.opportunity_design,
+      opportunity_score: scoringResult.opportunity_score,
+      data_quality_score: scoringResult.data_quality_score,
+      sales_priority: scoringResult.sales_priority,
+      explanation: scoringResult.explanation,
+      scoring_version: scoringResult.scoring_version,
+      calculated_at: new Date().toISOString(),
+    }, { onConflict: 'prospect_id, scoring_version' });
+
+  if (scoreUpsertError) {
+    throw new Error(`Failed to save prospect opportunity scores: ${scoreUpsertError.message}`);
+  }
+
+  // Synchronize canonical fields on prospects table
+  const { error: updateProspectError } = await supabase
+    .from('prospects')
+    .update({
+      opportunity_web: scoringResult.opportunity_web,
+      opportunity_seo: scoringResult.opportunity_seo,
+      opportunity_marketing: scoringResult.opportunity_marketing,
+      opportunity_design: scoringResult.opportunity_design,
+      opportunity_score: scoringResult.opportunity_score,
+      data_quality_score: scoringResult.data_quality_score,
+      sales_priority: scoringResult.sales_priority,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', prospectId);
+
+  if (updateProspectError) {
+    throw new Error(`Failed to update prospect opportunity fields: ${updateProspectError.message}`);
+  }
+
+  await logEvent(
+    supabase,
+    task,
+    'scores_calculated',
+    `Calculated deterministic-v1 scores: Overall=${scoringResult.opportunity_score}, Priority=${scoringResult.sales_priority}`,
+    {
+      scoring_version: scoringResult.scoring_version,
+      opportunity_score: scoringResult.opportunity_score,
+      opportunity_web: scoringResult.opportunity_web,
+      opportunity_seo: scoringResult.opportunity_seo,
+      opportunity_marketing: scoringResult.opportunity_marketing,
+      opportunity_design: scoringResult.opportunity_design,
+      data_quality_score: scoringResult.data_quality_score,
+      sales_priority: scoringResult.sales_priority,
+      prospect_id: prospectId,
+    }
+  );
+  
+  // Pipeline terminates here for Phase 4B
 }
 
 async function processFinalizeTask(
@@ -390,8 +736,8 @@ async function processFinalizeTask(
     throw new Error(`Failed to create prospect source: ${sourceError.message}`);
   }
 
-  // Mark candidate as accepted
-  await supabase.from('discovery_candidates').update({ status: 'accepted' }).eq('id', candidate.id);
+  // Mark candidate as accepted and link prospect
+  await supabase.from('discovery_candidates').update({ status: 'accepted', prospect_id: prospect.id }).eq('id', candidate.id);
 
   await logEvent(
     supabase,
@@ -400,6 +746,8 @@ async function processFinalizeTask(
     'Candidate finalized and converted to prospect.',
     { prospect_id: prospect.id }
   );
+  
+  await createNextTask(supabase, task, 'score');
 }
 
 async function processTask(

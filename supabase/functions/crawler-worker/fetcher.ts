@@ -32,6 +32,13 @@ export interface WebsiteEvidence {
   ogDescription?: string | null;
   ogUrl?: string | null;
   ogType?: string | null;
+  ogImage?: string | null;
+  robots?: string | null;
+  hasNav?: boolean;
+  hasHeader?: boolean;
+  hasMain?: boolean;
+  hasFooter?: boolean;
+  hasForm?: boolean;
 }
 
 function normalizeUrl(rawUrl: string): string {
@@ -66,6 +73,11 @@ export async function fetchAndExtractWebsite(rawUrl: string): Promise<WebsiteEvi
     jsonLd: [],
     extractionStatus: 'pending' as any,
     errorMessage: null,
+    hasNav: false,
+    hasHeader: false,
+    hasMain: false,
+    hasFooter: false,
+    hasForm: false,
   };
 
   const url = normalizeUrl(rawUrl);
@@ -250,6 +262,15 @@ export async function fetchAndExtractWebsite(rawUrl: string): Promise<WebsiteEvi
     evidence.ogDescription = $('meta[property="og:description"]').attr('content')?.trim() || null;
     evidence.ogUrl = $('meta[property="og:url"]').attr('content')?.trim() || null;
     evidence.ogType = $('meta[property="og:type"]').attr('content')?.trim() || null;
+    evidence.ogImage = $('meta[property="og:image"]').attr('content')?.trim() || null;
+    evidence.robots = $('meta[name="robots"]').attr('content')?.trim() || null;
+
+    // Structural elements
+    evidence.hasNav = $('nav').length > 0;
+    evidence.hasHeader = $('header').length > 0;
+    evidence.hasMain = $('main').length > 0 || $('div[role="main"]').length > 0;
+    evidence.hasFooter = $('footer').length > 0;
+    evidence.hasForm = $('form').length > 0;
 
     evidence.extractionStatus = 'completed';
 

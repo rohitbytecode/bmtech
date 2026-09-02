@@ -1,19 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { marketingService } from '@/services/marketingService';
 import type { Strategy } from '@/types/marketing';
 import { DataTable } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/Button';
-import { Plus, Briefcase, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { ModalForm } from '@/components/admin/ModalForm';
 import { InputField, TextAreaField, SelectField } from '@/components/admin/FormFields';
 import { supabase } from '@/lib/supabaseClient';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Pagination } from '@/components/admin/Pagination';
+import { cn } from '@/lib/utils';
 
 export default function StrategiesPage() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalItems, setTotalItems] = useState(0);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -25,16 +33,17 @@ export default function StrategiesPage() {
     status: 'draft' as any,
   });
 
+  const loadStrategies = useCallback(async () => {
+    setLoading(true);
+    const { data, count } = await marketingService.getStrategiesPaginated(page, pageSize);
+    if (data) setStrategies(data);
+    if (count !== undefined) setTotalItems(count);
+    setLoading(false);
+  }, [page, pageSize]);
+
   useEffect(() => {
     loadStrategies();
-  }, []);
-
-  const loadStrategies = async () => {
-    setLoading(true);
-    const { data } = await marketingService.getStrategies();
-    if (data) setStrategies(data);
-    setLoading(false);
-  };
+  }, [loadStrategies]);
 
   const handleOpenNew = () => {
     setEditingId(null);
@@ -107,36 +116,54 @@ export default function StrategiesPage() {
   };
 
   const columns = [
-    { header: 'Name', accessor: 'name' as keyof Strategy },
-    { header: 'Status', accessor: 'status' as keyof Strategy },
-    { header: 'Target Industries', accessor: (s: Strategy) => s.target_industries?.join(', ') || 'N/A' },
-    { header: 'Created At', accessor: (s: Strategy) => new Date(s.created_at).toLocaleDateString() },
+    { header: 'Name', accessor: 'name' as keyof Strategy, className: 'font-bold max-w-[200px] truncate' },
+    { header: 'Status', accessor: (s: Strategy) => (
+      <span className={cn(
+        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+        s.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' :
+        s.status === 'paused' ? 'bg-amber-500/10 text-amber-500' :
+        'bg-slate-500/10 text-slate-500'
+      )}>
+        {s.status}
+      </span>
+    )},
+    { header: 'Description', accessor: (s: Strategy) => <span className="truncate max-w-[250px] inline-block text-text-secondary text-xs">{s.description || '-'}</span> },
+    { header: 'Countries', accessor: (s: Strategy) => <span className="text-xs truncate max-w-[150px] inline-block">{s.target_countries?.length > 0 ? s.target_countries.join(', ') : 'Global'}</span> },
+    { header: 'Industries', accessor: (s: Strategy) => <span className="text-xs truncate max-w-[150px] inline-block">{s.target_industries?.length > 0 ? s.target_industries.join(', ') : 'All'}</span> },
+    { header: 'Created', accessor: (s: Strategy) => <span className="text-xs text-text-secondary">{new Date(s.created_at).toLocaleDateString()}</span> },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Marketing Strategies</h1>
-          <p className="text-text-secondary text-sm">Manage outbound marketing campaigns and targeting.</p>
-        </div>
-        <Button onClick={handleOpenNew} className="gap-2">
-          <Plus size={16} /> New Strategy
+    <div className="flex flex-col h-full">
+      <PageHeader 
+        title="Marketing Strategies" 
+        description="Manage outbound marketing campaigns and targeting parameters."
+      >
+        <Button onClick={handleOpenNew}>
+          <Plus size={14} /> New Strategy
         </Button>
-      </div>
+      </PageHeader>
 
-      {loading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="animate-spin text-accent-blue" size={32} />
-        </div>
-      ) : (
+      <div className="flex-1 min-h-0 bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col">
         <DataTable
           columns={columns}
           data={strategies}
+          isLoading={loading}
           onEdit={handleOpenEdit}
           onDelete={handleDelete}
         />
-      )}
+        <Pagination 
+          currentPage={page}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          totalPages={Math.ceil(totalItems / pageSize)}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      </div>
 
       <ModalForm
         title={editingId ? "Edit Strategy" : "Create Strategy"}

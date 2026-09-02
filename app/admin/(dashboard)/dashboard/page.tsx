@@ -139,43 +139,43 @@ export default function Dashboard() {
         <StatCard label="Active Packages" value={stats.totalPackages} icon={Package} />
       </div>
 
-        <div className="space-y-6 mt-12">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-text-primary tracking-tight">Marketing Overview</h2>
+        <div className="space-y-6 mt-8">
+          <div className="flex items-center justify-between border-b border-border/50 pb-2">
+            <h2 className="text-lg font-bold text-text-primary tracking-tight">Marketing Overview</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Total Prospects</span>
-              <span className="text-3xl font-bold mt-2 text-text-primary">{marketingStats.totalProspects}</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Total Prospects</span>
+              <span className="text-2xl font-bold mt-1 text-text-primary">{marketingStats.totalProspects}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Ready to Call</span>
-              <span className="text-3xl font-bold mt-2 text-accent-blue">{marketingStats.readyToCall}</span>
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Ready to Call</span>
+              <span className="text-2xl font-bold mt-1 text-accent-blue">{marketingStats.readyToCall}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Assigned to Callers</span>
-              <span className="text-3xl font-bold mt-2 text-emerald-400">{marketingStats.assigned}</span>
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Assigned to Callers</span>
+              <span className="text-2xl font-bold mt-1 text-emerald-500">{marketingStats.assigned}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Total Calls Logged</span>
-              <span className="text-3xl font-bold mt-2 text-indigo-400">{marketingStats.totalCalls}</span>
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Total Calls Logged</span>
+              <span className="text-2xl font-bold mt-1 text-indigo-400">{marketingStats.totalCalls}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Callbacks Required</span>
-              <span className="text-3xl font-bold mt-2 text-amber-400">{marketingStats.callbacks}</span>
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Callbacks Required</span>
+              <span className="text-2xl font-bold mt-1 text-amber-500">{marketingStats.callbacks}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Qualified Leads</span>
-              <span className="text-3xl font-bold mt-2 text-emerald-500">{marketingStats.qualified}</span>
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Qualified Leads</span>
+              <span className="text-2xl font-bold mt-1 text-emerald-500">{marketingStats.qualified}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-border flex flex-col justify-between">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Rejected Leads</span>
-              <span className="text-3xl font-bold mt-2 text-rose-500">{marketingStats.rejected}</span>
+            <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Rejected Leads</span>
+              <span className="text-2xl font-bold mt-1 text-rose-500">{marketingStats.rejected}</span>
             </div>
-            <div className="p-6 bg-surface rounded-2xl border border-accent-blue/30 bg-accent-blue/5 flex flex-col justify-between relative overflow-hidden">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Conversion Rate</span>
-              <div className="flex items-end gap-2 mt-2">
-                <span className="text-4xl font-black text-accent-blue">{marketingStats.conversionRate}%</span>
+            <div className="p-4 bg-surface rounded-lg border border-accent-blue/30 bg-accent-blue/5 flex flex-col justify-between relative overflow-hidden">
+              <span className="text-[10px] font-semibold text-accent-blue uppercase tracking-widest">Conversion Rate</span>
+              <div className="flex items-end gap-2 mt-1">
+                <span className="text-3xl font-black text-accent-blue">{marketingStats.conversionRate}%</span>
               </div>
             </div>
           </div>

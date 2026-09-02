@@ -20,22 +20,6 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-6">
-        <div className="relative pointer-events-none opacity-50">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="h-10 pl-10 pr-4 w-64 bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue/40"
-          />
-        </div>
-
-        <button className="p-2 rounded-lg bg-surface border border-border hover:bg-border transition-colors text-text-secondary hover:text-text-primary relative">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-accent-blue rounded-full"></span>
-        </button>
 
         <div className="flex items-center gap-3 pl-4 border-l border-border h-10">
           <div className="text-right hidden sm:block">
