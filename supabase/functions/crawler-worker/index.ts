@@ -7,6 +7,64 @@ import { calculateOpportunityScores } from './scoring/scoringEngine.ts';
 const BATCH_SIZE = 10;
 const LOCK_TIMEOUT_MINUTES = 10;
 
+function normalizeIdentity(value: string | null | undefined) {
+  return (value || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function isIdentifiableBusinessName(value: string | null | undefined) {
+  const name = value?.trim() || '';
+  return (
+    name.length >= 3 &&
+    (name.match(/[a-z]/gi) || []).length >= 3 &&
+    !/^(unknown business|unknown|unnamed|no name|n\/a|na|business|shop|store|cafe|restaurant)$/i.test(
+      name,
+    )
+  );
+}
+
+function normalizePhone(value: string | null | undefined) {
+  return (value || '').replace(/[^\d+]/g, '');
+}
+
+function isValidPhone(value: string | null | undefined) {
+  return /^\+?\d{10,15}$/.test(normalizePhone(value));
+}
+
+function normalizeWebsite(value: string | null | undefined) {
+  return (value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/$/, '');
+}
+
+function sameBusinessLocation(candidate: any, existing: any) {
+  const samePhone =
+    isValidPhone(candidate.phone) &&
+    isValidPhone(existing.phone) &&
+    normalizePhone(candidate.phone) === normalizePhone(existing.phone);
+  const sameWebsite =
+    !!normalizeWebsite(candidate.website) &&
+    normalizeWebsite(candidate.website) === normalizeWebsite(existing.website);
+  const sameAddress =
+    !!candidate.address &&
+    !!existing.address_line &&
+    normalizeIdentity(candidate.address) === normalizeIdentity(existing.address_line);
+  const closeCoordinates =
+    typeof candidate.latitude === 'number' &&
+    typeof candidate.longitude === 'number' &&
+    typeof existing.latitude === 'number' &&
+    typeof existing.longitude === 'number' &&
+    Math.abs(candidate.latitude - existing.latitude) < 0.002 &&
+    Math.abs(candidate.longitude - existing.longitude) < 0.002;
+
+  return samePhone || sameWebsite || sameAddress || closeCoordinates;
+}
+
 type CrawlerTask = {
   id: string;
   job_id: string;
@@ -91,12 +149,22 @@ async function processDiscoverTask(
   }
 
   const provider = new OpenStreetMapDiscoveryProvider();
-  
-  await logEvent(supabase, task, 'discovery_provider_request', `Requesting data from ${provider.name}`);
+
+  await logEvent(
+    supabase,
+    task,
+    'discovery_provider_request',
+    `Requesting data from ${provider.name}`,
+  );
 
   const candidates = await provider.discover(strategy, { limit: 10 });
 
-  await logEvent(supabase, task, 'discovery_results_received', `Received ${candidates.length} raw results from ${provider.name}`);
+  await logEvent(
+    supabase,
+    task,
+    'discovery_results_received',
+    `Received ${candidates.length} raw results from ${provider.name}`,
+  );
 
   for (const candidate of candidates) {
     const { data: existing } = await supabase
@@ -110,50 +178,61 @@ async function processDiscoverTask(
       continue;
     }
 
-      const { data: savedCandidate, error: saveError } = await supabase
-        .from('discovery_candidates')
-        .insert({
-          job_id: task.job_id,
-          strategy_id: strategyId,
-          provider: candidate.provider,
-          external_id: candidate.externalId,
-          business_name: candidate.businessName,
-          website: candidate.website,
-          phone: candidate.phone,
-          email: candidate.email,
-          address: candidate.address,
-          city: candidate.city,
-          state_region: candidate.stateRegion,
-          postal_code: candidate.postalCode,
-          country: candidate.country,
-          latitude: candidate.latitude,
-          longitude: candidate.longitude,
-          industry: candidate.industry,
-          raw_data: candidate.rawData,
-          status: candidate.status || 'discovered',
-          rejection_reason: candidate.rejectionReason,
-        })
-        .select()
-        .single();
+    const { data: savedCandidate, error: saveError } = await supabase
+      .from('discovery_candidates')
+      .insert({
+        job_id: task.job_id,
+        strategy_id: strategyId,
+        provider: candidate.provider,
+        external_id: candidate.externalId,
+        business_name: candidate.businessName,
+        website: candidate.website,
+        phone: candidate.phone,
+        email: candidate.email,
+        address: candidate.address,
+        city: candidate.city,
+        state_region: candidate.stateRegion,
+        postal_code: candidate.postalCode,
+        country: candidate.country,
+        latitude: candidate.latitude,
+        longitude: candidate.longitude,
+        industry: candidate.industry,
+        raw_data: candidate.rawData,
+        status: candidate.status || 'discovered',
+        rejection_reason: candidate.rejectionReason,
+      })
+      .select()
+      .single();
 
-      if (saveError) {
-        console.error(`Failed to save candidate: ${saveError.message}`);
-        continue;
-      }
+    if (saveError) {
+      console.error(`Failed to save candidate: ${saveError.message}`);
+      continue;
+    }
 
-      await logEvent(supabase, task, 'discovery_candidate_saved', `Saved candidate ${candidate.businessName}`, { candidate_id: savedCandidate.id });
+    await logEvent(
+      supabase,
+      task,
+      'discovery_candidate_saved',
+      `Saved candidate ${candidate.businessName}`,
+      { candidate_id: savedCandidate.id },
+    );
 
-      // If the candidate was rejected (e.g. geographic bounds failed), don't spawn next tasks.
-      if (candidate.status === 'rejected') {
-        continue;
-      }
+    // If the candidate was rejected (e.g. geographic bounds failed), don't spawn next tasks.
+    if (candidate.status === 'rejected') {
+      continue;
+    }
 
-      // Enqueue next task: validate
-      await createNextTask(supabase, { ...task, candidate_id: savedCandidate.id }, 'validate');
+    // Enqueue next task: validate
+    await createNextTask(supabase, { ...task, candidate_id: savedCandidate.id }, 'validate');
   }
 
-  await logEvent(supabase, task, 'discovery_completed', `Discovery completed. Inserted candidates and queued next tasks.`);
-  
+  await logEvent(
+    supabase,
+    task,
+    'discovery_completed',
+    `Discovery completed. Inserted candidates and queued next tasks.`,
+  );
+
   // Update raw results count explicitly
   await supabase
     .from('crawler_jobs')
@@ -171,7 +250,7 @@ async function processFetchWebsiteTask(
 
   const { data: candidate, error } = await supabase
     .from('discovery_candidates')
-    .select('id, website, business_name')
+    .select('id, website, phone, business_name')
     .eq('id', task.candidate_id)
     .single();
 
@@ -195,45 +274,43 @@ async function processFetchWebsiteTask(
     task,
     'website_fetch_started',
     `Starting website fetch for ${candidate.business_name}.`,
-    { website: candidate.website }
+    { website: candidate.website },
   );
 
   const evidence = await fetchAndExtractWebsite(candidate.website);
 
-  const { error: insertError } = await supabase
-    .from('prospect_website_crawls')
-    .insert({
-      candidate_id: candidate.id,
-      original_url: evidence.originalUrl,
-      final_url: evidence.finalUrl,
-      status_code: evidence.statusCode,
-      content_type: evidence.contentType,
-      response_size: evidence.responseSize,
-      fetch_duration_ms: evidence.fetchDurationMs,
-      is_https: evidence.isHttps,
-      extracted_title: evidence.extractedTitle,
-      extracted_description: evidence.extractedDescription,
-      extracted_canonical: evidence.extractedCanonical,
-      contact_data: evidence.contactData,
-      social_links: evidence.socialLinks,
-      json_ld: evidence.jsonLd,
-      extraction_status: evidence.extractionStatus,
-      error_message: evidence.errorMessage,
-      additional_metadata: {
-        viewport: evidence.viewport,
-        ogTitle: evidence.ogTitle,
-        ogDescription: evidence.ogDescription,
-        ogUrl: evidence.ogUrl,
-        ogType: evidence.ogType,
-        ogImage: evidence.ogImage,
-        robots: evidence.robots,
-        hasNav: evidence.hasNav,
-        hasHeader: evidence.hasHeader,
-        hasMain: evidence.hasMain,
-        hasFooter: evidence.hasFooter,
-        hasForm: evidence.hasForm
-      }
-    });
+  const { error: insertError } = await supabase.from('prospect_website_crawls').insert({
+    candidate_id: candidate.id,
+    original_url: evidence.originalUrl,
+    final_url: evidence.finalUrl,
+    status_code: evidence.statusCode,
+    content_type: evidence.contentType,
+    response_size: evidence.responseSize,
+    fetch_duration_ms: evidence.fetchDurationMs,
+    is_https: evidence.isHttps,
+    extracted_title: evidence.extractedTitle,
+    extracted_description: evidence.extractedDescription,
+    extracted_canonical: evidence.extractedCanonical,
+    contact_data: evidence.contactData,
+    social_links: evidence.socialLinks,
+    json_ld: evidence.jsonLd,
+    extraction_status: evidence.extractionStatus,
+    error_message: evidence.errorMessage,
+    additional_metadata: {
+      viewport: evidence.viewport,
+      ogTitle: evidence.ogTitle,
+      ogDescription: evidence.ogDescription,
+      ogUrl: evidence.ogUrl,
+      ogType: evidence.ogType,
+      ogImage: evidence.ogImage,
+      robots: evidence.robots,
+      hasNav: evidence.hasNav,
+      hasHeader: evidence.hasHeader,
+      hasMain: evidence.hasMain,
+      hasFooter: evidence.hasFooter,
+      hasForm: evidence.hasForm,
+    },
+  });
 
   if (insertError) {
     throw new Error(`Failed to save website evidence: ${insertError.message}`);
@@ -242,9 +319,11 @@ async function processFetchWebsiteTask(
   await logEvent(
     supabase,
     task,
-    evidence.extractionStatus === 'completed' ? 'website_extraction_completed' : 'website_fetch_failed',
+    evidence.extractionStatus === 'completed'
+      ? 'website_extraction_completed'
+      : 'website_fetch_failed',
     `Website processing ${evidence.extractionStatus}`,
-    { statusCode: evidence.statusCode, error: evidence.errorMessage }
+    { statusCode: evidence.statusCode, error: evidence.errorMessage },
   );
 
   // Advance to deduplication
@@ -281,13 +360,43 @@ async function processValidateTask(
     throw new Error(`Failed to load candidate in validate: ${error?.message || 'Not found'}`);
   }
 
-  await logEvent(
-    supabase,
-    task,
-    'validation_completed',
-    'Candidate passed basic validation.',
-    { has_website: !!candidate.website }
-  );
+  if (!isIdentifiableBusinessName(candidate.business_name)) {
+    await supabase
+      .from('discovery_candidates')
+      .update({
+        status: 'rejected',
+        rejection_reason: 'missing_or_generic_business_name',
+      })
+      .eq('id', candidate.id);
+    await logEvent(
+      supabase,
+      task,
+      'candidate_rejected',
+      'Candidate has no identifiable business name.',
+    );
+    return;
+  }
+
+  if (!isValidPhone(candidate.phone) && !candidate.website) {
+    await supabase
+      .from('discovery_candidates')
+      .update({
+        status: 'rejected',
+        rejection_reason: 'missing_business_phone',
+      })
+      .eq('id', candidate.id);
+    await logEvent(
+      supabase,
+      task,
+      'candidate_rejected',
+      'Candidate has no usable phone number or website.',
+    );
+    return;
+  }
+
+  await logEvent(supabase, task, 'validation_completed', 'Candidate passed basic validation.', {
+    has_website: !!candidate.website,
+  });
 
   // If candidate has a website, route to fetch_website; otherwise route directly to deduplicate
   const nextTaskType = candidate.website ? 'fetch_website' : 'deduplicate';
@@ -302,11 +411,53 @@ async function processDeduplicateTask(
 
   const { data: candidate } = await supabase
     .from('discovery_candidates')
-    .select('provider, external_id, phone, website')
+    .select(
+      'id, provider, external_id, phone, website, business_name, address, city, latitude, longitude',
+    )
     .eq('id', task.candidate_id)
     .single();
 
   if (!candidate) throw new Error('Candidate not found');
+
+  const { data: existingCandidates } = await supabase
+    .from('discovery_candidates')
+    .select('id, business_name, phone, website, address, city, latitude, longitude')
+    .neq('id', task.candidate_id)
+    .in('status', ['discovered', 'accepted']);
+
+  const { data: existingProspects } = await supabase
+    .from('prospects')
+    .select('id, business_name, phone, website, address_line, city')
+    .limit(1000);
+
+  const candidateName = normalizeIdentity(candidate.business_name);
+  const duplicate = [...(existingCandidates || []), ...(existingProspects || [])].some(
+    (existing) => {
+      const existingName = normalizeIdentity(existing.business_name);
+      return (
+        !!candidateName &&
+        candidateName === existingName &&
+        sameBusinessLocation(candidate, existing)
+      );
+    },
+  );
+
+  if (duplicate) {
+    await logEvent(
+      supabase,
+      task,
+      'duplicate_detected',
+      'Candidate matches an existing business at the same location or with the same contact identity.',
+    );
+    await supabase
+      .from('discovery_candidates')
+      .update({
+        status: 'duplicate',
+        rejection_reason: 'duplicate_business_or_location',
+      })
+      .eq('id', task.candidate_id);
+    return;
+  }
 
   // Check deduplication via prospect_sources
   const { data: duplicates } = await supabase
@@ -317,34 +468,37 @@ async function processDeduplicateTask(
     .limit(1);
 
   if (duplicates && duplicates.length > 0) {
-    await logEvent(supabase, task, 'duplicate_detected', 'Candidate is a duplicate based on provider ID');
-    await supabase.from('discovery_candidates').update({ status: 'duplicate' }).eq('id', task.candidate_id);
+    await logEvent(
+      supabase,
+      task,
+      'duplicate_detected',
+      'Candidate is a duplicate based on provider ID',
+    );
+    await supabase
+      .from('discovery_candidates')
+      .update({ status: 'duplicate' })
+      .eq('id', task.candidate_id);
     return; // Stop pipeline for duplicate
   }
 
-  await logEvent(
-    supabase,
-    task,
-    'deduplication_passed',
-    'Candidate passed deduplication.',
-  );
+  await logEvent(supabase, task, 'deduplication_passed', 'Candidate passed deduplication.');
 
   await createNextTask(supabase, task, 'finalize');
 }
 
 /**
  * processScoreTask
- * 
+ *
  * SEMANTICS FOR PHASE 4A:
  * This task performs DETERMINISTIC OPPORTUNITY SIGNAL GENERATION.
  * It strictly creates factual, verifiable detection evidence rows in `prospect_opportunity_signals`.
- * 
+ *
  * CONFIDENCE SEMANTICS:
  * "confidence" strictly represents the CONFIDENCE OF DETECTION (e.g. certainty that a meta tag was absent or URL was missing),
  * NOT commercial value, sales priority, or opportunity score.
- * 
+ *
  * SCOPE BOUNDARY:
- * Commercial scores (opportunity_score, opportunity_web, opportunity_seo, opportunity_marketing, 
+ * Commercial scores (opportunity_score, opportunity_web, opportunity_seo, opportunity_marketing,
  * opportunity_design, sales_priority) are NOT calculated here and remain untouched / NULL until Phase 4B.
  */
 async function processScoreTask(
@@ -386,19 +540,19 @@ async function processScoreTask(
       provider: candidate.provider,
       latitude: candidate.latitude,
       longitude: candidate.longitude,
-      source: 'geocoded_coordinates'
+      source: 'geocoded_coordinates',
     });
   }
   if (candidate.phone) {
     addSignal('data_quality', 'valid_phone', 'high', {
       phone: candidate.phone,
-      source: 'discovery_provider'
+      source: 'discovery_provider',
     });
   }
   if (candidate.website) {
     addSignal('data_quality', 'website_discovered', 'high', {
       url: candidate.website,
-      source: 'discovery_provider'
+      source: 'discovery_provider',
     });
   }
 
@@ -407,31 +561,35 @@ async function processScoreTask(
   if (!candidate.website) {
     addSignal('web', 'no_website', 'high', {
       reason: 'No website URL provided during discovery',
-      website_present: false
+      website_present: false,
     });
   } else if (!crawl) {
     addSignal('web', 'website_unreachable', 'medium', {
       reason: 'No crawl records recorded for provided URL',
-      url: candidate.website
+      url: candidate.website,
     });
   } else {
     if (crawl.extraction_status === 'failed' || !crawl.status_code) {
       addSignal('web', 'website_unreachable', 'high', {
         error: crawl.error_message || 'HTTP request failed or timed out',
-        final_url: crawl.final_url || crawl.original_url
+        final_url: crawl.final_url || crawl.original_url,
       });
     } else if (crawl.status_code >= 400) {
       addSignal('web', 'website_http_error', 'high', {
         status_code: crawl.status_code,
         error: crawl.error_message,
-        url: crawl.final_url || crawl.original_url
+        url: crawl.final_url || crawl.original_url,
       });
     }
-    
-    if (crawl.extraction_status === 'skipped' && crawl.content_type && !crawl.content_type.toLowerCase().includes('text/html')) {
+
+    if (
+      crawl.extraction_status === 'skipped' &&
+      crawl.content_type &&
+      !crawl.content_type.toLowerCase().includes('text/html')
+    ) {
       addSignal('web', 'non_html_site', 'high', {
         content_type: crawl.content_type,
-        url: crawl.final_url || crawl.original_url
+        url: crawl.final_url || crawl.original_url,
       });
     }
 
@@ -439,7 +597,7 @@ async function processScoreTask(
       addSignal('web', 'no_https', 'high', {
         protocol: crawl.final_url ? new URL(crawl.final_url).protocol : 'http:',
         is_https: false,
-        url: crawl.final_url || crawl.original_url
+        url: crawl.final_url || crawl.original_url,
       });
     }
 
@@ -449,42 +607,42 @@ async function processScoreTask(
       addSignal('seo', 'meta_title_missing', 'high', {
         tag: '<title>',
         found: false,
-        page_size_bytes: crawl.response_size
+        page_size_bytes: crawl.response_size,
       });
     } else {
       addSignal('seo', 'meta_title_present', 'high', {
         title: crawl.extracted_title,
-        length: crawl.extracted_title.length
+        length: crawl.extracted_title.length,
       });
     }
 
     if (!crawl.extracted_description) {
       addSignal('seo', 'meta_description_missing', 'high', {
         tag: 'meta[name="description"]',
-        found: false
+        found: false,
       });
     } else {
       addSignal('seo', 'meta_description_present', 'high', {
         description: crawl.extracted_description,
-        length: crawl.extracted_description.length
+        length: crawl.extracted_description.length,
       });
     }
 
     if (crawl.extracted_canonical) {
       addSignal('seo', 'canonical_present', 'high', {
-        canonical_url: crawl.extracted_canonical
+        canonical_url: crawl.extracted_canonical,
       });
     }
 
     if (!crawl.json_ld || crawl.json_ld.length === 0) {
       addSignal('seo', 'structured_data_missing', 'high', {
         tag: 'script[type="application/ld+json"]',
-        found: 0
+        found: 0,
       });
     } else {
       addSignal('seo', 'structured_data_present', 'high', {
         count: crawl.json_ld.length,
-        types: crawl.json_ld.map((item: any) => item['@type']).filter(Boolean)
+        types: crawl.json_ld.map((item: any) => item['@type']).filter(Boolean),
       });
     }
 
@@ -495,13 +653,13 @@ async function processScoreTask(
     if (platformKeys.length === 0) {
       addSignal('marketing', 'social_presence_missing', 'high', {
         checked_platforms: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube', 'tiktok'],
-        found_count: 0
+        found_count: 0,
       });
     } else {
       addSignal('marketing', 'social_presence_detected', 'high', {
         platforms: platformKeys,
         count: platformKeys.length,
-        links: socialLinks
+        links: socialLinks,
       });
     }
 
@@ -509,39 +667,39 @@ async function processScoreTask(
     if (contactData.emails && contactData.emails.length > 0) {
       addSignal('marketing', 'email_present', 'high', {
         emails: contactData.emails,
-        count: contactData.emails.length
+        count: contactData.emails.length,
       });
     }
     if (contactData.phones && contactData.phones.length > 0) {
       addSignal('marketing', 'phone_present', 'high', {
         phones: contactData.phones,
-        count: contactData.phones.length
+        count: contactData.phones.length,
       });
     }
 
     // --- 5. DESIGN SIGNALS (from additional_metadata) ---
     // Deterministic responsive viewport, OG image, and HTML5 layout element detections.
     const meta = crawl.additional_metadata || {};
-    
+
     if (!meta.viewport) {
       addSignal('design', 'mobile_viewport_missing', 'high', {
         tag: 'meta[name="viewport"]',
-        found: false
+        found: false,
       });
     } else {
       addSignal('design', 'mobile_viewport_present', 'high', {
-        viewport: meta.viewport
+        viewport: meta.viewport,
       });
     }
 
     if (!meta.ogImage) {
       addSignal('design', 'og_image_missing', 'high', {
         tag: 'meta[property="og:image"]',
-        found: false
+        found: false,
       });
     } else {
       addSignal('design', 'og_image_present', 'high', {
-        og_image: meta.ogImage
+        og_image: meta.ogImage,
       });
     }
 
@@ -551,11 +709,11 @@ async function processScoreTask(
         has_header: !!meta.hasHeader,
         has_main: !!meta.hasMain,
         has_footer: !!meta.hasFooter,
-        has_form: !!meta.hasForm
+        has_form: !!meta.hasForm,
       });
     } else {
       addSignal('design', 'minimal_content', 'medium', {
-        reason: 'No semantic HTML5 layout tags (nav, header, main, footer, form) detected'
+        reason: 'No semantic HTML5 layout tags (nav, header, main, footer, form) detected',
       });
     }
   }
@@ -565,7 +723,7 @@ async function processScoreTask(
     const { error: upsertError } = await supabase
       .from('prospect_opportunity_signals')
       .upsert(signals, { onConflict: 'prospect_id, category, signal_key' });
-      
+
     if (upsertError) {
       throw new Error(`Failed to save signals: ${upsertError.message}`);
     }
@@ -576,7 +734,7 @@ async function processScoreTask(
     task,
     'signals_generated',
     `Generated ${signals.length} deterministic opportunity signals.`,
-    { signal_count: signals.length, prospect_id: prospectId }
+    { signal_count: signals.length, prospect_id: prospectId },
   );
 
   // --- PHASE 4B.2: DETERMINISTIC-V1 COMMERCIAL OPPORTUNITY SCORING ---
@@ -588,7 +746,9 @@ async function processScoreTask(
     .single();
 
   if (prospectFetchError || !prospect) {
-    throw new Error(`Failed to load prospect for scoring: ${prospectFetchError?.message || 'Not found'}`);
+    throw new Error(
+      `Failed to load prospect for scoring: ${prospectFetchError?.message || 'Not found'}`,
+    );
   }
 
   const scoringContext = {
@@ -609,9 +769,8 @@ async function processScoreTask(
   const scoringResult = calculateOpportunityScores(signals, scoringContext);
 
   // Persist authoritative score record into prospect_opportunity_scores
-  const { error: scoreUpsertError } = await supabase
-    .from('prospect_opportunity_scores')
-    .upsert({
+  const { error: scoreUpsertError } = await supabase.from('prospect_opportunity_scores').upsert(
+    {
       prospect_id: prospectId,
       opportunity_web: scoringResult.opportunity_web,
       opportunity_seo: scoringResult.opportunity_seo,
@@ -623,7 +782,9 @@ async function processScoreTask(
       explanation: scoringResult.explanation,
       scoring_version: scoringResult.scoring_version,
       calculated_at: new Date().toISOString(),
-    }, { onConflict: 'prospect_id, scoring_version' });
+    },
+    { onConflict: 'prospect_id, scoring_version' },
+  );
 
   if (scoreUpsertError) {
     throw new Error(`Failed to save prospect opportunity scores: ${scoreUpsertError.message}`);
@@ -663,9 +824,9 @@ async function processScoreTask(
       data_quality_score: scoringResult.data_quality_score,
       sales_priority: scoringResult.sales_priority,
       prospect_id: prospectId,
-    }
+    },
   );
-  
+
   // Pipeline terminates here for Phase 4B
 }
 
@@ -693,13 +854,6 @@ async function processFinalizeTask(
 
   const crawl = crawls && crawls.length > 0 ? crawls[0] : null;
 
-  // Extract and validate phone number
-  const normalizePhone = (p: string) => p.replace(/[^\d+]/g, '');
-  const isValidPhone = (p: string) => {
-    const n = normalizePhone(p);
-    return n.length >= 10 && n.length <= 15;
-  };
-
   let validPhone: string | null = null;
   if (candidate.phone && isValidPhone(candidate.phone)) {
     validPhone = normalizePhone(candidate.phone);
@@ -710,6 +864,29 @@ async function processFinalizeTask(
         break;
       }
     }
+  }
+
+  if (!isIdentifiableBusinessName(candidate.business_name) || !validPhone) {
+    await supabase
+      .from('discovery_candidates')
+      .update({
+        status: 'rejected',
+        rejection_reason: !isIdentifiableBusinessName(candidate.business_name)
+          ? 'missing_or_generic_business_name'
+          : 'missing_business_phone',
+      })
+      .eq('id', candidate.id);
+    await logEvent(
+      supabase,
+      task,
+      'candidate_rejected',
+      'Candidate failed caller-ready qualification.',
+      {
+        has_phone: !!validPhone,
+        has_website: !!candidate.website,
+      },
+    );
+    return;
   }
 
   // Insert into prospects
@@ -729,8 +906,9 @@ async function processFinalizeTask(
       timezone: (candidate as any).timezone || null,
       industry: candidate.industry,
       has_website: !!candidate.website,
-      has_social_presence: crawl && crawl.social_links && Object.keys(crawl.social_links).length > 0 ? true : false,
-      status: validPhone ? 'discovered' : 'rejected'
+      has_social_presence:
+        crawl && crawl.social_links && Object.keys(crawl.social_links).length > 0 ? true : false,
+      status: 'discovered',
     })
     .select('id')
     .single();
@@ -747,8 +925,8 @@ async function processFinalizeTask(
     source_data: {
       external_id: candidate.external_id,
       candidate_id: candidate.id,
-      raw_data: candidate.raw_data
-    }
+      raw_data: candidate.raw_data,
+    },
   });
 
   if (sourceError) {
@@ -756,23 +934,19 @@ async function processFinalizeTask(
   }
 
   // Mark candidate as accepted and link prospect
-  await supabase.from('discovery_candidates').update({ status: 'accepted', prospect_id: prospect.id }).eq('id', candidate.id);
+  await supabase
+    .from('discovery_candidates')
+    .update({ status: 'accepted', prospect_id: prospect.id })
+    .eq('id', candidate.id);
 
-  await logEvent(
-    supabase,
-    task,
-    'finalized',
-    'Candidate finalized and converted to prospect.',
-    { prospect_id: prospect.id }
-  );
-  
+  await logEvent(supabase, task, 'finalized', 'Candidate finalized and converted to prospect.', {
+    prospect_id: prospect.id,
+  });
+
   await createNextTask(supabase, task, 'score');
 }
 
-async function processTask(
-  supabase: ReturnType<typeof createServiceClient>,
-  task: CrawlerTask,
-) {
+async function processTask(supabase: ReturnType<typeof createServiceClient>, task: CrawlerTask) {
   switch (task.task_type) {
     case 'discover':
       return processDiscoverTask(supabase, task);
@@ -800,9 +974,7 @@ async function processTask(
   }
 }
 
-async function claimTasks(
-  supabase: ReturnType<typeof createServiceClient>,
-) {
+async function claimTasks(supabase: ReturnType<typeof createServiceClient>) {
   const worker = workerId();
 
   /*
@@ -812,12 +984,7 @@ async function claimTasks(
     .from('crawler_tasks')
     .select('id, attempts, max_attempts')
     .eq('status', 'processing')
-    .lt(
-      'locked_at',
-      new Date(
-        Date.now() - LOCK_TIMEOUT_MINUTES * 60 * 1000,
-      ).toISOString(),
-    );
+    .lt('locked_at', new Date(Date.now() - LOCK_TIMEOUT_MINUTES * 60 * 1000).toISOString());
 
   if (abandonedTasks && abandonedTasks.length > 0) {
     console.log(`[Crawler Worker] Recovering ${abandonedTasks.length} abandoned task(s).`);
@@ -853,10 +1020,7 @@ async function claimTasks(
   return (data || []) as CrawlerTask[];
 }
 
-async function completeTask(
-  supabase: ReturnType<typeof createServiceClient>,
-  task: CrawlerTask,
-) {
+async function completeTask(supabase: ReturnType<typeof createServiceClient>, task: CrawlerTask) {
   await supabase
     .from('crawler_tasks')
     .update({
@@ -903,10 +1067,7 @@ async function failTask(
   );
 }
 
-async function updateJobCounters(
-  supabase: ReturnType<typeof createServiceClient>,
-  jobId: string,
-) {
+async function updateJobCounters(supabase: ReturnType<typeof createServiceClient>, jobId: string) {
   const { error } = await supabase.rpc('update_crawler_job_status', {
     p_job_id: jobId,
   });
@@ -923,9 +1084,7 @@ async function updateJobCounters(
 // → auto-queues new discovery → cron fires again → worker processes it.
 const DISCOVER_COOLDOWN_HOURS = 24;
 
-async function scheduleActiveStrategies(
-  supabase: ReturnType<typeof createServiceClient>,
-) {
+async function scheduleActiveStrategies(supabase: ReturnType<typeof createServiceClient>) {
   // 1. Fetch all active strategies
   const { data: strategies, error: stratError } = await supabase
     .from('strategies')
@@ -951,7 +1110,9 @@ async function scheduleActiveStrategies(
       .limit(1);
 
     if (recentJobs && recentJobs.length > 0) {
-      console.log(`[Auto-Scheduler] Strategy "${strategy.name}" already has a recent job. Skipping.`);
+      console.log(
+        `[Auto-Scheduler] Strategy "${strategy.name}" already has a recent job. Skipping.`,
+      );
       continue;
     }
 
@@ -965,7 +1126,9 @@ async function scheduleActiveStrategies(
       .limit(1);
 
     if (activeTasks && activeTasks.length > 0) {
-      console.log(`[Auto-Scheduler] Strategy "${strategy.name}" has an active discover task. Skipping.`);
+      console.log(
+        `[Auto-Scheduler] Strategy "${strategy.name}" has an active discover task. Skipping.`,
+      );
       continue;
     }
 
@@ -981,22 +1144,24 @@ async function scheduleActiveStrategies(
       .single();
 
     if (jobError || !job) {
-      console.error(`[Auto-Scheduler] Failed to create job for strategy "${strategy.name}": ${jobError?.message}`);
+      console.error(
+        `[Auto-Scheduler] Failed to create job for strategy "${strategy.name}": ${jobError?.message}`,
+      );
       continue;
     }
 
-    const { error: taskError } = await supabase
-      .from('crawler_tasks')
-      .insert({
-        job_id: job.id,
-        task_type: 'discover',
-        status: 'pending',
-        priority: 50,  // lower priority than manual runs (100)
-        payload: { strategy_id: strategy.id, auto_scheduled: true },
-      });
+    const { error: taskError } = await supabase.from('crawler_tasks').insert({
+      job_id: job.id,
+      task_type: 'discover',
+      status: 'pending',
+      priority: 50, // lower priority than manual runs (100)
+      payload: { strategy_id: strategy.id, auto_scheduled: true },
+    });
 
     if (taskError) {
-      console.error(`[Auto-Scheduler] Failed to create discover task for strategy "${strategy.name}": ${taskError.message}`);
+      console.error(
+        `[Auto-Scheduler] Failed to create discover task for strategy "${strategy.name}": ${taskError.message}`,
+      );
       await supabase.from('crawler_jobs').delete().eq('id', job.id);
       continue;
     }
@@ -1059,7 +1224,10 @@ Deno.serve(async (req) => {
     // handler runs. We do NOT need to re-verify the signature; we only need to confirm
     // the caller has service_role privileges.
     const rawSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS') ?? '';
-    const secretKeys = rawSecretKeys.split(',').map((k) => k.trim()).filter(Boolean);
+    const secretKeys = rawSecretKeys
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
 
     let isAuthorized = false;
 
@@ -1091,7 +1259,7 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createServiceClient();
-    
+
     console.log(`[Crawler Worker] Invocation started.`);
     const startTime = Date.now();
 
@@ -1100,10 +1268,13 @@ Deno.serve(async (req) => {
     if (!tasks.length) {
       // No tasks to process — run the auto-scheduler to queue work for active strategies
       const queued = await scheduleActiveStrategies(supabase);
-      const msg = queued > 0
-        ? `No tasks available. Auto-scheduled ${queued} discover job(s) for active strategies.`
-        : 'No tasks available and no new work needed.';
-      console.log(`[Crawler Worker] Invocation finished. ${msg} Duration: ${Date.now() - startTime}ms`);
+      const msg =
+        queued > 0
+          ? `No tasks available. Auto-scheduled ${queued} discover job(s) for active strategies.`
+          : 'No tasks available and no new work needed.';
+      console.log(
+        `[Crawler Worker] Invocation finished. ${msg} Duration: ${Date.now() - startTime}ms`,
+      );
       return new Response(
         JSON.stringify({
           success: true,
@@ -1139,8 +1310,10 @@ Deno.serve(async (req) => {
         await failTask(supabase, task, error);
       }
     }
-    
-    console.log(`[Crawler Worker] Invocation finished. Claimed: ${tasks.length}, Successful: ${successful}, Failed: ${failed}. Duration: ${Date.now() - startTime}ms`);
+
+    console.log(
+      `[Crawler Worker] Invocation finished. Claimed: ${tasks.length}, Successful: ${successful}, Failed: ${failed}. Duration: ${Date.now() - startTime}ms`,
+    );
 
     return new Response(
       JSON.stringify({
@@ -1163,10 +1336,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : String(error),
+        error: error instanceof Error ? error.message : String(error),
       }),
       {
         status: 500,
