@@ -5,7 +5,7 @@ import { marketingService } from '@/services/marketingService';
 import type { Strategy } from '@/types/marketing';
 import { DataTable } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/Button';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Play, Loader2 } from 'lucide-react';
 import { ModalForm } from '@/components/admin/ModalForm';
 import { InputField, TextAreaField, SelectField } from '@/components/admin/FormFields';
 import { supabase } from '@/lib/supabaseClient';
@@ -26,6 +26,7 @@ export default function StrategiesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [runningId, setRunningId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -72,6 +73,44 @@ export default function StrategiesPage() {
       target_cities: strategy.target_cities?.join(', ') || '',
     });
     setIsModalOpen(true);
+  };
+
+  const handleRunStrategy = async (strategy: Strategy) => {
+    if (strategy.status !== 'active') {
+      alert('Only active strategies can be run.');
+      return;
+    }
+    if (!window.confirm(`Run strategy "${strategy.name}"? This will start a new discovery job.`)) return;
+
+    setRunningId(strategy.id);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) {
+        alert('Not authenticated.');
+        return;
+      }
+
+      const res = await fetch('/api/admin/marketing/crawler/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ strategyId: strategy.id }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        alert(`Failed to start job: ${result.error}`);
+      } else {
+        alert(`Discovery job started (ID: ${result.job?.id?.slice(0, 8)}). The crawler will process it within 60 seconds.`);
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setRunningId(null);
+    }
   };
 
   const handleDelete = async (strategy: Strategy) => {
@@ -151,6 +190,24 @@ export default function StrategiesPage() {
     { header: 'Countries', accessor: (s: Strategy) => <span className="text-xs truncate max-w-[150px] inline-block">{s.target_countries?.length > 0 ? s.target_countries.join(', ') : 'Global'}</span> },
     { header: 'Industries', accessor: (s: Strategy) => <span className="text-xs truncate max-w-[150px] inline-block">{s.target_industries?.length > 0 ? s.target_industries.join(', ') : 'All'}</span> },
     { header: 'Created', accessor: (s: Strategy) => <span className="text-xs text-text-secondary">{new Date(s.created_at).toLocaleDateString()}</span> },
+    { header: 'Actions', accessor: (s: Strategy) => (
+      <button
+        onClick={() => handleRunStrategy(s)}
+        disabled={s.status !== 'active' || runningId === s.id}
+        title={s.status !== 'active' ? 'Strategy must be active to run' : 'Start discovery job'}
+        className={cn(
+          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all duration-150',
+          s.status === 'active' && runningId !== s.id
+            ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 cursor-pointer'
+            : 'bg-slate-500/10 text-slate-500 cursor-not-allowed opacity-50'
+        )}
+      >
+        {runningId === s.id
+          ? <Loader2 size={12} className="animate-spin" />
+          : <Play size={12} />}
+        {runningId === s.id ? 'Starting…' : 'Run'}
+      </button>
+    )},
   ];
 
   return (

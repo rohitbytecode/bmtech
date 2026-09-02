@@ -31,41 +31,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getServiceClient();
-
-    // Authenticate using the same cookie mechanism as proxy.ts
-    const allCookies = request.cookies.getAll();
-    const authCookie = allCookies.find(
-      (c) =>
-        c.name.includes('auth-token') || c.name.includes('supabase.auth.token'),
-    );
-
-    if (!authCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized (No auth cookie found)' },
-        { status: 401 },
-      );
-    }
-
-    let sessionData;
-    const decodedValue = decodeURIComponent(authCookie.value);
-    try {
-      sessionData = JSON.parse(decodedValue);
-    } catch {
-      sessionData = JSON.parse(authCookie.value);
-    }
-
-    const token =
-      sessionData?.access_token ||
-      sessionData?.[0]?.access_token ||
-      (typeof sessionData === 'string' ? sessionData : null);
+    // Authenticate via Authorization header (Bearer <access_token>)
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized (No token found in cookie)' },
+        { error: 'Unauthorized (Missing Authorization header)' },
         { status: 401 },
       );
     }
+
+    const supabase = getServiceClient();
 
     const {
       data: { user },
@@ -79,7 +58,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Optional: Could enforce userRole === 'admin' here if strictly required
     const userRole = user.user_metadata?.role;
     const isSuperAdmin = user.user_metadata?.is_super_admin === true;
     if (userRole !== 'admin' && !isSuperAdmin) {
@@ -105,10 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (strategy.status !== 'active') {
       return NextResponse.json(
-        {
-          error:
-            'Only active strategies can start crawler jobs',
-        },
+        { error: 'Only active strategies can start crawler jobs' },
         { status: 400 },
       );
     }

@@ -916,6 +916,99 @@ async function updateJobCounters(
   }
 }
 
+// Auto-scheduler: called when no pending tasks exist.
+// Creates a new discover job+task for every active strategy that hasn't had
+// a discover task queued/completed in the last DISCOVER_COOLDOWN_HOURS hours.
+// This is how the system stays autonomous — pg_cron fires → worker finds no tasks
+// → auto-queues new discovery → cron fires again → worker processes it.
+const DISCOVER_COOLDOWN_HOURS = 24;
+
+async function scheduleActiveStrategies(
+  supabase: ReturnType<typeof createServiceClient>,
+) {
+  // 1. Fetch all active strategies
+  const { data: strategies, error: stratError } = await supabase
+    .from('strategies')
+    .select('id, name')
+    .eq('status', 'active');
+
+  if (stratError || !strategies?.length) {
+    console.log('[Auto-Scheduler] No active strategies found.');
+    return 0;
+  }
+
+  const cutoff = new Date(Date.now() - DISCOVER_COOLDOWN_HOURS * 60 * 60 * 1000).toISOString();
+  let queued = 0;
+
+  for (const strategy of strategies) {
+    // 2. Check if there's already a recent discover task for this strategy
+    // (pending, processing, retry, or completed within the cooldown window)
+    const { data: recentJobs } = await supabase
+      .from('crawler_jobs')
+      .select('id')
+      .eq('strategy_id', strategy.id)
+      .gte('created_at', cutoff)
+      .limit(1);
+
+    if (recentJobs && recentJobs.length > 0) {
+      console.log(`[Auto-Scheduler] Strategy "${strategy.name}" already has a recent job. Skipping.`);
+      continue;
+    }
+
+    // 3. Also check for any currently pending/processing discover task (regardless of age)
+    const { data: activeTasks } = await supabase
+      .from('crawler_tasks')
+      .select('id')
+      .eq('task_type', 'discover')
+      .in('status', ['pending', 'processing', 'retry'])
+      .eq('payload->>strategy_id' as any, strategy.id)
+      .limit(1);
+
+    if (activeTasks && activeTasks.length > 0) {
+      console.log(`[Auto-Scheduler] Strategy "${strategy.name}" has an active discover task. Skipping.`);
+      continue;
+    }
+
+    // 4. Create a new job + discover task
+    const { data: job, error: jobError } = await supabase
+      .from('crawler_jobs')
+      .insert({
+        strategy_id: strategy.id,
+        status: 'pending',
+        target_count: null,
+      })
+      .select('id')
+      .single();
+
+    if (jobError || !job) {
+      console.error(`[Auto-Scheduler] Failed to create job for strategy "${strategy.name}": ${jobError?.message}`);
+      continue;
+    }
+
+    const { error: taskError } = await supabase
+      .from('crawler_tasks')
+      .insert({
+        job_id: job.id,
+        task_type: 'discover',
+        status: 'pending',
+        priority: 50,  // lower priority than manual runs (100)
+        payload: { strategy_id: strategy.id, auto_scheduled: true },
+      });
+
+    if (taskError) {
+      console.error(`[Auto-Scheduler] Failed to create discover task for strategy "${strategy.name}": ${taskError.message}`);
+      await supabase.from('crawler_jobs').delete().eq('id', job.id);
+      continue;
+    }
+
+    console.log(`[Auto-Scheduler] Queued discover job ${job.id} for strategy "${strategy.name}".`);
+    queued++;
+  }
+
+  console.log(`[Auto-Scheduler] Done. Queued ${queued} new discover job(s).`);
+  return queued;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -1005,12 +1098,18 @@ Deno.serve(async (req) => {
     const tasks = await claimTasks(supabase);
 
     if (!tasks.length) {
-      console.log(`[Crawler Worker] Invocation finished. 0 tasks claimed. Duration: ${Date.now() - startTime}ms`);
+      // No tasks to process — run the auto-scheduler to queue work for active strategies
+      const queued = await scheduleActiveStrategies(supabase);
+      const msg = queued > 0
+        ? `No tasks available. Auto-scheduled ${queued} discover job(s) for active strategies.`
+        : 'No tasks available and no new work needed.';
+      console.log(`[Crawler Worker] Invocation finished. ${msg} Duration: ${Date.now() - startTime}ms`);
       return new Response(
         JSON.stringify({
           success: true,
           processed: 0,
-          message: 'No crawler tasks available',
+          auto_scheduled: queued,
+          message: msg,
         }),
         {
           status: 200,
