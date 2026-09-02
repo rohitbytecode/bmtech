@@ -1,4 +1,9 @@
-import { DiscoveryProvider, DiscoveryOptions, DiscoveryResult, StrategyTargeting } from '../discovery.ts';
+import {
+  DiscoveryProvider,
+  DiscoveryOptions,
+  DiscoveryResult,
+  StrategyTargeting,
+} from '../discovery.ts';
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
@@ -6,49 +11,52 @@ const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 // Mapping generic strategy industries to OSM tags
 const INDUSTRY_MAPPING: Record<string, string> = {
   // Fitness
-  'fitness': '["leisure"="fitness_centre"]',
-  'gym': '["leisure"="fitness_centre"]',
-  'gyms': '["leisure"="fitness_centre"]',
+  fitness: '["leisure"="fitness_centre"]',
+  gym: '["leisure"="fitness_centre"]',
+  gyms: '["leisure"="fitness_centre"]',
   'fitness center': '["leisure"="fitness_centre"]',
   'fitness centre': '["leisure"="fitness_centre"]',
   'fitness business': '["leisure"="fitness_centre"]',
   // Cafe / Coffee
-  'cafe': '["amenity"="cafe"]',
-  'cafes': '["amenity"="cafe"]',
-  'café': '["amenity"="cafe"]',
+  cafe: '["amenity"="cafe"]',
+  cafes: '["amenity"="cafe"]',
+  café: '["amenity"="cafe"]',
   'café growth': '["amenity"="cafe"]',
   'coffee shop': '["amenity"="cafe"]',
-  'coffee': '["amenity"="cafe"]',
+  coffee: '["amenity"="cafe"]',
   // Restaurant / Food
-  'restaurant': '["amenity"="restaurant"]',
-  'restaurants': '["amenity"="restaurant"]',
-  'food': '["amenity"="restaurant"]',
+  restaurant: '["amenity"="restaurant"]',
+  restaurants: '["amenity"="restaurant"]',
+  food: '["amenity"="restaurant"]',
   // Bridal / Wedding
-  'bridal': '["shop"="wedding"]',
-  'wedding': '["shop"="wedding"]',
+  bridal: '["shop"="wedding"]',
+  wedding: '["shop"="wedding"]',
   'bridal shop': '["shop"="wedding"]',
   'wedding shop': '["shop"="wedding"]',
   'bridal & wedding': '["shop"="wedding"]',
   'bridal business': '["shop"="wedding"]',
   // Salon / Beauty
-  'salon': '["shop"="hairdresser"]',
+  salon: '["shop"="hairdresser"]',
   'hair salon': '["shop"="hairdresser"]',
   'beauty salon': '["shop"="beauty"]',
-  'beauty': '["shop"="beauty"]',
-  'spa': '["leisure"="spa"]',
+  beauty: '["shop"="beauty"]',
+  spa: '["leisure"="spa"]',
 };
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
   name = 'openstreetmap';
 
-  async discover(strategy: StrategyTargeting, options?: DiscoveryOptions): Promise<DiscoveryResult[]> {
+  async discover(
+    strategy: StrategyTargeting,
+    options?: DiscoveryOptions,
+  ): Promise<DiscoveryResult[]> {
     const limit = options?.limit || 10;
-    
+
     // We expect at least one industry and one city/country to target for OSM.
     if (!strategy.target_industries?.length) {
       throw new Error('OSM Provider requires at least one target industry.');
     }
-    
+
     if (!strategy.target_cities?.length && !strategy.target_countries?.length) {
       throw new Error('OSM Provider requires at least one target city or country.');
     }
@@ -58,7 +66,9 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     const tagQuery = INDUSTRY_MAPPING[rawIndustry];
 
     if (!tagQuery) {
-      throw new Error(`OSM Provider does not currently support mapping for industry: '${rawIndustry}'`);
+      throw new Error(
+        `OSM Provider does not currently support mapping for industry: '${rawIndustry}'`,
+      );
     }
 
     const city = strategy.target_cities?.[0] || '';
@@ -66,7 +76,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
 
     let areaQuery = '';
     let searchArea = '';
-    
+
     if (country && city) {
       // Intersect country area with city area to ensure we only get cities in that country
       areaQuery = `
@@ -99,7 +109,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'User-Agent': 'BMTech Marketing App (admin@bmtech.in)',
       },
       body: `data=${encodeURIComponent(query)}`,
@@ -119,23 +129,30 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       const tags = el.tags || {};
       const elCity = tags['addr:city'] || '';
       const elCountry = tags['addr:country'] || '';
-      
+
       let candidateStatus: 'discovered' | 'rejected' = 'discovered';
       let rejectionReason: string | undefined = undefined;
 
-      // Because our Overpass query strictly enforces geographic boundary containment 
-      // (e.g. area.city and area.country), if this element was returned, it is physically 
+      // Because our Overpass query strictly enforces geographic boundary containment
+      // (e.g. area.city and area.country), if this element was returned, it is physically
       // inside the requested boundaries.
       const passedGeographicContainment = !!searchArea; // searchArea means we used boundary filter
       const validationMethod = searchArea ? 'geographic_boundary_intersection' : 'text_fallback';
 
       if (passedGeographicContainment) {
-        // If it passed containment, we accept it. The only reason to reject is if 
+        // If it passed containment, we accept it. The only reason to reject is if
         // there is an EXPLICIT contradictory tag that proves OSM data is corrupted.
-        if (country && elCountry && !elCountry.toLowerCase().includes(country.toLowerCase()) && 
-             !(country.toLowerCase() === 'united kingdom' && (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK'))) {
-           candidateStatus = 'rejected';
-           rejectionReason = 'geographic_country_mismatch';
+        if (
+          country &&
+          elCountry &&
+          !elCountry.toLowerCase().includes(country.toLowerCase()) &&
+          !(
+            country.toLowerCase() === 'united kingdom' &&
+            (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK')
+          )
+        ) {
+          candidateStatus = 'rejected';
+          rejectionReason = 'geographic_country_mismatch';
         }
       } else {
         // Fallback logic if we didn't use strict area filtering
@@ -146,18 +163,23 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
           }
         }
         if (country && elCountry) {
-           if (!elCountry.toLowerCase().includes(country.toLowerCase()) && 
-               !(country.toLowerCase() === 'united kingdom' && (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK'))) {
-             candidateStatus = 'rejected';
-             rejectionReason = 'geographic_country_mismatch';
-           }
+          if (
+            !elCountry.toLowerCase().includes(country.toLowerCase()) &&
+            !(
+              country.toLowerCase() === 'united kingdom' &&
+              (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK')
+            )
+          ) {
+            candidateStatus = 'rejected';
+            rejectionReason = 'geographic_country_mismatch';
+          }
         }
       }
 
       // If coordinates are completely missing, we cannot verify geographic scope
       if (!el.lat && !el.center?.lat) {
-         candidateStatus = 'rejected';
-         rejectionReason = 'geographic_location_unverified';
+        candidateStatus = 'rejected';
+        rejectionReason = 'geographic_location_unverified';
       }
 
       const rawDataWithMetadata = {
@@ -169,19 +191,32 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
           validation_method: validationMethod,
           containment_passed: passedGeographicContainment,
           explicit_addr_city: elCity,
-          explicit_addr_country: elCountry
-        }
+          explicit_addr_country: elCountry,
+        },
       };
+
+      const businessName = tags.name?.trim() || '';
+      const hasIdentifiableName =
+        businessName.length >= 3 &&
+        /[a-z]/i.test(businessName) &&
+        !/^(unknown|unnamed|no name|n\/a|na|business|shop|store|cafe|restaurant)$/i.test(
+          businessName,
+        );
+
+      if (!hasIdentifiableName && candidateStatus === 'discovered') {
+        candidateStatus = 'rejected';
+        rejectionReason = 'missing_or_generic_business_name';
+      }
 
       return {
         provider: this.name,
         externalId: `${el.type}/${el.id}`,
-        businessName: tags.name || 'Unknown Business',
+        businessName: businessName || 'Unknown Business',
         website: tags.website || tags['contact:website'],
         phone: tags.phone || tags['contact:phone'],
         email: tags.email || tags['contact:email'],
-        address: tags['addr:street'] 
-          ? `${tags['addr:housenumber'] || ''} ${tags['addr:street']}`.trim() 
+        address: tags['addr:street']
+          ? `${tags['addr:housenumber'] || ''} ${tags['addr:street']}`.trim()
           : undefined,
         city: elCity || undefined,
         stateRegion: tags['addr:state'] || tags['addr:province'],
