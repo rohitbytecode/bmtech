@@ -5,10 +5,37 @@ const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 // Initial Industry Mapping
 // Mapping generic strategy industries to OSM tags
 const INDUSTRY_MAPPING: Record<string, string> = {
+  // Fitness
   'fitness': '["leisure"="fitness_centre"]',
   'gym': '["leisure"="fitness_centre"]',
+  'gyms': '["leisure"="fitness_centre"]',
   'fitness center': '["leisure"="fitness_centre"]',
   'fitness centre': '["leisure"="fitness_centre"]',
+  'fitness business': '["leisure"="fitness_centre"]',
+  // Cafe / Coffee
+  'cafe': '["amenity"="cafe"]',
+  'cafes': '["amenity"="cafe"]',
+  'café': '["amenity"="cafe"]',
+  'café growth': '["amenity"="cafe"]',
+  'coffee shop': '["amenity"="cafe"]',
+  'coffee': '["amenity"="cafe"]',
+  // Restaurant / Food
+  'restaurant': '["amenity"="restaurant"]',
+  'restaurants': '["amenity"="restaurant"]',
+  'food': '["amenity"="restaurant"]',
+  // Bridal / Wedding
+  'bridal': '["shop"="wedding"]',
+  'wedding': '["shop"="wedding"]',
+  'bridal shop': '["shop"="wedding"]',
+  'wedding shop': '["shop"="wedding"]',
+  'bridal & wedding': '["shop"="wedding"]',
+  'bridal business': '["shop"="wedding"]',
+  // Salon / Beauty
+  'salon': '["shop"="hairdresser"]',
+  'hair salon': '["shop"="hairdresser"]',
+  'beauty salon': '["shop"="beauty"]',
+  'beauty': '["shop"="beauty"]',
+  'spa': '["leisure"="spa"]',
 };
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
