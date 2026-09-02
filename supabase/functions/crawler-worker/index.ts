@@ -789,14 +789,9 @@ async function claimTasks(
   /*
    * Recover abandoned processing tasks.
    */
-  await supabase
+  const { data: abandonedTasks } = await supabase
     .from('crawler_tasks')
-    .update({
-      status: 'retry',
-      locked_at: null,
-      locked_by: null,
-      last_error: 'Recovered after worker lock timeout',
-    })
+    .select('id, attempts, max_attempts')
     .eq('status', 'processing')
     .lt(
       'locked_at',
@@ -804,6 +799,25 @@ async function claimTasks(
         Date.now() - LOCK_TIMEOUT_MINUTES * 60 * 1000,
       ).toISOString(),
     );
+
+  if (abandonedTasks && abandonedTasks.length > 0) {
+    console.log(`[Crawler Worker] Recovering ${abandonedTasks.length} abandoned task(s).`);
+    for (const t of abandonedTasks) {
+      const shouldRetry = t.attempts < t.max_attempts;
+      await supabase
+        .from('crawler_tasks')
+        .update({
+          status: shouldRetry ? 'retry' : 'failed',
+          available_at: shouldRetry
+            ? new Date(Date.now() + t.attempts * 30_000).toISOString()
+            : new Date().toISOString(),
+          locked_at: null,
+          locked_by: null,
+          last_error: 'Recovered after worker lock timeout',
+        })
+        .eq('id', t.id);
+    }
+  }
 
   /*
    * Atomic claim via Postgres FOR UPDATE SKIP LOCKED
@@ -906,11 +920,73 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // --- Authentication ---
+    // For service-to-service calls (pg_net/cron), the Supabase Edge runtime injects
+    // SUPABASE_SECRET_KEYS — a comma-separated list of all project secret (service_role)
+    // keys. We extract the bearer token and verify it is present in that list.
+    // This is the correct pattern for internal callers; user JWTs are NOT accepted here.
+    //
+    // NOTE: SUPABASE_JWT_SECRET and SUPABASE_SERVICE_ROLE_KEY are NOT injected by the runtime.
+    // SUPABASE_SECRET_KEYS IS injected automatically on the Supabase platform.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Missing Authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const token = authHeader.slice(7).trim();
+
+    // Two-tier service-role verification.
+    //
+    // Tier 1: Check SUPABASE_SECRET_KEYS (injected for new sb_secret_... API key format).
+    // Tier 2: Decode the JWT payload role claim (for legacy eyJhbG... JWT-format service keys).
+    //
+    // The platform-level verify_jwt gate has ALREADY verified the JWT signature before our
+    // handler runs. We do NOT need to re-verify the signature; we only need to confirm
+    // the caller has service_role privileges.
+    const rawSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS') ?? '';
+    const secretKeys = rawSecretKeys.split(',').map((k) => k.trim()).filter(Boolean);
+
+    let isAuthorized = false;
+
+    if (secretKeys.includes(token)) {
+      // Tier 1: new-format secret key — authorized.
+      isAuthorized = true;
+    } else {
+      // Tier 2: decode JWT payload and check role claim (legacy JWT-format service role key).
+      // Signature already verified by the Kong gateway above; decoding the payload is safe.
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payloadJson = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+          const payload = JSON.parse(payloadJson);
+          if (payload.role === 'service_role') {
+            isAuthorized = true;
+          }
+        }
+      } catch {
+        // Malformed token — not authorized.
+      }
+    }
+
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Insufficient role' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabase = createServiceClient();
+    
+    console.log(`[Crawler Worker] Invocation started.`);
+    const startTime = Date.now();
 
     const tasks = await claimTasks(supabase);
 
     if (!tasks.length) {
+      console.log(`[Crawler Worker] Invocation finished. 0 tasks claimed. Duration: ${Date.now() - startTime}ms`);
       return new Response(
         JSON.stringify({
           success: true,
@@ -945,6 +1021,8 @@ Deno.serve(async (req) => {
         await failTask(supabase, task, error);
       }
     }
+    
+    console.log(`[Crawler Worker] Invocation finished. Claimed: ${tasks.length}, Successful: ${successful}, Failed: ${failed}. Duration: ${Date.now() - startTime}ms`);
 
     return new Response(
       JSON.stringify({
