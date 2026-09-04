@@ -50,7 +50,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     strategy: StrategyTargeting,
     options?: DiscoveryOptions,
   ): Promise<DiscoveryResult[]> {
-    const limit = options?.limit || 10;
+    const limit = options?.limit || 100;
 
     // We expect at least one industry and one city/country to target for OSM.
     if (!strategy.target_industries?.length) {
@@ -61,8 +61,8 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       throw new Error('OSM Provider requires at least one target city or country.');
     }
 
-    // Try to map the first industry
-    const rawIndustry = strategy.target_industries[0].toLowerCase().trim();
+    // Use the explicitly provided industry or fallback to the first one
+    const rawIndustry = (options?.industry || strategy.target_industries[0]).toLowerCase().trim();
     const tagQuery = INDUSTRY_MAPPING[rawIndustry];
 
     if (!tagQuery) {
@@ -71,8 +71,8 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       );
     }
 
-    const city = strategy.target_cities?.[0] || '';
-    const country = strategy.target_countries?.[0] || '';
+    const city = options?.city || strategy.target_cities?.[0] || '';
+    const country = options?.country || strategy.target_countries?.[0] || '';
 
     let areaQuery = '';
     let searchArea = '';

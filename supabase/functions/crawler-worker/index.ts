@@ -157,7 +157,12 @@ async function processDiscoverTask(
     `Requesting data from ${provider.name}`,
   );
 
-  const candidates = await provider.discover(strategy, { limit: 10 });
+  const discoverOptions: any = { limit: 100 };
+  if (task.payload.industry) discoverOptions.industry = task.payload.industry;
+  if (task.payload.city) discoverOptions.city = task.payload.city;
+  if (task.payload.country) discoverOptions.country = task.payload.country;
+
+  const candidates = await provider.discover(strategy, discoverOptions);
 
   await logEvent(
     supabase,
@@ -166,15 +171,24 @@ async function processDiscoverTask(
     `Received ${candidates.length} raw results from ${provider.name}`,
   );
 
-  for (const candidate of candidates) {
-    const { data: existing } = await supabase
+  // Batch check for existing external IDs to avoid N+1 queries
+  const candidateExternalIds = candidates.map((c) => c.externalId).filter(Boolean);
+  
+  let existingExternalIds = new Set<string>();
+  if (candidateExternalIds.length > 0) {
+    const { data: existingRecords } = await supabase
       .from('discovery_candidates')
-      .select('id')
-      .eq('provider', candidate.provider)
-      .eq('external_id', candidate.externalId || '')
-      .maybeSingle();
+      .select('external_id')
+      .eq('provider', provider.name)
+      .in('external_id', candidateExternalIds);
+      
+    if (existingRecords) {
+      existingExternalIds = new Set(existingRecords.map((r) => r.external_id));
+    }
+  }
 
-    if (existing) {
+  for (const candidate of candidates) {
+    if (candidate.externalId && existingExternalIds.has(candidate.externalId)) {
       continue;
     }
 
@@ -1082,13 +1096,13 @@ async function updateJobCounters(supabase: ReturnType<typeof createServiceClient
 // a discover task queued/completed in the last DISCOVER_COOLDOWN_HOURS hours.
 // This is how the system stays autonomous — pg_cron fires → worker finds no tasks
 // → auto-queues new discovery → cron fires again → worker processes it.
-const DISCOVER_COOLDOWN_HOURS = 24;
+const DISCOVER_COOLDOWN_HOURS = 8;
 
 async function scheduleActiveStrategies(supabase: ReturnType<typeof createServiceClient>) {
   // 1. Fetch all active strategies
   const { data: strategies, error: stratError } = await supabase
     .from('strategies')
-    .select('id, name')
+    .select('id, name, target_industries, target_cities, target_countries')
     .eq('status', 'active');
 
   if (stratError || !strategies?.length) {
@@ -1132,7 +1146,7 @@ async function scheduleActiveStrategies(supabase: ReturnType<typeof createServic
       continue;
     }
 
-    // 4. Create a new job + discover task
+    // 4. Create a new job + multiple discover tasks
     const { data: job, error: jobError } = await supabase
       .from('crawler_jobs')
       .insert({
@@ -1150,24 +1164,43 @@ async function scheduleActiveStrategies(supabase: ReturnType<typeof createServic
       continue;
     }
 
-    const { error: taskError } = await supabase.from('crawler_tasks').insert({
-      job_id: job.id,
-      task_type: 'discover',
-      status: 'pending',
-      priority: 50, // lower priority than manual runs (100)
-      payload: { strategy_id: strategy.id, auto_scheduled: true },
-    });
+    const industries = strategy.target_industries?.length ? strategy.target_industries : [''];
+    const cities = strategy.target_cities?.length ? strategy.target_cities : [''];
+    const country = strategy.target_countries?.[0] || '';
 
-    if (taskError) {
-      console.error(
-        `[Auto-Scheduler] Failed to create discover task for strategy "${strategy.name}": ${taskError.message}`,
-      );
-      await supabase.from('crawler_jobs').delete().eq('id', job.id);
-      continue;
+    const tasksToInsert = [];
+    for (const industry of industries) {
+      for (const city of cities) {
+        tasksToInsert.push({
+          job_id: job.id,
+          task_type: 'discover',
+          status: 'pending',
+          priority: 50,
+          payload: { 
+            strategy_id: strategy.id, 
+            auto_scheduled: true,
+            industry,
+            city,
+            country
+          },
+        });
+      }
     }
 
-    console.log(`[Auto-Scheduler] Queued discover job ${job.id} for strategy "${strategy.name}".`);
-    queued++;
+    if (tasksToInsert.length > 0) {
+      const { error: taskError } = await supabase.from('crawler_tasks').insert(tasksToInsert);
+
+      if (taskError) {
+        console.error(
+          `[Auto-Scheduler] Failed to create discover tasks for strategy "${strategy.name}": ${taskError.message}`,
+        );
+        await supabase.from('crawler_jobs').delete().eq('id', job.id);
+        continue;
+      }
+      queued += tasksToInsert.length;
+    }
+
+    console.log(`[Auto-Scheduler] Queued discover job ${job.id} with ${tasksToInsert.length} tasks for strategy "${strategy.name}".`);
   }
 
   console.log(`[Auto-Scheduler] Done. Queued ${queued} new discover job(s).`);
