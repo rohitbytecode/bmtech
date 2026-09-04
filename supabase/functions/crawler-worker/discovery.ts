@@ -1,5 +1,8 @@
 export interface DiscoveryOptions {
   limit?: number;
+  industry?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface DiscoveryResult {
