@@ -22,7 +22,6 @@ export default function Header() {
     { label: 'Services', href: '#services' },
     { label: 'Portfolio', href: '#portfolio' },
     { label: 'Process', href: '#process' },
-    { label: 'Pricing', href: '#packages' },
     { label: 'About Us', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ];

@@ -3,8 +3,6 @@
 import IntroPreloader from '@/components/IntroPreloader';
 import Hero from '@/components/Hero';
 import Portfolio from '@/components/Portfolio';
-import Packages from '@/components/Packages';
-import Maintenance from '@/components/Maintenance';
 import Process from '@/components/Process';
 import About from '@/components/About';
 import Contact from '@/components/Contact';
@@ -62,8 +60,6 @@ export default function Home() {
       <TechSlider />
       <GrowthStage />
       <Portfolio />
-      <Packages />
-      <Maintenance />
       <Process />
       <About />
       <Contact />
