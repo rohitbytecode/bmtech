@@ -139,6 +139,43 @@ export const marketingService = {
     }
   },
 
+  async getAllProspects(
+    filters?: { 
+      status?: string; 
+      strategy_id?: string;
+      country?: string;
+      city?: string;
+      industry?: string;
+      sales_priority?: string;
+      search?: string;
+    }
+  ) {
+    try {
+      let query = supabase
+        .from('prospects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.strategy_id) query = query.eq('strategy_id', filters.strategy_id);
+      if (filters?.country) query = query.ilike('country', `%${filters.country}%`);
+      if (filters?.city) query = query.ilike('city', `%${filters.city}%`);
+      if (filters?.industry) query = query.ilike('industry', `%${filters.industry}%`);
+      if (filters?.sales_priority) query = query.eq('sales_priority', filters.sales_priority);
+      if (filters?.search) {
+        query = query.or(`business_name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,website.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return { data: data as Prospect[], error: null };
+    } catch (error: any) {
+      console.error('getAllProspects error:', error);
+      return { data: [], error: error.message };
+    }
+  },
+
   async getProspectById(id: string) {
     try {
       const { data, error } = await supabase.from('prospects').select('*').eq('id', id).single();
