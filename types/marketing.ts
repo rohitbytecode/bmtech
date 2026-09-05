@@ -29,11 +29,11 @@ export interface Prospect {
   business_name: string;
   website: string | null;
   phone: string | null;
-  phone_normalized: string | null;
-  phone_status: PhoneStatus | null;
-  phone_line_type: PhoneLineType | null;
-  phone_is_shared: boolean | null;
-  phone_verified_at: string | null;
+  phone_normalized?: string | null;
+  phone_status?: PhoneStatus | null;
+  phone_line_type?: PhoneLineType | null;
+  phone_is_shared?: boolean | null;
+  phone_verified_at?: string | null;
   email: string | null;
   address_line: string | null;
   city: string | null;
