@@ -20,12 +20,20 @@ export interface Strategy {
   updated_at: string;
 }
 
+export type PhoneStatus = 'pending' | 'invalid_format' | 'toll_free' | 'wrong_length' | 'active' | 'landline';
+export type PhoneLineType = 'mobile' | 'landline';
+
 export interface Prospect {
   id: string;
   strategy_id: string | null;
   business_name: string;
   website: string | null;
   phone: string | null;
+  phone_normalized: string | null;
+  phone_status: PhoneStatus | null;
+  phone_line_type: PhoneLineType | null;
+  phone_is_shared: boolean | null;
+  phone_verified_at: string | null;
   email: string | null;
   address_line: string | null;
   city: string | null;
@@ -51,6 +59,7 @@ export interface Prospect {
   created_at: string;
   updated_at: string;
 }
+
 
 export interface ProspectSource {
   id: string;

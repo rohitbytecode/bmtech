@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "outDir": "../.ts-node-out",
+    "noEmit": false,
+    "isolatedModules": false,
+    "paths": {
+      "@/*": ["../*"]
+    }
+  },
+  "include": ["./**/*.ts", "../lib/**/*.ts", "../types/**/*.ts"],
+  "exclude": ["../node_modules"]
+}

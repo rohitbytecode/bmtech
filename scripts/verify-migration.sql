@@ -1,0 +1,1 @@
+SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'prospects' AND column_name IN ('phone_normalized','phone_status','phone_line_type','phone_is_shared','phone_verified_at') ORDER BY column_name;
