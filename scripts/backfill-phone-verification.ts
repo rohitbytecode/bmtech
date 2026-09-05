@@ -208,40 +208,44 @@ async function main(): Promise<void> {
   let totalMobile      = 0;
   let totalLandline    = 0;
 
-  let offset = 0;
-  let hasMore = true;
+  // ── Fetch ALL pending prospects upfront (avoids offset-drift bug) ──────
+  // We must load IDs before processing because updating phone_status during
+  // the run would shift offsets and cause rows to be silently skipped.
+  console.log('📋  Fetching all pending prospect IDs from Supabase...');
 
-  while (hasMore) {
-    // ── Fetch a batch of pending prospects ──
-    const { data, error } = await supabase
-      .from('prospects')
-      .select('id, phone, phone_normalized, data_quality_score')
-      .or('phone_status.is.null,phone_status.eq.pending')
-      .range(offset, offset + BATCH_SIZE - 1)
-      .order('created_at', { ascending: true });
+  const { data: allRows, error: fetchAllError } = await supabase
+    .from('prospects')
+    .select('id, phone, phone_normalized, data_quality_score')
+    .or('phone_status.is.null,phone_status.eq.pending')
+    .order('created_at', { ascending: true });
 
-    if (error) {
-      console.error('❌  Failed to fetch prospects batch:', error.message);
-      process.exit(1);
-    }
+  if (fetchAllError) {
+    console.error('❌  Failed to fetch prospects:', fetchAllError.message);
+    process.exit(1);
+  }
 
-    const batch = (data ?? []) as ProspectRow[];
-    totalFetched += batch.length;
+  const allProspects = (allRows ?? []) as ProspectRow[];
+  totalFetched = allProspects.length;
 
-    if (batch.length === 0) {
-      hasMore = false;
-      break;
-    }
+  if (allProspects.length === 0) {
+    console.log('ℹ️   Nothing to process — all prospects are already verified.\n');
+  } else {
+    console.log(`✅  Found ${allProspects.length} prospects to process.\n`);
+  }
+
+  // ── Process in batches ────────────────────────────────────────────────
+  for (let batchStart = 0; batchStart < allProspects.length; batchStart += BATCH_SIZE) {
+    const batch = allProspects.slice(batchStart, batchStart + BATCH_SIZE);
 
     console.log(
-      `\n📦  Processing batch [${offset + 1} – ${offset + batch.length}]` +
+      `\n📦  Processing batch [${batchStart + 1} – ${batchStart + batch.length}] of ${allProspects.length}` +
       ` (${batch.length} prospects)`,
     );
 
     // ── Process each prospect in the batch ──
     for (const prospect of batch) {
       if (!prospect.phone || prospect.phone.trim() === '') {
-        // No phone at all — mark as pending/invalid but don't count as processed
+        // No phone at all — mark as invalid
         await supabase
           .from('prospects')
           .update({
@@ -269,12 +273,8 @@ async function main(): Promise<void> {
 
     process.stdout.write('\n');
 
-    // If we got fewer rows than the batch size, we've reached the end
-    if (batch.length < BATCH_SIZE) {
-      hasMore = false;
-    } else {
-      offset += BATCH_SIZE;
-      // Small delay between batches to avoid hammering Supabase
+    // Small delay between batches to avoid hammering Supabase
+    if (batchStart + BATCH_SIZE < allProspects.length) {
       await sleep(BATCH_DELAY_MS);
     }
   }
