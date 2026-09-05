@@ -93,6 +93,11 @@ export default function ProspectsPage() {
     setPage(1);
   };
 
+  const handleFetchAllForExport = async () => {
+    const { data } = await marketingService.getAllProspects(filters);
+    return data || [];
+  };
+
   const handleOpenNew = () => {
     setEditingId(null);
     setFormData({
@@ -287,6 +292,7 @@ export default function ProspectsPage() {
           filename="BMTech_Prospects"
           reportTitle="Prospects Report"
           filtersActive={Object.keys(filters).length > 0}
+          onFetchAll={handleFetchAllForExport}
         />
         <Button onClick={handleOpenNew}>
           <Plus size={14} /> Add Prospect
