@@ -202,7 +202,7 @@ export default function Hero() {
                 const contactSection = document.getElementById('contact');
                 contactSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="relative w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-accent-blue to-blue-600 text-white font-bold text-sm rounded-xl shadow-[0_0_20px_rgba(0,180,255,0.3)] hover:shadow-[0_0_30px_rgba(0,180,255,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group overflow-hidden"
+              className="relative w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-accent-blue to-blue-700 text-white font-bold text-sm rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group overflow-hidden"
             >
               <span className="relative z-10 flex items-center gap-2">
                 Start Your Project

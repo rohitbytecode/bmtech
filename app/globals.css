@@ -13,21 +13,21 @@
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-border: var(--border);
-  /* Electric blue matching the bm-glow logo */
-  --color-accent-blue: #00b4ff;
+  /* Original brand blue — rich royal electric blue matching bm-glow logo */
+  --color-accent-blue: #2563eb;
 
-  /* Global Theme Override: Map blue, sky, and indigo to the #00b4ff electric blue brand theme */
-  --color-blue-50:  #e6f8ff;
-  --color-blue-100: #b3ecff;
-  --color-blue-200: #80dfff;
-  --color-blue-300: #4dd3ff;
-  --color-blue-400: #1ac6ff;
-  --color-blue-500: #00b4ff;
-  --color-blue-600: #0090cc;
-  --color-blue-700: #006c99;
-  --color-blue-800: #004866;
-  --color-blue-900: #002433;
-  --color-blue-950: #001219;
+  /* Global Theme: Restore true blue scale for #2563eb brand theme */
+  --color-blue-50:  #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-blue-950: #172554;
 
   --color-sky-50:  var(--color-blue-50);
   --color-sky-100: var(--color-blue-100);
@@ -145,10 +145,10 @@ h6 {
 @keyframes coreGlow {
   0%,
   100% {
-    box-shadow: 0 0 6px #00b4ff;
+    box-shadow: 0 0 6px #2563eb;
   }
   50% {
-    box-shadow: 0 0 14px #00b4ff;
+    box-shadow: 0 0 14px #2563eb;
   }
 }
 
@@ -248,16 +248,16 @@ html.dark .stroke-text {
 /* ── Count glow pulse for About metrics ── */
 @keyframes countGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(0, 180, 255, 0);
-    text-shadow: 0 0 0 rgba(0, 180, 255, 0);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    text-shadow: 0 0 0 rgba(37, 99, 235, 0);
   }
   40% {
-    box-shadow: 0 0 24px 4px rgba(0, 180, 255, 0.25);
-    text-shadow: 0 0 16px rgba(0, 180, 255, 0.5);
+    box-shadow: 0 0 24px 4px rgba(37, 99, 235, 0.25);
+    text-shadow: 0 0 16px rgba(37, 99, 235, 0.5);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 180, 255, 0);
-    text-shadow: 0 0 0 rgba(0, 180, 255, 0);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    text-shadow: 0 0 0 rgba(37, 99, 235, 0);
   }
 }
 
