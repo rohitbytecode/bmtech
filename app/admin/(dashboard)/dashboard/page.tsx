@@ -68,25 +68,23 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [mktError, setMktError] = useState<string | null>(null);
+
   useEffect(() => {
     async function fetchDashboardData() {
       try {
         setLoading(true);
-        const [leadsRes, statsRes, mktStatsRes] = await Promise.all([
+        // Load core data — these must succeed
+        const [leadsRes, statsRes] = await Promise.all([
           dataService.getLeads(),
           dataService.getDashboardStats(),
-          marketingService.getMarketingDashboardStats()
         ]);
 
         if (leadsRes.error) throw new Error(leadsRes.error);
         if (statsRes.error) throw new Error(statsRes.error);
-        if (mktStatsRes.error) throw new Error(mktStatsRes.error);
 
         setLeads(leadsRes.data || []);
         setStats(statsRes.data || { totalLeads: 0, totalProjects: 0, totalPackages: 0 });
-        if (mktStatsRes.data) {
-          setMarketingStats(mktStatsRes.data);
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
       } finally {
@@ -94,7 +92,19 @@ export default function Dashboard() {
       }
     }
 
+    async function fetchMarketingStats() {
+      // Load marketing stats independently — failure won't crash core dashboard
+      const mktStatsRes = await marketingService.getMarketingDashboardStats();
+      if (mktStatsRes.error) {
+        console.error('Marketing stats error:', mktStatsRes.error);
+        setMktError(mktStatsRes.error);
+      } else if (mktStatsRes.data) {
+        setMarketingStats(mktStatsRes.data);
+      }
+    }
+
     fetchDashboardData();
+    fetchMarketingStats();
   }, []);
 
   if (loading) {
@@ -143,7 +153,12 @@ export default function Dashboard() {
           <div className="flex items-center justify-between border-b border-border/50 pb-2">
             <h2 className="text-lg font-bold text-text-primary tracking-tight">Marketing Overview</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {mktError ? (
+            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-4 text-amber-500 text-sm">
+              <strong>Marketing stats unavailable:</strong> {mktError}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-surface rounded-lg border border-border flex flex-col justify-between hover:border-accent-blue/30 transition-colors">
               <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Total Prospects</span>
               <span className="text-2xl font-bold mt-1 text-text-primary">{marketingStats.totalProspects}</span>
@@ -179,7 +194,9 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+          )}
         </div>
+
       
       <div className="space-y-6 mt-12">
         <div className="flex items-center justify-between">

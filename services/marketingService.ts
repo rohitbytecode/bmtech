@@ -323,7 +323,7 @@ export const marketingService = {
       let newStatus = 'discovered';
       if (outcome === 'interested') newStatus = 'qualified';
       else if (outcome === 'not_interested' || outcome === 'invalid_number') newStatus = 'rejected';
-      else if (outcome === 'callback_required' || outcome === 'no_answer') newStatus = 'callback';
+      else if (outcome === 'callback_required' || outcome === 'no_answer') newStatus = 'callback_required';
 
       // 3. Update the prospect status
       const { error: prospectError } = await supabase
@@ -369,7 +369,7 @@ export const marketingService = {
         supabase.from('prospects').select('*', { count: 'exact', head: true }),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'discovered'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'assigned'),
-        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'callback'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'callback_required'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'qualified'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
         supabase.from('call_attempts').select('*', { count: 'exact', head: true })
