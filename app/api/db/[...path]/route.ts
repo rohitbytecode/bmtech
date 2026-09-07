@@ -69,6 +69,9 @@ async function handleProxy(req: NextRequest, pathArray: string[]) {
 
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set('access-control-allow-origin', '*');
+    
+    responseHeaders.delete('content-encoding');
+    responseHeaders.delete('content-length'); // length might change after decompression
 
     return new NextResponse(response.body, {
       status: response.status,
