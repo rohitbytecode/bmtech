@@ -13,22 +13,23 @@
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-border: var(--border);
-  --color-accent-blue: #db3545;
+  /* Electric blue matching the bm-glow logo */
+  --color-accent-blue: #00b4ff;
 
-  /* Global Theme Override: Map blue, sky, and indigo to the new #db3545 red brand theme */
-  --color-blue-50: #fdf3f4;
-  --color-blue-100: #fbdce0;
-  --color-blue-200: #f7b9c1;
-  --color-blue-300: #f18d9a;
-  --color-blue-400: #e85c6c;
-  --color-blue-500: #db3545;
-  --color-blue-600: #c12b3a;
-  --color-blue-700: #a12230;
-  --color-blue-800: #862029;
-  --color-blue-900: #711f26;
-  --color-blue-950: #400d12;
-  
-  --color-sky-50: var(--color-blue-50);
+  /* Global Theme Override: Map blue, sky, and indigo to the #00b4ff electric blue brand theme */
+  --color-blue-50:  #e6f8ff;
+  --color-blue-100: #b3ecff;
+  --color-blue-200: #80dfff;
+  --color-blue-300: #4dd3ff;
+  --color-blue-400: #1ac6ff;
+  --color-blue-500: #00b4ff;
+  --color-blue-600: #0090cc;
+  --color-blue-700: #006c99;
+  --color-blue-800: #004866;
+  --color-blue-900: #002433;
+  --color-blue-950: #001219;
+
+  --color-sky-50:  var(--color-blue-50);
   --color-sky-100: var(--color-blue-100);
   --color-sky-200: var(--color-blue-200);
   --color-sky-300: var(--color-blue-300);
@@ -40,7 +41,7 @@
   --color-sky-900: var(--color-blue-900);
   --color-sky-950: var(--color-blue-950);
 
-  --color-indigo-50: var(--color-blue-50);
+  --color-indigo-50:  var(--color-blue-50);
   --color-indigo-100: var(--color-blue-100);
   --color-indigo-200: var(--color-blue-200);
   --color-indigo-300: var(--color-blue-300);
@@ -144,10 +145,10 @@ h6 {
 @keyframes coreGlow {
   0%,
   100% {
-    box-shadow: 0 0 6px #db3545;
+    box-shadow: 0 0 6px #00b4ff;
   }
   50% {
-    box-shadow: 0 0 14px #db3545;
+    box-shadow: 0 0 14px #00b4ff;
   }
 }
 
@@ -247,16 +248,16 @@ html.dark .stroke-text {
 /* ── Count glow pulse for About metrics ── */
 @keyframes countGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(219, 53, 69, 0);
-    text-shadow: 0 0 0 rgba(219, 53, 69, 0);
+    box-shadow: 0 0 0 0 rgba(0, 180, 255, 0);
+    text-shadow: 0 0 0 rgba(0, 180, 255, 0);
   }
   40% {
-    box-shadow: 0 0 24px 4px rgba(219, 53, 69, 0.25);
-    text-shadow: 0 0 16px rgba(219, 53, 69, 0.5);
+    box-shadow: 0 0 24px 4px rgba(0, 180, 255, 0.25);
+    text-shadow: 0 0 16px rgba(0, 180, 255, 0.5);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(219, 53, 69, 0);
-    text-shadow: 0 0 0 rgba(219, 53, 69, 0);
+    box-shadow: 0 0 0 0 rgba(0, 180, 255, 0);
+    text-shadow: 0 0 0 rgba(0, 180, 255, 0);
   }
 }
 
