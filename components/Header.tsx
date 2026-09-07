@@ -100,7 +100,7 @@ export default function Header() {
           ) : isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="relative overflow-hidden bg-gradient-to-r from-accent-blue to-blue-700 hover:from-blue-700 hover:to-accent-blue text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.4)] group ml-1"
+              className="relative overflow-hidden bg-gradient-to-r from-sky-400 to-blue-700 hover:from-blue-700 hover:to-sky-400 text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.45)] group ml-1"
               data-cursor-badge="dashboard"
             >
               <span className="relative z-10">Dashboard</span>
@@ -108,7 +108,7 @@ export default function Header() {
           ) : (
             <a
               href="#process"
-              className="relative overflow-hidden bg-gradient-to-r from-accent-blue to-blue-700 hover:from-blue-700 hover:to-accent-blue text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.4)] group ml-1"
+              className="relative overflow-hidden bg-gradient-to-r from-sky-400 to-blue-700 hover:from-blue-700 hover:to-sky-400 text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.45)] group ml-1"
               data-cursor-badge="talk"
             >
               <span className="relative z-10">Start Project</span>
@@ -155,7 +155,7 @@ export default function Header() {
           <a
             href="#process"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-center bg-gradient-to-r from-accent-blue to-blue-700 text-white px-5 py-3 text-base font-bold mt-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+            className="block text-center bg-gradient-to-r from-sky-400 to-blue-700 text-white px-5 py-3 text-base font-bold mt-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.45)]"
           >
             Start Project
           </a>

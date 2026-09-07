@@ -27,7 +27,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
       )}
 
       {highlighted && (
-        <div className="absolute top-6 right-6 flex items-center gap-1.5 bg-gradient-to-r from-accent-blue to-blue-600 text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-lg shadow-accent-blue/30">
+        <div className="absolute top-6 right-6 flex items-center gap-1.5 bg-gradient-to-r from-sky-400 to-blue-700 text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-lg shadow-blue-600/30">
           <Sparkles size={12} />
           Most Popular
         </div>
@@ -66,7 +66,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
           variant={highlighted ? 'primary' : 'outline'}
           className={cn(
             'w-full rounded-xl transition-all duration-300 group-hover:scale-[1.02]',
-            highlighted && 'bg-gradient-to-r from-accent-blue to-blue-700 hover:from-blue-700 hover:to-accent-blue shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] border-0 text-white',
+            highlighted && 'bg-gradient-to-r from-sky-400 to-blue-700 hover:from-blue-700 hover:to-sky-400 shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] border-0 text-white',
           )}
         >
           Choose Plan
