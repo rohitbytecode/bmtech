@@ -23,6 +23,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'BMTech - Engineering Digital Excellence.',
   description: 'Digital agency specializing in Graphics, Video, IT Services, and Social Media.',
+  icons: {
+    icon: '/bm-glow.png',
+    shortcut: '/bm-glow.png',
+    apple: '/bm-glow.png',
+  },
 };
 
 export default async function RootLayout({

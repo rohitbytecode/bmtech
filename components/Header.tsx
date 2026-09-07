@@ -2,6 +2,7 @@
 
 import { useAuth } from '../hooks/useAuth';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X, Sun, Moon, Phone } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -38,9 +39,14 @@ export default function Header() {
         {/* Left: Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="flex items-center justify-center">
-            <span className="text-xl sm:text-2xl font-black italic tracking-tighter text-blue-500 font-sans">
-              BM
-            </span>
+            <Image
+              src="/bm-glow.png"
+              alt="Brothers Mediatech Logo"
+              width={36}
+              height={36}
+              className="object-contain drop-shadow-[0_0_6px_rgba(99,102,241,0.6)] group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.9)] transition-all duration-300"
+              priority
+            />
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-sm sm:text-base font-extrabold tracking-tight text-white font-heading">
