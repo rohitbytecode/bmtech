@@ -66,9 +66,10 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     const tagQuery = INDUSTRY_MAPPING[rawIndustry];
 
     if (!tagQuery) {
-      throw new Error(
-        `OSM Provider does not currently support mapping for industry: '${rawIndustry}'`,
+      console.warn(
+        `[OSM Provider] Unmapped industry: '${rawIndustry}'. Treating as data-coverage limitation rather than infrastructure failure.`,
       );
+      return [];
     }
 
     const city = options?.city || strategy.target_cities?.[0] || '';
