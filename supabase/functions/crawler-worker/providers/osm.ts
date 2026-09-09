@@ -7,41 +7,20 @@ import {
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
-// Initial Industry Mapping
-// Mapping generic strategy industries to OSM tags
-const INDUSTRY_MAPPING: Record<string, string> = {
-  // Fitness
-  fitness: '["leisure"="fitness_centre"]',
-  gym: '["leisure"="fitness_centre"]',
-  gyms: '["leisure"="fitness_centre"]',
-  'fitness center': '["leisure"="fitness_centre"]',
-  'fitness centre': '["leisure"="fitness_centre"]',
-  'fitness business': '["leisure"="fitness_centre"]',
-  // Cafe / Coffee
-  cafe: '["amenity"="cafe"]',
-  cafes: '["amenity"="cafe"]',
-  café: '["amenity"="cafe"]',
-  'café growth': '["amenity"="cafe"]',
-  'coffee shop': '["amenity"="cafe"]',
-  coffee: '["amenity"="cafe"]',
-  // Restaurant / Food
-  restaurant: '["amenity"="restaurant"]',
-  restaurants: '["amenity"="restaurant"]',
-  food: '["amenity"="restaurant"]',
-  // Bridal / Wedding
-  bridal: '["shop"="wedding"]',
-  wedding: '["shop"="wedding"]',
-  'bridal shop': '["shop"="wedding"]',
-  'wedding shop': '["shop"="wedding"]',
-  'bridal & wedding': '["shop"="wedding"]',
-  'bridal business': '["shop"="wedding"]',
-  // Salon / Beauty
-  salon: '["shop"="hairdresser"]',
-  'hair salon': '["shop"="hairdresser"]',
-  'beauty salon': '["shop"="beauty"]',
-  beauty: '["shop"="beauty"]',
-  spa: '["leisure"="spa"]',
-};
+// Keyword to OSM Tag Mapping
+// Maps business keywords to OSM tags for flexible discovery
+const KEYWORD_TAGS: Array<{ keywords: string[]; tags: string[] }> = [
+  { keywords: ['gym', 'fitness', 'crossfit'], tags: ['["leisure"="fitness_centre"]'] },
+  { keywords: ['yoga'], tags: ['["sport"="yoga"]'] },
+  { keywords: ['pilates'], tags: ['["sport"="pilates"]'] },
+  { keywords: ['bridal', 'wedding studio', 'wedding boutique'], tags: ['["shop"="wedding"]'] },
+  { keywords: ['cafe', 'coffee'], tags: ['["amenity"="cafe"]'] },
+  { keywords: ['bakery'], tags: ['["shop"="bakery"]'] },
+  { keywords: ['restaurant', 'food'], tags: ['["amenity"="restaurant"]'] },
+  { keywords: ['salon', 'hair'], tags: ['["shop"="hairdresser"]'] },
+  { keywords: ['beauty'], tags: ['["shop"="beauty"]'] },
+  { keywords: ['spa'], tags: ['["leisure"="spa"]'] },
+];
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
   name = 'openstreetmap';
@@ -63,9 +42,18 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
 
     // Use the explicitly provided industry or fallback to the first one
     const rawIndustry = (options?.industry || strategy.target_industries[0]).toLowerCase().trim();
-    const tagQuery = INDUSTRY_MAPPING[rawIndustry];
+    
+    // Find matching tags based on keywords
+    const matchedTags = new Set<string>();
+    for (const mapping of KEYWORD_TAGS) {
+      if (mapping.keywords.some(k => rawIndustry.includes(k))) {
+        for (const tag of mapping.tags) {
+          matchedTags.add(tag);
+        }
+      }
+    }
 
-    if (!tagQuery) {
+    if (matchedTags.size === 0) {
       console.warn(
         `[OSM Provider] Unmapped industry: '${rawIndustry}'. Treating as data-coverage limitation rather than infrastructure failure.`,
       );
@@ -93,13 +81,18 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       searchArea = '(area.searchArea)';
     }
 
+    let tagUnion = '';
+    for (const tag of matchedTags) {
+      tagUnion += `
+        node${tag}${searchArea};
+        way${tag}${searchArea};
+        relation${tag}${searchArea};`;
+    }
+
     const query = `
       [out:json][timeout:25];
       ${areaQuery}
-      (
-        node${tagQuery}${searchArea};
-        way${tagQuery}${searchArea};
-        relation${tagQuery}${searchArea};
+      (${tagUnion}
       );
       out center ${limit};
     `;
