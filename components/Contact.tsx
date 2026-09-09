@@ -115,7 +115,7 @@ export default function Contact() {
 
                   <div className="space-y-1">
                     <p className="text-lg font-semibold text-foreground">
-                      {s?.contact_phone || '+91 77788-64972'}
+                      {'+91 63538-32814'}
                     </p>
                     <p className="text-lg font-semibold text-foreground/80">+91 77788-64972</p>
                   </div>
