@@ -7,19 +7,22 @@ import {
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
+// Helper for regex escaping
+const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Keyword to OSM Tag Mapping
 // Maps business keywords to OSM tags for flexible discovery
 const KEYWORD_TAGS: Array<{ keywords: string[]; tags: string[] }> = [
-  { keywords: ['gym', 'fitness', 'crossfit'], tags: ['["leisure"="fitness_centre"]'] },
-  { keywords: ['yoga'], tags: ['["sport"="yoga"]'] },
-  { keywords: ['pilates'], tags: ['["sport"="pilates"]'] },
-  { keywords: ['bridal', 'wedding studio', 'wedding boutique'], tags: ['["shop"="wedding"]'] },
-  { keywords: ['cafe', 'coffee'], tags: ['["amenity"="cafe"]'] },
-  { keywords: ['bakery'], tags: ['["shop"="bakery"]'] },
-  { keywords: ['restaurant', 'food'], tags: ['["amenity"="restaurant"]'] },
-  { keywords: ['salon', 'hair'], tags: ['["shop"="hairdresser"]'] },
-  { keywords: ['beauty'], tags: ['["shop"="beauty"]'] },
-  { keywords: ['spa'], tags: ['["leisure"="spa"]'] },
+  { keywords: ['gym', 'gyms', 'crossfit', 'fitness studio', 'fitness studios', 'fitness center', 'fitness centers', 'fitness centre', 'fitness centres'], tags: ['["leisure"="fitness_centre"]'] },
+  { keywords: ['yoga', 'yoga studio', 'yoga studios'], tags: ['["sport"="yoga"]'] },
+  { keywords: ['pilates', 'pilates studio', 'pilates studios'], tags: ['["sport"="pilates"]'] },
+  { keywords: ['bridal studio', 'bridal studios', 'bridal boutique', 'bridal boutiques', 'wedding studio', 'wedding studios', 'wedding boutique', 'wedding boutiques'], tags: ['["shop"="wedding"]'] },
+  { keywords: ['cafe', 'cafes', 'coffee shop', 'coffee shops', 'coffeehouse', 'coffeehouses'], tags: ['["amenity"="cafe"]'] },
+  { keywords: ['bakery', 'bakeries'], tags: ['["shop"="bakery"]'] },
+  { keywords: ['restaurant', 'restaurants', 'food'], tags: ['["amenity"="restaurant"]'] },
+  { keywords: ['salon', 'salons', 'hair salon', 'hair salons'], tags: ['["shop"="hairdresser"]'] },
+  { keywords: ['beauty salon', 'beauty salons'], tags: ['["shop"="beauty"]'] },
+  { keywords: ['spa', 'spas'], tags: ['["leisure"="spa"]'] },
 ];
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
@@ -43,12 +46,15 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     // Use the explicitly provided industry or fallback to the first one
     const rawIndustry = (options?.industry || strategy.target_industries[0]).toLowerCase().trim();
     
-    // Find matching tags based on keywords
+    // Find matching tags based on whole-word/phrase keyword matching
     const matchedTags = new Set<string>();
     for (const mapping of KEYWORD_TAGS) {
-      if (mapping.keywords.some(k => rawIndustry.includes(k))) {
-        for (const tag of mapping.tags) {
-          matchedTags.add(tag);
+      for (const k of mapping.keywords) {
+        const regex = new RegExp(`\\b${escapeRegExp(k)}\\b`, 'i');
+        if (regex.test(rawIndustry)) {
+          for (const tag of mapping.tags) {
+            matchedTags.add(tag);
+          }
         }
       }
     }
@@ -119,7 +125,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       return [];
     }
 
-    const results: DiscoveryResult[] = data.elements.map((el: any) => {
+    const results: DiscoveryResult[] = data.elements.map((el: { type: string; id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }) => {
       const tags = el.tags || {};
       const elCity = tags['addr:city'] || '';
       const elCountry = tags['addr:country'] || '';
