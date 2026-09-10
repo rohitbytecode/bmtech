@@ -10,20 +10,84 @@ const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 // Helper for regex escaping
 const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// Keyword to OSM Tag Mapping
-// Maps business keywords to OSM tags for flexible discovery
-const KEYWORD_TAGS: Array<{ keywords: string[]; tags: string[] }> = [
-  { keywords: ['gym', 'gyms', 'crossfit', 'fitness studio', 'fitness studios', 'fitness center', 'fitness centers', 'fitness centre', 'fitness centres'], tags: ['["leisure"="fitness_centre"]'] },
-  { keywords: ['yoga', 'yoga studio', 'yoga studios'], tags: ['["sport"="yoga"]'] },
-  { keywords: ['pilates', 'pilates studio', 'pilates studios'], tags: ['["sport"="pilates"]'] },
-  { keywords: ['bridal studio', 'bridal studios', 'bridal boutique', 'bridal boutiques', 'wedding studio', 'wedding studios', 'wedding boutique', 'wedding boutiques'], tags: ['["shop"="wedding"]'] },
-  { keywords: ['cafe', 'cafes', 'coffee shop', 'coffee shops', 'coffeehouse', 'coffeehouses'], tags: ['["amenity"="cafe"]'] },
-  { keywords: ['bakery', 'bakeries'], tags: ['["shop"="bakery"]'] },
-  { keywords: ['restaurant', 'restaurants', 'food'], tags: ['["amenity"="restaurant"]'] },
-  { keywords: ['salon', 'salons', 'hair salon', 'hair salons'], tags: ['["shop"="hairdresser"]'] },
-  { keywords: ['beauty salon', 'beauty salons'], tags: ['["shop"="beauty"]'] },
-  { keywords: ['spa', 'spas'], tags: ['["leisure"="spa"]'] },
+type ConceptType = 'subject' | 'modifier';
+
+interface Concept {
+  id: string;
+  type: ConceptType;
+  aliases: string[];
+  tags: string[];
+}
+
+const CONCEPT_DICTIONARY: Concept[] = [
+  // Modifiers
+  { id: 'wedding', type: 'modifier', aliases: ['wedding', 'weddings', 'bridal', 'bride', 'marriage', 'matrimonial'], tags: ['["shop"="wedding"]'] },
+  { id: 'personal', type: 'modifier', aliases: ['personal', 'private', 'custom', 'boutique', 'luxury'], tags: [] },
+
+  // Subjects
+  { id: 'photography', type: 'subject', aliases: ['photography', 'photographer', 'photographers', 'photo', 'photos'], tags: ['["shop"="photo"]', '["shop"="photo_studio"]', '["craft"="photographer"]'] },
+  { id: 'makeup', type: 'subject', aliases: ['makeup', 'cosmetics', 'mua', 'aesthetic', 'aesthetics', 'beauty'], tags: ['["shop"="beauty"]', '["shop"="cosmetics"]'] },
+  { id: 'salon', type: 'subject', aliases: ['salon', 'salons', 'hair', 'hairdresser', 'barber'], tags: ['["shop"="hairdresser"]'] },
+  { id: 'spa', type: 'subject', aliases: ['spa', 'spas'], tags: ['["leisure"="spa"]'] },
+  { id: 'venue', type: 'subject', aliases: ['venue', 'venues', 'banquet', 'hall', 'resort', 'hotel'], tags: ['["amenity"="events_venue"]', '["tourism"="hotel"]'] },
+  { id: 'planner', type: 'subject', aliases: ['planner', 'planners', 'planning', 'management', 'coordinator'], tags: ['["office"="event_management"]', '["office"="wedding_planner"]'] },
+  { id: 'training', type: 'subject', aliases: ['training', 'trainer', 'trainers', 'coach', 'fitness', 'gym', 'gyms', 'crossfit', 'workout'], tags: ['["leisure"="fitness_centre"]', '["sport"="fitness"]'] },
+  { id: 'yoga', type: 'subject', aliases: ['yoga'], tags: ['["sport"="yoga"]'] },
+  { id: 'pilates', type: 'subject', aliases: ['pilates'], tags: ['["sport"="pilates"]'] },
+  { id: 'cafe', type: 'subject', aliases: ['cafe', 'cafes', 'coffee', 'coffeehouse', 'coffeehouses', 'espresso'], tags: ['["amenity"="cafe"]'] },
+  { id: 'bakery', type: 'subject', aliases: ['bakery', 'bakeries', 'bake'], tags: ['["shop"="bakery"]'] },
+  { id: 'generic_store', type: 'subject', aliases: ['studio', 'studios', 'shop', 'shops', 'boutique', 'boutiques', 'store', 'stores', 'center', 'centers', 'centre', 'centres'], tags: [] },
 ];
+
+function resolveIndustry(industry: string) {
+  const normalized = industry.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  const tokens = normalized.split(/\s+/).filter(t => t.length > 2);
+  
+  const matchedSubjects = new Map<string, Concept>();
+  const matchedModifiers = new Map<string, Concept>();
+
+  for (const token of tokens) {
+    for (const concept of CONCEPT_DICTIONARY) {
+      if (concept.aliases.includes(token)) {
+        if (concept.type === 'subject') {
+          matchedSubjects.set(concept.id, concept);
+        } else {
+          matchedModifiers.set(concept.id, concept);
+        }
+      }
+    }
+  }
+
+  let resolvedTags = new Set<string>();
+  const hasGenericSubject = matchedSubjects.has('generic_store');
+
+  if (matchedSubjects.size > 0) {
+    for (const subject of matchedSubjects.values()) {
+      for (const tag of subject.tags) resolvedTags.add(tag);
+    }
+    // If no subject tags, try to inherit modifier tags
+    if (resolvedTags.size === 0 && hasGenericSubject) {
+      for (const modifier of matchedModifiers.values()) {
+        for (const tag of modifier.tags) resolvedTags.add(tag);
+      }
+    }
+  }
+
+  let fallbackNameSearch: string | null = null;
+  if (resolvedTags.size === 0 && tokens.length > 0) {
+    const exactPhrase = escapeRegExp(normalized.replace(/\s+/g, ' ').trim());
+    fallbackNameSearch = `["name"~"${exactPhrase}", i]`;
+  }
+
+  return {
+    original: industry,
+    tokens,
+    subjects: Array.from(matchedSubjects.keys()),
+    modifiers: Array.from(matchedModifiers.keys()),
+    tags: Array.from(resolvedTags),
+    fallbackNameSearch
+  };
+}
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
   name = 'openstreetmap';
@@ -46,22 +110,15 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     // Use the explicitly provided industry or fallback to the first one
     const rawIndustry = (options?.industry || strategy.target_industries[0]).toLowerCase().trim();
     
-    // Find matching tags based on whole-word/phrase keyword matching
-    const matchedTags = new Set<string>();
-    for (const mapping of KEYWORD_TAGS) {
-      for (const k of mapping.keywords) {
-        const regex = new RegExp(`\\b${escapeRegExp(k)}\\b`, 'i');
-        if (regex.test(rawIndustry)) {
-          for (const tag of mapping.tags) {
-            matchedTags.add(tag);
-          }
-        }
-      }
-    }
+    const resolution = resolveIndustry(rawIndustry);
 
-    if (matchedTags.size === 0) {
+    console.log(
+      `[OSM Provider] Resolved industry '${rawIndustry}' -> Subjects: [${resolution.subjects.join(', ')}], Modifiers: [${resolution.modifiers.join(', ')}], Tags: ${resolution.tags.length}`
+    );
+
+    if (resolution.tags.length === 0 && !resolution.fallbackNameSearch) {
       console.warn(
-        `[OSM Provider] Unmapped industry: '${rawIndustry}'. Treating as data-coverage limitation rather than infrastructure failure.`,
+        `[OSM Provider] Unable to confidently resolve industry: '${rawIndustry}'. Returning empty to avoid excessive load.`,
       );
       return [];
     }
@@ -88,11 +145,19 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     }
 
     let tagUnion = '';
-    for (const tag of matchedTags) {
+    for (const tag of resolution.tags) {
       tagUnion += `
         node${tag}${searchArea};
         way${tag}${searchArea};
         relation${tag}${searchArea};`;
+    }
+
+    // Add fallback name search if available
+    if (resolution.fallbackNameSearch) {
+      tagUnion += `
+        node${resolution.fallbackNameSearch}${searchArea};
+        way${resolution.fallbackNameSearch}${searchArea};
+        relation${resolution.fallbackNameSearch}${searchArea};`;
     }
 
     const query = `
