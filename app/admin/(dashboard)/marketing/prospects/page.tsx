@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import type { Prospect } from '@/types/marketing';
 import { DataTable } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/Button';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, LayoutGrid, Table2 } from 'lucide-react';
 import { ModalForm } from '@/components/admin/ModalForm';
 import { InputField, SelectField } from '@/components/admin/FormFields';
 import { PageHeader } from '@/components/admin/PageHeader';
@@ -14,7 +14,10 @@ import { FilterBar, FilterDefinition } from '@/components/admin/FilterBar';
 import { Pagination } from '@/components/admin/Pagination';
 import { ExportActions } from '@/components/admin/ExportActions';
 import { ProspectDetailModal } from '@/components/admin/ProspectDetailModal';
+import { ProspectsGeoView } from '@/components/admin/ProspectsGeoView';
 import { cn } from '@/lib/utils';
+
+type ViewMode = 'geo' | 'table';
 
 const FILTERS: FilterDefinition[] = [
   { key: 'search', label: 'Search name, phone...', type: 'search', options: [] },
@@ -33,9 +36,15 @@ const FILTERS: FilterDefinition[] = [
 ];
 
 export default function ProspectsPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>('geo');
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [callers, setCallers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Geo view state
+  const [geoHierarchy, setGeoHierarchy] = useState<any>({});
+  const [geoTotal, setGeoTotal] = useState(0);
+  const [geoLoading, setGeoLoading] = useState(true);
   
   // Pagination & Filters
   const [page, setPage] = useState(1);
@@ -62,6 +71,7 @@ export default function ProspectsPage() {
     sales_priority: 'medium' as any,
   });
 
+  // ── Table View Data ──
   const loadProspects = useCallback(async () => {
     setLoading(true);
     const { data, count } = await marketingService.getProspectsPaginated(page, pageSize, filters);
@@ -70,14 +80,27 @@ export default function ProspectsPage() {
     setLoading(false);
   }, [page, pageSize, filters]);
 
+  // ── Geo View Data ──
+  const loadGeoData = useCallback(async () => {
+    setGeoLoading(true);
+    const { data, total } = await marketingService.getProspectsByGeography(filters);
+    setGeoHierarchy(data);
+    setGeoTotal(total);
+    setGeoLoading(false);
+  }, [filters]);
+
   const loadCallers = async () => {
     const { data } = await marketingService.getCallers();
     if (data) setCallers(data);
   };
 
   useEffect(() => {
-    loadProspects();
-  }, [loadProspects]);
+    if (viewMode === 'table') {
+      loadProspects();
+    } else {
+      loadGeoData();
+    }
+  }, [viewMode, loadProspects, loadGeoData]);
 
   useEffect(() => {
     loadCallers();
@@ -142,7 +165,8 @@ export default function ProspectsPage() {
     if (window.confirm(`Are you sure you want to delete the prospect "${prospect.business_name}"?`)) {
       const { success } = await marketingService.deleteProspect(prospect.id);
       if (success) {
-        loadProspects();
+        if (viewMode === 'table') loadProspects();
+        else loadGeoData();
       } else {
         alert("Failed to delete prospect");
       }
@@ -172,7 +196,8 @@ export default function ProspectsPage() {
     if (assignmentResult.success) {
       await marketingService.updateProspect(assigningProspect.id, { status: 'assigned' });
       setIsAssignModalOpen(false);
-      loadProspects();
+      if (viewMode === 'table') loadProspects();
+      else loadGeoData();
     } else {
       alert("Failed to assign prospect: " + assignmentResult.error);
     }
@@ -230,7 +255,8 @@ export default function ProspectsPage() {
     setIsSubmitting(false);
     if (success) {
       setIsModalOpen(false);
-      loadProspects();
+      if (viewMode === 'table') loadProspects();
+      else loadGeoData();
     } else {
       alert(`Failed to ${editingId ? 'update' : 'create'} prospect`);
     }
@@ -286,6 +312,34 @@ export default function ProspectsPage() {
         title="Prospects" 
         description="Manage discovered and manually added business prospects."
       >
+        {/* View Toggle */}
+        <div className="flex items-center bg-surface border border-border rounded-lg p-1 mr-2 gap-0.5">
+          <button
+            onClick={() => setViewMode('geo')}
+            className={cn(
+              'flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-200',
+              viewMode === 'geo'
+                ? 'bg-accent-blue text-white shadow-sm shadow-accent-blue/30'
+                : 'text-text-secondary hover:text-text-primary hover:bg-background'
+            )}
+          >
+            <LayoutGrid size={13} />
+            Geo View
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={cn(
+              'flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-200',
+              viewMode === 'table'
+                ? 'bg-accent-blue text-white shadow-sm shadow-accent-blue/30'
+                : 'text-text-secondary hover:text-text-primary hover:bg-background'
+            )}
+          >
+            <Table2 size={13} />
+            Table
+          </button>
+        </div>
+
         <ExportActions 
           data={prospects} 
           columns={exportColumns}
@@ -306,28 +360,42 @@ export default function ProspectsPage() {
         onClear={handleClearFilters}
       />
 
-      <div className="flex-1 min-h-0 bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col">
-        <DataTable
-          columns={columns}
-          data={prospects}
-          isLoading={loading}
-          onEdit={handleOpenEdit}
-          onDelete={handleDelete}
-          onAssign={handleOpenAssign}
-          onView={setDetailProspect}
-        />
-        <Pagination 
-          currentPage={page}
-          pageSize={pageSize}
-          totalItems={totalItems}
-          totalPages={Math.ceil(totalItems / pageSize)}
-          onPageChange={setPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
-          }}
-        />
-      </div>
+      {/* ── Content Area ── */}
+      {viewMode === 'geo' ? (
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-0.5 pb-4">
+          <ProspectsGeoView
+            hierarchy={geoHierarchy}
+            total={geoTotal}
+            isLoading={geoLoading}
+            onViewProspect={setDetailProspect}
+            onEditProspect={handleOpenEdit}
+            onAssignProspect={handleOpenAssign}
+          />
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 bg-surface border border-border/50 rounded-lg shadow-sm flex flex-col">
+          <DataTable
+            columns={columns}
+            data={prospects}
+            isLoading={loading}
+            onEdit={handleOpenEdit}
+            onDelete={handleDelete}
+            onAssign={handleOpenAssign}
+            onView={setDetailProspect}
+          />
+          <Pagination 
+            currentPage={page}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            totalPages={Math.ceil(totalItems / pageSize)}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
+        </div>
+      )}
 
       {/* CREATE / EDIT MODAL */}
       <ModalForm
@@ -413,7 +481,7 @@ export default function ProspectsPage() {
           />
           {callers.length === 0 && (
             <p className="text-sm text-yellow-600 bg-yellow-500/10 p-3 rounded-md border border-yellow-500/20">
-              No users with the 'caller' role were found.
+              No users with the &apos;caller&apos; role were found.
             </p>
           )}
         </div>

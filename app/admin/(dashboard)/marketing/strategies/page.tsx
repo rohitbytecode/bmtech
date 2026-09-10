@@ -89,8 +89,22 @@ export default function StrategiesPage() {
     setIsSubmitting(true);
 
     // Retrieve current user ID to set 'created_by'
-    const { data: session } = await supabase.auth.getSession();
-    const userId = session?.session?.user?.id || 'unknown';
+    const { data: { user } } = await supabase.auth.getUser();
+    let userId = user?.id;
+
+    const isDev = process.env.NODE_ENV === 'development';
+
+    if (!userId) {
+      if (isDev) {
+        // In dev mode with hardware auth, bypass user ID check
+        // Leaving userId as undefined prevents 'invalid input syntax for type uuid'
+        userId = undefined;
+      } else {
+        alert("You must be logged in to create a strategy. Please refresh the page.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     let success = false;
 

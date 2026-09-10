@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ const menuSections = [
     items: [
       { name: 'Strategies', icon: Briefcase, href: '/admin/marketing/strategies' },
       { name: 'Prospects', icon: Users, href: '/admin/marketing/prospects' },
+      { name: 'Reports', icon: BarChart3, href: '/admin/marketing/reports' },
       { name: 'Caller', icon: FileText, href: '/admin/marketing/caller' },
       { name: 'Qualified Leads', icon: FileText, href: '/admin/marketing/qualified' },
       { name: 'Rejected', icon: FileText, href: '/admin/marketing/rejected' },
