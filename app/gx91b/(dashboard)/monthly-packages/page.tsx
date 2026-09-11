@@ -131,10 +131,9 @@ export default function MonthlyPackagesPage() {
               setIsHighlighted(false);
               setEditingPlan(null);
             }}
-            className="h-12 px-6 gap-2 group shrink-0"
+            size="sm"
           >
-            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />{' '}
-            Create Plan
+            <Plus size={14} /> Create Plan
           </Button>
         </div>
       </div>
@@ -175,73 +174,67 @@ export default function MonthlyPackagesPage() {
               <div
                 key={plan.id}
                 className={cn(
-                  'relative p-8 rounded-3xl bg-surface border transition-all duration-300 group hover:shadow-2xl hover:-translate-y-2',
+                  'relative p-5 rounded-lg bg-surface border flex flex-col',
                   plan.highlighted
-                    ? 'border-accent-blue shadow-lg shadow-accent-blue/10'
-                    : 'border-border hover:border-accent-blue/40',
+                    ? 'border-accent-blue shadow-sm ring-1 ring-accent-blue/50'
+                    : 'border-border hover:border-accent-blue/30',
                 )}
               >
                 {plan.highlighted && (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-accent-blue text-white text-xs font-bold rounded-full uppercase tracking-widest shadow-lg">
-                    Most Popular
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-accent-blue text-white text-[10px] font-bold rounded-md">
+                    Popular
                   </span>
                 )}
 
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-text-primary uppercase tracking-wider line-clamp-1">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-base font-semibold text-text-primary">
                     {plan.name}
                   </h3>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleEdit(plan)}
-                      className="p-2 rounded-lg bg-background border border-border text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 transition-colors"
+                      className="p-1 rounded-md text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 transition-colors"
                     >
-                      <Edit2 size={16} />
+                      <Edit2 size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(plan.id)}
-                      className="p-2 rounded-lg bg-background border border-border text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                      className="p-1 rounded-md text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
 
-                <div className="mb-10">
-                  <span className="text-5xl font-bold text-text-primary tracking-tight">
+                <div className="mb-4 flex items-baseline border-b border-border pb-4">
+                  <span className="text-2xl font-bold text-text-primary tracking-tight">
                     {plan.price}
                   </span>
-                  <span className="text-text-secondary ml-2 font-medium">/ mo</span>
+                  <span className="text-text-secondary ml-1 text-xs">/ mo</span>
                 </div>
 
-                <div className="space-y-4 mb-10 min-h-[160px]">
+                <div className="space-y-2 mb-6 flex-1">
                   {features.slice(0, 5).map((feature, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className="flex-shrink-0 h-6 w-6 bg-accent-blue/10 rounded-full flex items-center justify-center text-accent-blue">
-                        <Check size={14} />
-                      </div>
-                      <span className="text-text-secondary font-medium tracking-tight line-clamp-1">
+                    <div key={i} className="flex items-start gap-2">
+                      <Check size={14} className="text-accent-blue mt-0.5 shrink-0" />
+                      <span className="text-text-secondary text-sm leading-snug">
                         {feature}
                       </span>
                     </div>
                   ))}
                   {features.length > 5 && (
-                    <p className="text-xs text-text-secondary pl-9">
+                    <p className="text-xs text-text-secondary pl-6">
                       + {features.length - 5} more features
                     </p>
                   )}
                 </div>
 
-                <div
-                  className={cn(
-                    'w-full h-14 rounded-2xl font-bold text-sm uppercase tracking-widest flex items-center justify-center border-2 transition-all duration-300',
-                    plan.highlighted
-                      ? 'bg-accent-blue border-accent-blue text-white hover:bg-accent-blue/90'
-                      : 'bg-transparent border-border text-text-primary hover:border-accent-blue hover:bg-accent-blue/5',
-                  )}
+                <Button 
+                  variant={plan.highlighted ? 'primary' : 'outline'} 
+                  className="w-full mt-auto"
                 >
                   View Details
-                </div>
+                </Button>
               </div>
             );
           })}
@@ -252,12 +245,10 @@ export default function MonthlyPackagesPage() {
               setIsHighlighted(false);
               setEditingPlan(null);
             }}
-            className="border-2 border-dashed border-border rounded-3xl p-8 flex flex-col items-center justify-center text-text-secondary hover:text-accent-blue hover:border-accent-blue hover:bg-accent-blue/5 transition-all duration-300 gap-4 group min-h-[400px]"
+            className="border border-dashed border-border rounded-lg p-5 flex flex-col items-center justify-center text-text-secondary hover:text-accent-blue hover:border-accent-blue hover:bg-accent-blue/5 transition-colors gap-2 min-h-[250px]"
           >
-            <div className="h-20 w-20 bg-border/40 rounded-full flex items-center justify-center group-hover:bg-accent-blue/10 transition-colors">
-              <Plus size={40} />
-            </div>
-            <span className="text-lg font-bold">Add New Plan</span>
+            <Plus size={24} />
+            <span className="text-sm font-medium">Add New Plan</span>
           </button>
         </div>
       )}

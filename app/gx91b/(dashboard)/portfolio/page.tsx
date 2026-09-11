@@ -138,17 +138,17 @@ export default function PortfolioPage() {
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="relative group flex-1 max-w-lg">
+        <div className="relative group flex-1 max-w-md">
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-accent-blue transition-colors"
-            size={20}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+            size={16}
           />
           <input
             type="text"
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-2xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue/40 transition-all duration-300"
+            className="w-full h-9 pl-9 pr-3 bg-surface border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/40"
           />
         </div>
         <Button
@@ -156,10 +156,9 @@ export default function PortfolioPage() {
             setEditingProject(null);
             setIsOpen(true);
           }}
-          className="h-14 px-8 gap-2 group"
+          size="sm"
         >
-          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" /> Add
-          New Project
+          <Plus size={14} /> Add Project
         </Button>
       </div>
 

@@ -167,18 +167,18 @@ export default function LeadsPage() {
 
         <div className="flex items-center gap-4">
           <div className="relative group min-w-[200px] md:min-w-[300px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
             <input
               type="text"
               placeholder="Search leads..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-12 pl-12 pr-4 bg-surface border border-border rounded-xl"
+              className="w-full h-9 pl-9 pr-3 bg-surface border border-border rounded-md text-sm"
             />
           </div>
 
-          <Button variant="secondary" className="h-12 w-12 p-0 rounded-xl" onClick={fetchLeads}>
-            <Filter size={20} />
+          <Button variant="secondary" size="icon" onClick={fetchLeads}>
+            <Filter size={16} />
           </Button>
         </div>
       </div>
@@ -195,12 +195,12 @@ export default function LeadsPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl bg-surface border border-border space-y-4">
-            <h3 className="font-bold text-text-primary border-b pb-4 uppercase text-xs tracking-widest text-accent-blue">
+          <div className="p-5 rounded-lg bg-surface border border-border space-y-4">
+            <h3 className="font-semibold text-text-primary border-b border-border pb-3 text-sm">
               Conversion Overview
             </h3>
 
-            <div className="space-y-6 pt-2">
+            <div className="space-y-4 pt-1 text-sm">
               <div className="flex justify-between">
                 <span>New Leads</span>
                 <span>{stats.new.toString().padStart(2, '0')}</span>
@@ -218,14 +218,15 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl bg-accent-blue/5 border border-accent-blue/20 flex flex-col gap-4">
-            <p className="text-sm font-medium text-text-primary">
+          <div className="p-5 rounded-lg bg-surface border border-border flex flex-col gap-3">
+            <p className="text-sm text-text-secondary">
               Download leads for offline use.
             </p>
 
             <Button
               variant="outline"
-              className="w-full border-accent-blue/20 hover:bg-accent-blue/10"
+              className="w-full"
+              size="sm"
               onClick={handleExportCSV}
             >
               Export to CSV
