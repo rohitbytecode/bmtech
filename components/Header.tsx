@@ -15,7 +15,7 @@ export default function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
 
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/gx91b')) {
     return null;
   }
 

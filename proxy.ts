@@ -25,10 +25,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (
-    pathname.startsWith("/admin") &&
-    pathname !== "/admin/login" &&
-    pathname !== "/admin/enroll" &&
-    pathname !== "/admin/hardware-authorization"
+    pathname.startsWith("/gx91b") &&
+    pathname !== "/gx91b/login"
   ) {
     // dev bypass
     if (process.env.NODE_ENV === "development") {
@@ -46,7 +44,7 @@ export async function proxy(request: NextRequest) {
     );
 
     if (!authCookie) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/gx91b/login", request.url));
     }
 
     try {
@@ -65,7 +63,7 @@ export async function proxy(request: NextRequest) {
         (typeof sessionData === "string" ? sessionData : null);
 
       if (!token) {
-        return NextResponse.redirect(new URL("/admin/login", request.url));
+        return NextResponse.redirect(new URL("/gx91b/login", request.url));
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -82,7 +80,7 @@ export async function proxy(request: NextRequest) {
       } = await supabase.auth.getUser(token);
 
       if (error || !user) {
-        return NextResponse.redirect(new URL("/admin/login", request.url));
+        return NextResponse.redirect(new URL("/gx91b/login", request.url));
       }
 
       const userRole = user.user_metadata?.role;
@@ -91,55 +89,20 @@ export async function proxy(request: NextRequest) {
       const isCaller = userRole === 'caller';
 
       if (!isAdmin && !isCaller) {
-        return NextResponse.redirect(new URL("/admin/login", request.url));
+        return NextResponse.redirect(new URL("/gx91b/login", request.url));
       }
 
       // Restrict callers to only their specific dashboard
       if (isCaller && !isAdmin) {
-        if (!pathname.startsWith('/admin/marketing/caller')) {
-          return NextResponse.redirect(new URL("/admin/marketing/caller", request.url));
+        if (!pathname.startsWith('/gx91b/marketing/caller')) {
+          return NextResponse.redirect(new URL("/gx91b/marketing/caller", request.url));
         }
       }
 
-      const hardwareVerifiedToken = request.cookies.get(
-        "bmtech_hardware_verified",
-      )?.value;
 
-      const { data: devices } = await supabase
-        .from("authorized_devices")
-        .select("credential_id")
-        .eq("user_id", user.id);
-
-      const hasRegisteredDevices = devices && devices.length > 0;
-
-      const isLocalhost = request.nextUrl.hostname === 'localhost' || request.nextUrl.hostname === '127.0.0.1';
-
-      if (hasRegisteredDevices) {
-        if (!hardwareVerifiedToken && !isLocalhost) {
-          return NextResponse.redirect(new URL("/admin/login", request.url));
-        }
-
-        const isValidDevice = devices.some(
-          (d) => d.credential_id && d.credential_id === hardwareVerifiedToken,
-        );
-        if (!isValidDevice && !isLocalhost) {
-          const response = NextResponse.redirect(
-            new URL("/admin/login", request.url),
-          );
-          response.cookies.delete("bmtech_hardware_verified");
-          return response;
-        }
-      } else {
-        // No devices registered yet — force first-device enrollment
-        if (!isLocalhost) {
-          return NextResponse.redirect(
-            new URL("/admin/hardware-authorization?auto=true", request.url),
-          );
-        }
-      }
     } catch (e) {
       console.error("Proxy Error:", e);
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/gx91b/login", request.url));
     }
   }
 

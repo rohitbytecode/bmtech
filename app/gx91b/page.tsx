@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 export default async function AdminRoot() {
   // ── DEV BYPASS: skip auth entirely in local development ──
   if (process.env.NODE_ENV === 'development') {
-    redirect('/admin/dashboard');
+    redirect('/gx91b/dashboard');
   }
 
   const cookieStore = await cookies();
@@ -18,7 +18,7 @@ export default async function AdminRoot() {
   const authCookie = allCookies.find((c) => c.name.includes('auth-token'));
 
   if (!authCookie) {
-    redirect('/admin/login');
+    redirect('/gx91b/login');
   }
 
   try {
@@ -30,7 +30,7 @@ export default async function AdminRoot() {
     }
 
     const token = sessionData?.access_token || sessionData?.[0]?.access_token;
-    if (!token) redirect('/admin/login');
+    if (!token) redirect('/gx91b/login');
 
     const {
       data: { user },
@@ -40,11 +40,11 @@ export default async function AdminRoot() {
       user &&
       (user.user_metadata?.role === 'admin' || user.user_metadata?.is_super_admin === true)
     ) {
-      redirect('/admin/dashboard');
+      redirect('/gx91b/dashboard');
     }
   } catch (e) {
     // Fallback to login on error
   }
 
-  redirect('/admin/login');
+  redirect('/gx91b/login');
 }

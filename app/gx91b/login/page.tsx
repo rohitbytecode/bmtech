@@ -5,20 +5,14 @@ import React, { useState } from 'react';
 import { Lock, Mail, ArrowRight, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/admin/FormFields';
-import { authorizeCurrentDevice, isDeviceAuthorized, getDeviceFingerprint } from '@/lib/device';
 import { authService } from '@/services/authService';
-import { webauthnClient } from '@/lib/webauthnClient';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deviceFingerprint, setDeviceFingerprint] = useState('');
 
-  React.useEffect(() => {
-    setDeviceFingerprint(getDeviceFingerprint());
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,41 +20,13 @@ export default function AdminLogin() {
     setError(null);
 
     try {
-      // Step 1: Try WebAuthn first (Bypass in Development)
-      let result;
+      const { data, error } = await authService.signIn(email, password);
 
-      if (process.env.NODE_ENV === 'development') {
-        result = { fallback: true };
-      } else {
-        try {
-          result = await webauthnClient.authenticate(email, password);
-        } catch (err: any) {
-          // Any WebAuthn failure (no keys, user cancelled, not supported, etc.)
-          // → gracefully fall back to password login
-          console.warn('WebAuthn unavailable, falling back to password:', err.message);
-          result = { fallback: true };
-        }
+      if (error) {
+        throw new Error(error);
       }
 
-      // Step 2: Fallback to password login
-      if (result?.fallback) {
-        const { data, error } = await authService.signIn(email, password);
-
-        if (error) {
-          throw new Error(error);
-        }
-
-        window.location.href = '/admin/dashboard';
-        return;
-      }
-
-      // Step 3: WebAuthn success
-      if (result.success) {
-        window.location.href = '/admin/dashboard';
-        return;
-      }
-
-      throw new Error(result.error || 'Authentication failed');
+      window.location.href = '/gx91b/dashboard';
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Login failed');
@@ -151,12 +117,7 @@ export default function AdminLogin() {
             </Button>
           </form>
 
-          {/* Quick login divider */}
-          <div className="mt-10 relative text-center">
-            <span className="text-[10px] font-mono text-text-secondary uppercase tracking-widest bg-background/50 px-2 py-1 rounded">
-              Hardware ID: <span className="text-accent-blue">{deviceFingerprint}</span>
-            </span>
-          </div>
+
         </div>
 
         <p className="text-center text-text-secondary text-sm">
