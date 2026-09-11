@@ -2,9 +2,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, MapPin, Building2, Globe, TrendingUp, Users, ExternalLink } from 'lucide-react';
+import { ChevronRight, MapPin, Building2, Globe, TrendingUp, Users, ExternalLink, CheckCircle, XCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import type { Prospect } from '@/types/marketing';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 // Country flag emoji map (common ones)
 const countryFlags: Record<string, string> = {
@@ -79,6 +80,9 @@ interface ProspectsGeoViewProps {
   onViewProspect: (prospect: Prospect) => void;
   onEditProspect: (prospect: Prospect) => void;
   onAssignProspect: (prospect: Prospect) => void;
+  onApproveProspect: (prospect: Prospect) => void;
+  onRejectProspect: (prospect: Prospect) => void;
+  onDeleteProspect: (prospect: Prospect) => void;
 }
 
 function StatusBar({ breakdown, total }: { breakdown: Record<string, number>; total: number }) {
@@ -133,6 +137,9 @@ function CountryCard({
   onViewProspect,
   onEditProspect,
   onAssignProspect,
+  onApproveProspect,
+  onRejectProspect,
+  onDeleteProspect,
 }: {
   country: string;
   data: GeoHierarchy[string];
@@ -141,6 +148,9 @@ function CountryCard({
   onViewProspect: (p: Prospect) => void;
   onEditProspect: (p: Prospect) => void;
   onAssignProspect: (p: Prospect) => void;
+  onApproveProspect: (p: Prospect) => void;
+  onRejectProspect: (p: Prospect) => void;
+  onDeleteProspect: (p: Prospect) => void;
 }) {
   const stateCount = Object.keys(data.states).length;
   const cityCount = Object.values(data.states).reduce(
@@ -151,7 +161,7 @@ function CountryCard({
     <motion.div
       layout
       className={cn(
-        'rounded-xl border transition-all duration-300 overflow-hidden',
+        'rounded-xl border transition-all duration-300',
         isExpanded
           ? 'border-accent-blue/40 bg-accent-blue/[0.02] shadow-lg shadow-accent-blue/5 col-span-full'
           : 'border-border/50 bg-surface hover:border-accent-blue/30 hover:shadow-md hover:shadow-accent-blue/5'
@@ -208,11 +218,11 @@ function CountryCard({
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            className="w-full"
           >
             <div className="px-5 pb-5 space-y-3">
               <div className="h-px bg-border/50" />
@@ -226,6 +236,9 @@ function CountryCard({
                     onViewProspect={onViewProspect}
                     onEditProspect={onEditProspect}
                     onAssignProspect={onAssignProspect}
+                    onApproveProspect={onApproveProspect}
+                    onRejectProspect={onRejectProspect}
+                    onDeleteProspect={onDeleteProspect}
                   />
                 ))}
             </div>
@@ -243,12 +256,18 @@ function StateCard({
   onViewProspect,
   onEditProspect,
   onAssignProspect,
+  onApproveProspect,
+  onRejectProspect,
+  onDeleteProspect,
 }: {
   state: string;
   data: GeoHierarchy[string]['states'][string];
   onViewProspect: (p: Prospect) => void;
   onEditProspect: (p: Prospect) => void;
   onAssignProspect: (p: Prospect) => void;
+  onApproveProspect: (p: Prospect) => void;
+  onRejectProspect: (p: Prospect) => void;
+  onDeleteProspect: (p: Prospect) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const cityCount = Object.keys(data.cities).length;
@@ -288,11 +307,11 @@ function StateCard({
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            className="w-full"
           >
             <div className="px-4 pb-4 space-y-2">
               <div className="h-px bg-border/40" />
@@ -306,6 +325,9 @@ function StateCard({
                     onViewProspect={onViewProspect}
                     onEditProspect={onEditProspect}
                     onAssignProspect={onAssignProspect}
+                    onApproveProspect={onApproveProspect}
+                    onRejectProspect={onRejectProspect}
+                    onDeleteProspect={onDeleteProspect}
                   />
                 ))}
             </div>
@@ -323,12 +345,18 @@ function CityCard({
   onViewProspect,
   onEditProspect,
   onAssignProspect,
+  onApproveProspect,
+  onRejectProspect,
+  onDeleteProspect,
 }: {
   city: string;
   data: { count: number; prospects: Prospect[] };
   onViewProspect: (p: Prospect) => void;
   onEditProspect: (p: Prospect) => void;
   onAssignProspect: (p: Prospect) => void;
+  onApproveProspect: (p: Prospect) => void;
+  onRejectProspect: (p: Prospect) => void;
+  onDeleteProspect: (p: Prospect) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -362,11 +390,11 @@ function CityCard({
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            className="w-full"
           >
             <div className="px-3 pb-3">
               <div className="h-px bg-border/30 mb-2" />
@@ -378,6 +406,9 @@ function CityCard({
                     onView={onViewProspect}
                     onEdit={onEditProspect}
                     onAssign={onAssignProspect}
+                    onApprove={onApproveProspect}
+                    onReject={onRejectProspect}
+                    onDelete={onDeleteProspect}
                   />
                 ))}
               </div>
@@ -395,11 +426,17 @@ function ProspectRow({
   onView,
   onEdit,
   onAssign,
+  onApprove,
+  onReject,
+  onDelete,
 }: {
   prospect: Prospect;
   onView: (p: Prospect) => void;
   onEdit: (p: Prospect) => void;
   onAssign: (p: Prospect) => void;
+  onApprove: (p: Prospect) => void;
+  onReject: (p: Prospect) => void;
+  onDelete: (p: Prospect) => void;
 }) {
   const colors = statusColors[prospect.status] || statusColors.discovered;
 
@@ -423,21 +460,47 @@ function ProspectRow({
           )}
         </div>
       </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 relative z-10">
         <button
-          onClick={(e) => { e.stopPropagation(); onView(prospect); }}
-          className="h-6 w-6 rounded flex items-center justify-center text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 transition-colors"
-          title="View"
+          onClick={(e) => { e.stopPropagation(); onApprove(prospect); }}
+          title="Mark as Qualified"
+          className="h-6 w-6 rounded flex items-center justify-center text-accent-blue hover:bg-accent-blue/10 transition-colors"
         >
-          <ExternalLink size={12} />
+          <CheckCircle size={12} />
         </button>
         <button
-          onClick={(e) => { e.stopPropagation(); onAssign(prospect); }}
-          className="h-6 w-6 rounded flex items-center justify-center text-text-secondary hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors"
-          title="Assign"
+          onClick={(e) => { e.stopPropagation(); onReject(prospect); }}
+          title="Mark as Rejected"
+          className="h-6 w-6 rounded flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-colors"
         >
-          <Users size={12} />
+          <XCircle size={12} />
         </button>
+        <ActionDropdown>
+          <button
+            onClick={(e) => { e.stopPropagation(); onAssign(prospect); }}
+            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-text-primary hover:bg-background transition-colors text-left"
+          >
+            <Users size={12} className="text-emerald-500" /> Assign
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onView(prospect); }}
+            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-text-primary hover:bg-background transition-colors text-left"
+          >
+            <ExternalLink size={12} className="text-accent-blue" /> View Details
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(prospect); }}
+            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-text-primary hover:bg-background transition-colors text-left"
+          >
+            <Edit2 size={12} className="text-text-secondary" /> Edit
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(prospect); }}
+            className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-rose-500 hover:bg-rose-500/10 transition-colors text-left"
+          >
+            <Trash2 size={12} /> Delete
+          </button>
+        </ActionDropdown>
       </div>
     </div>
   );
@@ -471,6 +534,9 @@ export function ProspectsGeoView({
   onViewProspect,
   onEditProspect,
   onAssignProspect,
+  onApproveProspect,
+  onRejectProspect,
+  onDeleteProspect,
 }: ProspectsGeoViewProps) {
   const [expandedCountry, setExpandedCountry] = useState<string | null>(null);
 
@@ -529,9 +595,58 @@ export function ProspectsGeoView({
             onViewProspect={onViewProspect}
             onEditProspect={onEditProspect}
             onAssignProspect={onAssignProspect}
+            onApproveProspect={onApproveProspect}
+            onRejectProspect={onRejectProspect}
+            onDeleteProspect={onDeleteProspect}
           />
         ))}
       </motion.div>
+    </div>
+  );
+}
+
+function ActionDropdown({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false);
+  const [openUpwards, setOpenUpwards] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // If there's less than 160px of space below, open upwards
+      setOpenUpwards(spaceBelow < 160);
+    }
+    setOpen(!open);
+  };
+
+  return (
+    <div className="relative inline-block text-left" ref={ref}>
+      <button
+        onClick={toggleOpen}
+        className="h-6 w-6 rounded flex items-center justify-center text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10 transition-colors"
+      >
+        <MoreVertical size={12} />
+      </button>
+      {open && (
+        <div className={cn(
+          "absolute right-0 w-36 rounded-md bg-surface border border-border shadow-lg z-50 py-1 flex flex-col items-stretch overflow-hidden",
+          openUpwards ? "bottom-full mb-1" : "top-full mt-1"
+        )}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }

@@ -173,6 +173,42 @@ export default function ProspectsPage() {
     }
   };
 
+  const handleApprove = async (prospect: Prospect) => {
+    if (prospect.status === 'qualified') {
+      alert("This prospect is already qualified.");
+      return;
+    }
+    if (window.confirm(`Are you sure you want to mark "${prospect.business_name}" as Qualified?`)) {
+      setIsSubmitting(true);
+      const { success } = await marketingService.updateProspect(prospect.id, { status: 'qualified' });
+      if (success) {
+        if (viewMode === 'table') loadProspects();
+        else loadGeoData();
+      } else {
+        alert("Failed to qualify prospect");
+      }
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReject = async (prospect: Prospect) => {
+    if (prospect.status === 'rejected') {
+      alert("This prospect is already rejected.");
+      return;
+    }
+    if (window.confirm(`Are you sure you want to mark "${prospect.business_name}" as Rejected?`)) {
+      setIsSubmitting(true);
+      const { success } = await marketingService.updateProspect(prospect.id, { status: 'rejected' });
+      if (success) {
+        if (viewMode === 'table') loadProspects();
+        else loadGeoData();
+      } else {
+        alert("Failed to reject prospect");
+      }
+      setIsSubmitting(false);
+    }
+  };
+
   const handleAssignSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!assigningProspect) return;
@@ -370,6 +406,9 @@ export default function ProspectsPage() {
             onViewProspect={setDetailProspect}
             onEditProspect={handleOpenEdit}
             onAssignProspect={handleOpenAssign}
+            onApproveProspect={handleApprove}
+            onRejectProspect={handleReject}
+            onDeleteProspect={handleDelete}
           />
         </div>
       ) : (
@@ -381,6 +420,8 @@ export default function ProspectsPage() {
             onEdit={handleOpenEdit}
             onDelete={handleDelete}
             onAssign={handleOpenAssign}
+            onApprove={handleApprove}
+            onReject={handleReject}
             onView={setDetailProspect}
           />
           <Pagination 
