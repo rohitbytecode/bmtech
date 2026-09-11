@@ -12,14 +12,6 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/db/:path*',
-        destination: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/:path*`, // Proxy to Supabase
-      },
-    ];
-  },
 };
 
 export default nextConfig;

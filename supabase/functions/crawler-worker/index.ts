@@ -804,6 +804,8 @@ async function processScoreTask(
     throw new Error(`Failed to save prospect opportunity scores: ${scoreUpsertError.message}`);
   }
 
+  const prospectStatus = scoringResult.sales_priority === 'low' ? 'rejected' : 'ready_for_call';
+
   // Synchronize canonical fields on prospects table
   const { error: updateProspectError } = await supabase
     .from('prospects')
@@ -815,6 +817,7 @@ async function processScoreTask(
       opportunity_score: scoringResult.opportunity_score,
       data_quality_score: scoringResult.data_quality_score,
       sales_priority: scoringResult.sales_priority,
+      status: prospectStatus,
       updated_at: new Date().toISOString(),
     })
     .eq('id', prospectId);

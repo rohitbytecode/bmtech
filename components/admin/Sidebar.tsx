@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,29 +21,30 @@ const menuSections = [
   {
     title: 'Business',
     items: [
-      { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
-      { name: 'Services', icon: Briefcase, href: '/admin/services' },
-      { name: 'Portfolio', icon: FileText, href: '/admin/portfolio' },
-      { name: 'Packages', icon: Package, href: '/admin/packages' },
-      { name: 'Monthly Packages', icon: Package, href: '/admin/monthly-packages' },
-      { name: 'Leads (Inbound)', icon: Users, href: '/admin/leads' },
+      { name: 'Dashboard', icon: LayoutDashboard, href: '/gx91b/dashboard' },
+      { name: 'Services', icon: Briefcase, href: '/gx91b/services' },
+      { name: 'Portfolio', icon: FileText, href: '/gx91b/portfolio' },
+      { name: 'Packages', icon: Package, href: '/gx91b/packages' },
+      { name: 'Monthly Packages', icon: Package, href: '/gx91b/monthly-packages' },
+      { name: 'Leads (Inbound)', icon: Users, href: '/gx91b/leads' },
     ],
   },
   {
     title: 'Marketing',
     items: [
-      { name: 'Strategies', icon: Briefcase, href: '/admin/marketing/strategies' },
-      { name: 'Prospects', icon: Users, href: '/admin/marketing/prospects' },
-      { name: 'Caller', icon: FileText, href: '/admin/marketing/caller' },
-      { name: 'Qualified Leads', icon: FileText, href: '/admin/marketing/qualified' },
-      { name: 'Rejected', icon: FileText, href: '/admin/marketing/rejected' },
+      { name: 'Strategies', icon: Briefcase, href: '/gx91b/marketing/strategies' },
+      { name: 'Prospects', icon: Users, href: '/gx91b/marketing/prospects' },
+      { name: 'Reports', icon: BarChart3, href: '/gx91b/marketing/reports' },
+      { name: 'Caller', icon: FileText, href: '/gx91b/marketing/caller' },
+      { name: 'Qualified Leads', icon: FileText, href: '/gx91b/marketing/qualified' },
+      { name: 'Rejected', icon: FileText, href: '/gx91b/marketing/rejected' },
     ],
   },
   {
     title: 'System',
     items: [
-      { name: 'Team', icon: Users, href: '/admin/team' },
-      { name: 'Settings', icon: Settings, href: '/admin/settings' },
+      { name: 'Team', icon: Users, href: '/gx91b/team' },
+      { name: 'Settings', icon: Settings, href: '/gx91b/settings' },
     ],
   },
 ];
@@ -82,13 +84,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         {
           title: 'Marketing',
           items: [
-            { name: 'My Calls', icon: FileText, href: '/admin/marketing/caller' },
+            { name: 'My Calls', icon: FileText, href: '/gx91b/marketing/caller' },
           ],
         },
         {
           title: 'System',
           items: [
-            { name: 'Settings', icon: Settings, href: '/admin/settings' },
+            { name: 'Settings', icon: Settings, href: '/gx91b/settings' },
           ],
         },
       ];
@@ -105,11 +107,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     try {
       const { error } = await authService.signOut();
       if (error) throw new Error(error);
-      router.push('/admin/login');
+      router.push('/gx91b/login');
     } catch (error) {
       console.error('Logout failed:', error);
       // Fallback redirect
-      router.push('/admin/login');
+      router.push('/gx91b/login');
     }
   };
 

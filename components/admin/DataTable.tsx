@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Edit2, Trash2, MoreVertical, ExternalLink, Users } from 'lucide-react';
+import { Edit2, Trash2, MoreVertical, ExternalLink, Users, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +18,8 @@ interface DataTableProps<T> {
   onDelete?: (item: T) => void;
   onView?: (item: T) => void;
   onAssign?: (item: T) => void;
+  onApprove?: (item: T) => void;
+  onReject?: (item: T) => void;
   isLoading?: boolean;
 }
 
@@ -28,6 +30,8 @@ export function DataTable<T extends { id: string | number }>({
   onDelete,
   onView,
   onAssign,
+  onApprove,
+  onReject,
   isLoading = false,
 }: DataTableProps<T>) {
   if (isLoading) {
@@ -72,7 +76,7 @@ export function DataTable<T extends { id: string | number }>({
                   {col.header}
                 </th>
               ))}
-              {(onEdit || onDelete || onView || onAssign) && (
+              {(onEdit || onDelete || onView || onAssign || onApprove || onReject) && (
                 <th className="px-4 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right whitespace-nowrap sticky right-0 bg-background/95 shadow-[-1px_0_0_0_var(--border)]">
                   Actions
                 </th>
@@ -98,52 +102,66 @@ export function DataTable<T extends { id: string | number }>({
                       : (item[col.accessor] as React.ReactNode)}
                   </td>
                 ))}
-                {(onEdit || onDelete || onView || onAssign) && (
-                  <td className="px-4 py-2 text-right whitespace-nowrap sticky right-0 bg-surface group-hover:bg-background/50 transition-colors duration-150 shadow-[-1px_0_0_0_var(--border)]">
+                {(onEdit || onDelete || onView || onAssign || onApprove || onReject) && (
+                  <td className="px-4 py-2 text-right whitespace-nowrap sticky right-0 bg-surface group-hover:bg-background/50 transition-colors duration-150 shadow-[-1px_0_0_0_var(--border)] hover:z-50 focus-within:z-50 z-10">
                     <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity duration-150">
-                      {onAssign && (
+                      {onApprove && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onAssign(item)}
-                          title="Assign to Caller"
-                          className="h-7 w-7 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+                          onClick={() => onApprove(item)}
+                          title="Mark as Qualified"
+                          className="h-7 w-7 text-accent-blue hover:text-accent-blue hover:bg-accent-blue/10"
                         >
-                          <Users size={14} />
+                          <CheckCircle size={14} />
                         </Button>
                       )}
-                      {onView && (
+                      {onReject && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onView(item)}
-                          title="View Details"
-                          className="h-7 w-7 text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10"
+                          onClick={() => onReject(item)}
+                          title="Mark as Rejected"
+                          className="h-7 w-7 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
                         >
-                          <ExternalLink size={14} />
+                          <XCircle size={14} />
                         </Button>
                       )}
-                      {onEdit && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onEdit(item)}
-                          title="Edit"
-                          className="h-7 w-7 text-text-secondary hover:text-accent-blue hover:bg-accent-blue/10"
-                        >
-                          <Edit2 size={14} />
-                        </Button>
-                      )}
-                      {onDelete && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onDelete(item)}
-                          title="Delete"
-                          className="h-7 w-7 text-rose-400 hover:text-rose-500 hover:bg-rose-500/10"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
+                      {(onAssign || onView || onEdit || onDelete) && (
+                        <ActionDropdown>
+                          {onAssign && (
+                            <button
+                              onClick={() => onAssign(item)}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-background transition-colors text-left"
+                            >
+                              <Users size={14} className="text-emerald-500" /> Assign
+                            </button>
+                          )}
+                          {onView && (
+                            <button
+                              onClick={() => onView(item)}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-background transition-colors text-left"
+                            >
+                              <ExternalLink size={14} className="text-accent-blue" /> View Details
+                            </button>
+                          )}
+                          {onEdit && (
+                            <button
+                              onClick={() => onEdit(item)}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-primary hover:bg-background transition-colors text-left"
+                            >
+                              <Edit2 size={14} className="text-text-secondary" /> Edit
+                            </button>
+                          )}
+                          {onDelete && (
+                            <button
+                              onClick={() => onDelete(item)}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-500 hover:bg-rose-500/10 transition-colors text-left"
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          )}
+                        </ActionDropdown>
                       )}
                     </div>
                   </td>
@@ -153,6 +171,51 @@ export function DataTable<T extends { id: string | number }>({
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function ActionDropdown({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false);
+  const [openUpwards, setOpenUpwards] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpwards(spaceBelow < 160);
+    }
+    setOpen(!open);
+  };
+
+  return (
+    <div className="relative inline-block text-left" ref={ref}>
+      <button
+        onClick={toggleOpen}
+        className="h-7 w-7 rounded-md flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-background transition-colors border border-border"
+      >
+        <MoreVertical size={14} />
+      </button>
+      {open && (
+        <div className={cn(
+          "absolute right-0 w-40 rounded-md bg-surface border border-border shadow-lg z-50 py-1 flex flex-col items-stretch overflow-hidden",
+          openUpwards ? "bottom-full mb-1" : "top-full mt-1"
+        )}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }

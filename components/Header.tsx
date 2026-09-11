@@ -2,6 +2,7 @@
 
 import { useAuth } from '../hooks/useAuth';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X, Sun, Moon, Phone } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -14,7 +15,7 @@ export default function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
 
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/gx91b')) {
     return null;
   }
 
@@ -22,7 +23,6 @@ export default function Header() {
     { label: 'Services', href: '#services' },
     { label: 'Portfolio', href: '#portfolio' },
     { label: 'Process', href: '#process' },
-    { label: 'Pricing', href: '#packages' },
     { label: 'About Us', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ];
@@ -39,9 +39,14 @@ export default function Header() {
         {/* Left: Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="flex items-center justify-center">
-            <span className="text-xl sm:text-2xl font-black italic tracking-tighter text-blue-500 font-sans">
-              BM
-            </span>
+            <Image
+              src="/bm-glow.png"
+              alt="Brothers Mediatech Logo"
+              width={36}
+              height={36}
+              className="object-contain drop-shadow-[0_0_6px_rgba(37,99,235,0.7)] group-hover:drop-shadow-[0_0_12px_rgba(37,99,235,1)] transition-all duration-300"
+              priority
+            />
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-sm sm:text-base font-extrabold tracking-tight text-white font-heading">
@@ -95,7 +100,7 @@ export default function Header() {
           ) : isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="relative overflow-hidden bg-gradient-to-r from-accent-blue to-rose-600 hover:from-rose-600 hover:to-accent-blue text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(219,53,69,0.4)] group ml-1"
+              className="relative overflow-hidden bg-gradient-to-r from-sky-400 to-blue-700 hover:from-blue-700 hover:to-sky-400 text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.45)] group ml-1"
               data-cursor-badge="dashboard"
             >
               <span className="relative z-10">Dashboard</span>
@@ -103,7 +108,7 @@ export default function Header() {
           ) : (
             <a
               href="#process"
-              className="relative overflow-hidden bg-gradient-to-r from-accent-blue to-rose-600 hover:from-rose-600 hover:to-accent-blue text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(219,53,69,0.4)] group ml-1"
+              className="relative overflow-hidden bg-gradient-to-r from-sky-400 to-blue-700 hover:from-blue-700 hover:to-sky-400 text-white px-5 py-2 text-[13px] font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.45)] group ml-1"
               data-cursor-badge="talk"
             >
               <span className="relative z-10">Start Project</span>
@@ -150,7 +155,7 @@ export default function Header() {
           <a
             href="#process"
             onClick={() => setMobileMenuOpen(false)}
-            className="block text-center bg-gradient-to-r from-accent-blue to-rose-600 text-white px-5 py-3 text-base font-bold mt-4 rounded-xl shadow-[0_0_20px_rgba(219,53,69,0.4)]"
+            className="block text-center bg-gradient-to-r from-sky-400 to-blue-700 text-white px-5 py-3 text-base font-bold mt-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.45)]"
           >
             Start Project
           </a>

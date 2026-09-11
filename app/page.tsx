@@ -3,8 +3,6 @@
 import IntroPreloader from '@/components/IntroPreloader';
 import Hero from '@/components/Hero';
 import Portfolio from '@/components/Portfolio';
-import Packages from '@/components/Packages';
-import Maintenance from '@/components/Maintenance';
 import Process from '@/components/Process';
 import About from '@/components/About';
 import Contact from '@/components/Contact';
@@ -62,8 +60,6 @@ export default function Home() {
       <TechSlider />
       <GrowthStage />
       <Portfolio />
-      <Packages />
-      <Maintenance />
       <Process />
       <About />
       <Contact />
@@ -179,10 +175,10 @@ export default function Home() {
                   {s?.contact_email || 'brothersmediatech@gmail.com'}
                 </li>
                 <li className="text-sm text-text-secondary">
-                  {s?.contact_phone || '+91 77788-64972'}
+                  {'+91 63538-32814'}
                 </li>
                 <li className="text-sm text-text-secondary">
-                  Mon – Fri, 10 AM – 7 PM IST
+                  Mon - Fri, 10 AM - 7 PM IST
                 </li>
               </ul>
             </div>

@@ -7,41 +7,87 @@ import {
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
-// Initial Industry Mapping
-// Mapping generic strategy industries to OSM tags
-const INDUSTRY_MAPPING: Record<string, string> = {
-  // Fitness
-  fitness: '["leisure"="fitness_centre"]',
-  gym: '["leisure"="fitness_centre"]',
-  gyms: '["leisure"="fitness_centre"]',
-  'fitness center': '["leisure"="fitness_centre"]',
-  'fitness centre': '["leisure"="fitness_centre"]',
-  'fitness business': '["leisure"="fitness_centre"]',
-  // Cafe / Coffee
-  cafe: '["amenity"="cafe"]',
-  cafes: '["amenity"="cafe"]',
-  café: '["amenity"="cafe"]',
-  'café growth': '["amenity"="cafe"]',
-  'coffee shop': '["amenity"="cafe"]',
-  coffee: '["amenity"="cafe"]',
-  // Restaurant / Food
-  restaurant: '["amenity"="restaurant"]',
-  restaurants: '["amenity"="restaurant"]',
-  food: '["amenity"="restaurant"]',
-  // Bridal / Wedding
-  bridal: '["shop"="wedding"]',
-  wedding: '["shop"="wedding"]',
-  'bridal shop': '["shop"="wedding"]',
-  'wedding shop': '["shop"="wedding"]',
-  'bridal & wedding': '["shop"="wedding"]',
-  'bridal business': '["shop"="wedding"]',
-  // Salon / Beauty
-  salon: '["shop"="hairdresser"]',
-  'hair salon': '["shop"="hairdresser"]',
-  'beauty salon': '["shop"="beauty"]',
-  beauty: '["shop"="beauty"]',
-  spa: '["leisure"="spa"]',
-};
+// Helper for regex escaping
+const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+type ConceptType = 'subject' | 'modifier';
+
+interface Concept {
+  id: string;
+  type: ConceptType;
+  aliases: string[];
+  tags: string[];
+}
+
+const CONCEPT_DICTIONARY: Concept[] = [
+  // Modifiers
+  { id: 'wedding', type: 'modifier', aliases: ['wedding', 'weddings', 'bridal', 'bride', 'marriage', 'matrimonial'], tags: ['["shop"="wedding"]'] },
+  { id: 'personal', type: 'modifier', aliases: ['personal', 'private', 'custom', 'boutique', 'luxury'], tags: [] },
+
+  // Subjects
+  { id: 'photography', type: 'subject', aliases: ['photography', 'photographer', 'photographers', 'photo', 'photos'], tags: ['["shop"="photo"]', '["shop"="photo_studio"]', '["craft"="photographer"]'] },
+  { id: 'makeup', type: 'subject', aliases: ['makeup', 'cosmetics', 'mua', 'aesthetic', 'aesthetics', 'beauty'], tags: ['["shop"="beauty"]', '["shop"="cosmetics"]'] },
+  { id: 'salon', type: 'subject', aliases: ['salon', 'salons', 'hair', 'hairdresser', 'barber'], tags: ['["shop"="hairdresser"]'] },
+  { id: 'spa', type: 'subject', aliases: ['spa', 'spas'], tags: ['["leisure"="spa"]'] },
+  { id: 'venue', type: 'subject', aliases: ['venue', 'venues', 'banquet', 'hall', 'resort', 'hotel'], tags: ['["amenity"="events_venue"]', '["tourism"="hotel"]'] },
+  { id: 'planner', type: 'subject', aliases: ['planner', 'planners', 'planning', 'management', 'coordinator'], tags: ['["office"="event_management"]', '["office"="wedding_planner"]'] },
+  { id: 'training', type: 'subject', aliases: ['training', 'trainer', 'trainers', 'coach', 'fitness', 'gym', 'gyms', 'crossfit', 'workout'], tags: ['["leisure"="fitness_centre"]', '["sport"="fitness"]'] },
+  { id: 'yoga', type: 'subject', aliases: ['yoga'], tags: ['["sport"="yoga"]'] },
+  { id: 'pilates', type: 'subject', aliases: ['pilates'], tags: ['["sport"="pilates"]'] },
+  { id: 'cafe', type: 'subject', aliases: ['cafe', 'cafes', 'coffee', 'coffeehouse', 'coffeehouses', 'espresso'], tags: ['["amenity"="cafe"]'] },
+  { id: 'bakery', type: 'subject', aliases: ['bakery', 'bakeries', 'bake'], tags: ['["shop"="bakery"]'] },
+  { id: 'generic_store', type: 'subject', aliases: ['studio', 'studios', 'shop', 'shops', 'boutique', 'boutiques', 'store', 'stores', 'center', 'centers', 'centre', 'centres'], tags: [] },
+];
+
+function resolveIndustry(industry: string) {
+  const normalized = industry.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  const tokens = normalized.split(/\s+/).filter(t => t.length > 2);
+  
+  const matchedSubjects = new Map<string, Concept>();
+  const matchedModifiers = new Map<string, Concept>();
+
+  for (const token of tokens) {
+    for (const concept of CONCEPT_DICTIONARY) {
+      if (concept.aliases.includes(token)) {
+        if (concept.type === 'subject') {
+          matchedSubjects.set(concept.id, concept);
+        } else {
+          matchedModifiers.set(concept.id, concept);
+        }
+      }
+    }
+  }
+
+  let resolvedTags = new Set<string>();
+  const hasGenericSubject = matchedSubjects.has('generic_store');
+
+  if (matchedSubjects.size > 0) {
+    for (const subject of matchedSubjects.values()) {
+      for (const tag of subject.tags) resolvedTags.add(tag);
+    }
+    // If no subject tags, try to inherit modifier tags
+    if (resolvedTags.size === 0 && hasGenericSubject) {
+      for (const modifier of matchedModifiers.values()) {
+        for (const tag of modifier.tags) resolvedTags.add(tag);
+      }
+    }
+  }
+
+  let fallbackNameSearch: string | null = null;
+  if (resolvedTags.size === 0 && tokens.length > 0) {
+    const exactPhrase = escapeRegExp(normalized.replace(/\s+/g, ' ').trim());
+    fallbackNameSearch = `["name"~"${exactPhrase}", i]`;
+  }
+
+  return {
+    original: industry,
+    tokens,
+    subjects: Array.from(matchedSubjects.keys()),
+    modifiers: Array.from(matchedModifiers.keys()),
+    tags: Array.from(resolvedTags),
+    fallbackNameSearch
+  };
+}
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
   name = 'openstreetmap';
@@ -63,12 +109,18 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
 
     // Use the explicitly provided industry or fallback to the first one
     const rawIndustry = (options?.industry || strategy.target_industries[0]).toLowerCase().trim();
-    const tagQuery = INDUSTRY_MAPPING[rawIndustry];
+    
+    const resolution = resolveIndustry(rawIndustry);
 
-    if (!tagQuery) {
-      throw new Error(
-        `OSM Provider does not currently support mapping for industry: '${rawIndustry}'`,
+    console.log(
+      `[OSM Provider] Resolved industry '${rawIndustry}' -> Subjects: [${resolution.subjects.join(', ')}], Modifiers: [${resolution.modifiers.join(', ')}], Tags: ${resolution.tags.length}`
+    );
+
+    if (resolution.tags.length === 0 && !resolution.fallbackNameSearch) {
+      console.warn(
+        `[OSM Provider] Unable to confidently resolve industry: '${rawIndustry}'. Returning empty to avoid excessive load.`,
       );
+      return [];
     }
 
     const city = options?.city || strategy.target_cities?.[0] || '';
@@ -92,13 +144,26 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       searchArea = '(area.searchArea)';
     }
 
+    let tagUnion = '';
+    for (const tag of resolution.tags) {
+      tagUnion += `
+        node${tag}${searchArea};
+        way${tag}${searchArea};
+        relation${tag}${searchArea};`;
+    }
+
+    // Add fallback name search if available
+    if (resolution.fallbackNameSearch) {
+      tagUnion += `
+        node${resolution.fallbackNameSearch}${searchArea};
+        way${resolution.fallbackNameSearch}${searchArea};
+        relation${resolution.fallbackNameSearch}${searchArea};`;
+    }
+
     const query = `
       [out:json][timeout:25];
       ${areaQuery}
-      (
-        node${tagQuery}${searchArea};
-        way${tagQuery}${searchArea};
-        relation${tagQuery}${searchArea};
+      (${tagUnion}
       );
       out center ${limit};
     `;
@@ -125,7 +190,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       return [];
     }
 
-    const results: DiscoveryResult[] = data.elements.map((el: any) => {
+    const results: DiscoveryResult[] = data.elements.map((el: { type: string; id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }) => {
       const tags = el.tags || {};
       const elCity = tags['addr:city'] || '';
       const elCountry = tags['addr:country'] || '';

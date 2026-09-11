@@ -77,7 +77,7 @@ export default function TechSlider() {
               </div>
 
               {/* Red Square Separator Dot matching UniQual */}
-              <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 bg-rose-600 inline-block mx-10 sm:mx-14 md:mx-18 shrink-0 shadow-md rotate-45" />
+              <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 bg-blue-500 inline-block mx-10 sm:mx-14 md:mx-18 shrink-0 shadow-md rotate-45" />
             </React.Fragment>
           );
         })}

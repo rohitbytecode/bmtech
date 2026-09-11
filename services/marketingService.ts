@@ -323,7 +323,7 @@ export const marketingService = {
       let newStatus = 'discovered';
       if (outcome === 'interested') newStatus = 'qualified';
       else if (outcome === 'not_interested' || outcome === 'invalid_number') newStatus = 'rejected';
-      else if (outcome === 'callback_required' || outcome === 'no_answer') newStatus = 'callback';
+      else if (outcome === 'callback_required' || outcome === 'no_answer') newStatus = 'callback_required';
 
       // 3. Update the prospect status
       const { error: prospectError } = await supabase
@@ -369,7 +369,7 @@ export const marketingService = {
         supabase.from('prospects').select('*', { count: 'exact', head: true }),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'discovered'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'assigned'),
-        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'callback'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'callback_required'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'qualified'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
         supabase.from('call_attempts').select('*', { count: 'exact', head: true })
@@ -395,6 +395,152 @@ export const marketingService = {
     } catch (error: any) {
       console.error('Failed to load marketing stats:', error);
       return { data: null, error: error.message };
+    }
+  },
+
+  // --------------------------------------------------------
+  // GEOGRAPHIC AGGREGATION & REPORTS
+  // --------------------------------------------------------
+  async getProspectsByGeography(filters?: {
+    status?: string;
+    sales_priority?: string;
+    search?: string;
+  }) {
+    try {
+      let query = supabase
+        .from('prospects')
+        .select('*')
+        .order('country', { ascending: true });
+
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.sales_priority) query = query.eq('sales_priority', filters.sales_priority);
+      if (filters?.search) {
+        query = query.or(`business_name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,website.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const prospects = data as Prospect[];
+
+      // Build hierarchy: country → state → city → prospects[]
+      const hierarchy: Record<string, {
+        count: number;
+        states: Record<string, {
+          count: number;
+          cities: Record<string, {
+            count: number;
+            prospects: Prospect[];
+          }>;
+        }>;
+        statusBreakdown: Record<string, number>;
+        avgOpportunityScore: number;
+      }> = {};
+
+      for (const p of prospects) {
+        const country = p.country || 'Unknown';
+        const state = p.state_region || 'Unknown';
+        const city = p.city || 'Unknown';
+
+        if (!hierarchy[country]) {
+          hierarchy[country] = { count: 0, states: {}, statusBreakdown: {}, avgOpportunityScore: 0 };
+        }
+        hierarchy[country].count++;
+        hierarchy[country].statusBreakdown[p.status] = (hierarchy[country].statusBreakdown[p.status] || 0) + 1;
+
+        if (!hierarchy[country].states[state]) {
+          hierarchy[country].states[state] = { count: 0, cities: {} };
+        }
+        hierarchy[country].states[state].count++;
+
+        if (!hierarchy[country].states[state].cities[city]) {
+          hierarchy[country].states[state].cities[city] = { count: 0, prospects: [] };
+        }
+        hierarchy[country].states[state].cities[city].count++;
+        hierarchy[country].states[state].cities[city].prospects.push(p);
+      }
+
+      // Calculate avg opportunity scores per country
+      for (const country of Object.keys(hierarchy)) {
+        const allProspects = Object.values(hierarchy[country].states)
+          .flatMap(s => Object.values(s.cities).flatMap(c => c.prospects));
+        const scores = allProspects.filter(p => p.opportunity_score != null).map(p => p.opportunity_score!);
+        hierarchy[country].avgOpportunityScore = scores.length > 0
+          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+          : 0;
+      }
+
+      return { data: hierarchy, total: prospects.length, error: null };
+    } catch (error: any) {
+      console.error('getProspectsByGeography error:', error);
+      return { data: {}, total: 0, error: error.message };
+    }
+  },
+
+  async getCustomReportData(
+    groupBy: 'country' | 'state_region' | 'city' | 'industry' | 'status' | 'sales_priority',
+    filters?: {
+      status?: string;
+      sales_priority?: string;
+      country?: string;
+      search?: string;
+    }
+  ) {
+    try {
+      let query = supabase
+        .from('prospects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.sales_priority) query = query.eq('sales_priority', filters.sales_priority);
+      if (filters?.country) query = query.ilike('country', `%${filters.country}%`);
+      if (filters?.search) {
+        query = query.or(`business_name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const prospects = data as Prospect[];
+
+      // Group by the selected field
+      const groups: Record<string, {
+        count: number;
+        avgOpportunityScore: number;
+        avgDataQuality: number;
+        statusBreakdown: Record<string, number>;
+        prospects: Prospect[];
+      }> = {};
+
+      for (const p of prospects) {
+        const key = String((p as any)[groupBy] || 'Unknown');
+
+        if (!groups[key]) {
+          groups[key] = { count: 0, avgOpportunityScore: 0, avgDataQuality: 0, statusBreakdown: {}, prospects: [] };
+        }
+        groups[key].count++;
+        groups[key].statusBreakdown[p.status] = (groups[key].statusBreakdown[p.status] || 0) + 1;
+        groups[key].prospects.push(p);
+      }
+
+      // Calculate averages
+      for (const key of Object.keys(groups)) {
+        const g = groups[key];
+        const oppScores = g.prospects.filter(p => p.opportunity_score != null).map(p => p.opportunity_score!);
+        const dqScores = g.prospects.filter(p => p.data_quality_score != null).map(p => p.data_quality_score!);
+        g.avgOpportunityScore = oppScores.length > 0
+          ? Math.round(oppScores.reduce((a, b) => a + b, 0) / oppScores.length)
+          : 0;
+        g.avgDataQuality = dqScores.length > 0
+          ? Math.round(dqScores.reduce((a, b) => a + b, 0) / dqScores.length)
+          : 0;
+      }
+
+      return { data: groups, total: prospects.length, error: null };
+    } catch (error: any) {
+      console.error('getCustomReportData error:', error);
+      return { data: {}, total: 0, error: error.message };
     }
   },
 

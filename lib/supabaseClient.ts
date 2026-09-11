@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Use Next.js rewrite proxy on the client to hide the real Supabase URL from the browser console
 const supabaseUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/db` : process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
