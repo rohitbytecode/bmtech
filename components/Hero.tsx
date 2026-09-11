@@ -222,31 +222,33 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Right Column: idom.png 3D Glass Knot Graphic */}
+        {/* Right Column: bm-glow.png 3D Logo Graphic */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.2 }}
-          className="lg:col-span-5 relative flex items-center justify-center"
+          className="lg:col-span-5 relative flex items-center justify-center [perspective:1000px]"
         >
           <motion.div
             animate={{
-              y: [0, -14, 0],
-              rotate: [0, 2, 0],
+              y: [0, -20, 0],
+              rotateZ: [-1, 2, -1],
+              rotateX: [0, 8, 0],
+              rotateY: [0, 15, 0],
             }}
             transition={{
-              duration: 6,
+              duration: 8,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className="relative w-full max-w-[420px] aspect-square flex items-center justify-center transform-gpu will-change-transform"
+            className="relative w-full max-w-[280px] aspect-square flex items-center justify-center transform-gpu will-change-transform mx-auto"
           >
             <Image
-              src="/idom.png"
-              alt="3D Glass Ribbon Knot Graphic"
-              width={420}
-              height={420}
-              className="object-contain filter drop-shadow-[0_20px_35px_rgba(37,99,235,0.2)]"
+              src="/bm-glow.png"
+              alt="BMTech 3D Glowing Logo"
+              width={280}
+              height={280}
+              className="object-contain filter drop-shadow-[0_0_50px_rgba(56,189,248,0.5)] drop-shadow-[0_20px_30px_rgba(0,0,0,0.4)]"
               priority
             />
           </motion.div>
