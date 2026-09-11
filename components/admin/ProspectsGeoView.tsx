@@ -7,41 +7,66 @@ import type { Prospect } from '@/types/marketing';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 
-// Country flag emoji map (common ones)
-const countryFlags: Record<string, string> = {
-  'United States': '🇺🇸', 'USA': '🇺🇸', 'US': '🇺🇸',
-  'United Kingdom': '🇬🇧', 'UK': '🇬🇧', 'GB': '🇬🇧',
-  'Canada': '🇨🇦', 'CA': '🇨🇦',
-  'Australia': '🇦🇺', 'AU': '🇦🇺',
-  'India': '🇮🇳', 'IN': '🇮🇳',
-  'Germany': '🇩🇪', 'DE': '🇩🇪',
-  'France': '🇫🇷', 'FR': '🇫🇷',
-  'Japan': '🇯🇵', 'JP': '🇯🇵',
-  'Brazil': '🇧🇷', 'BR': '🇧🇷',
-  'Mexico': '🇲🇽', 'MX': '🇲🇽',
-  'Spain': '🇪🇸', 'ES': '🇪🇸',
-  'Italy': '🇮🇹', 'IT': '🇮🇹',
-  'Netherlands': '🇳🇱', 'NL': '🇳🇱',
-  'Singapore': '🇸🇬', 'SG': '🇸🇬',
-  'UAE': '🇦🇪', 'United Arab Emirates': '🇦🇪',
-  'South Africa': '🇿🇦', 'ZA': '🇿🇦',
-  'China': '🇨🇳', 'CN': '🇨🇳',
-  'South Korea': '🇰🇷', 'KR': '🇰🇷',
-  'Indonesia': '🇮🇩', 'ID': '🇮🇩',
-  'Philippines': '🇵🇭', 'PH': '🇵🇭',
-  'Thailand': '🇹🇭', 'TH': '🇹🇭',
-  'Vietnam': '🇻🇳', 'VN': '🇻🇳',
-  'Pakistan': '🇵🇰', 'PK': '🇵🇰',
-  'Bangladesh': '🇧🇩', 'BD': '🇧🇩',
-  'Nigeria': '🇳🇬', 'NG': '🇳🇬',
-  'Egypt': '🇪🇬', 'EG': '🇪🇬',
-  'Russia': '🇷🇺', 'RU': '🇷🇺',
-  'Turkey': '🇹🇷', 'TR': '🇹🇷',
-  'Saudi Arabia': '🇸🇦', 'SA': '🇸🇦',
-  'Unknown': '🌐',
+// Country ISO 2-letter codes for flagcdn
+const countryCodes: Record<string, string> = {
+  'United States': 'us', 'USA': 'us', 'US': 'us',
+  'United Kingdom': 'gb', 'UK': 'gb', 'GB': 'gb',
+  'Canada': 'ca', 'CA': 'ca',
+  'Australia': 'au', 'AU': 'au',
+  'India': 'in', 'IN': 'in',
+  'Germany': 'de', 'DE': 'de',
+  'France': 'fr', 'FR': 'fr',
+  'Japan': 'jp', 'JP': 'jp',
+  'Brazil': 'br', 'BR': 'br',
+  'Mexico': 'mx', 'MX': 'mx',
+  'Spain': 'es', 'ES': 'es',
+  'Italy': 'it', 'IT': 'it',
+  'Netherlands': 'nl', 'NL': 'nl',
+  'Singapore': 'sg', 'SG': 'sg',
+  'UAE': 'ae', 'United Arab Emirates': 'ae',
+  'South Africa': 'za', 'ZA': 'za',
+  'China': 'cn', 'CN': 'cn',
+  'South Korea': 'kr', 'KR': 'kr',
+  'Indonesia': 'id', 'ID': 'id',
+  'Philippines': 'ph', 'PH': 'ph',
+  'Thailand': 'th', 'TH': 'th',
+  'Vietnam': 'vn', 'VN': 'vn',
+  'Pakistan': 'pk', 'PK': 'pk',
+  'Bangladesh': 'bd', 'BD': 'bd',
+  'Nigeria': 'ng', 'NG': 'ng',
+  'Egypt': 'eg', 'EG': 'eg',
+  'Russia': 'ru', 'RU': 'ru',
+  'Turkey': 'tr', 'TR': 'tr',
+  'Saudi Arabia': 'sa', 'SA': 'sa',
 };
 
-const getFlag = (country: string) => countryFlags[country] || '🏳️';
+function CountryFlag({ country, className }: { country: string; className?: string }) {
+  if (country === 'Unknown') {
+    return (
+      <div className={cn("flex items-center justify-center text-accent-blue bg-accent-blue/10 rounded-full", className)}>
+        <Globe size={18} />
+      </div>
+    );
+  }
+
+  const code = countryCodes[country];
+  if (!code) {
+    return (
+      <div className={cn("flex items-center justify-center text-text-secondary bg-surface border border-border rounded-sm", className)}>
+        <MapPin size={16} />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={`https://flagcdn.com/${code}.svg`}
+      alt={`${country} flag`}
+      className={cn("object-cover rounded-sm border border-border/50", className)}
+      loading="lazy"
+    />
+  );
+}
 
 const statusColors: Record<string, { bg: string; text: string; bar: string }> = {
   discovered: { bg: 'bg-amber-500/10', text: 'text-amber-500', bar: 'bg-amber-500' },
@@ -173,7 +198,7 @@ function CountryCard({
         className="w-full text-left p-5 group"
       >
         <div className="flex items-center gap-3 mb-2">
-          <div className="text-2xl shrink-0">{getFlag(country)}</div>
+          <CountryFlag country={country} className="w-8 h-8" />
           <h3 className="text-lg font-bold text-text-primary tracking-tight truncate flex-1">
             {country}
           </h3>
