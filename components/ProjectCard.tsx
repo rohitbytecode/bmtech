@@ -33,13 +33,14 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
 
     const rect = container.getBoundingClientRect();
     const vh = window.innerHeight;
+    const cardCenter = rect.top + rect.height / 2;
 
-    // Start revealing when the card is already inside the viewport (not the very edge).
-    // Fully revealed when the top of the thumbnail reaches 25% from the top.
-    const startY = vh * 0.55;    // element top at 55% viewport height → 0% revealed
-    const endY = vh * 0.1;       // element top at 10% viewport height → 100% revealed
+    // Start revealing when the card's center is at 75% of the viewport.
+    // Fully revealed when the card's center reaches the exact middle of the screen.
+    const startY = vh * 0.75;
+    const endY = vh * 0.5;
 
-    const progress = Math.min(1, Math.max(0, (startY - rect.top) / (startY - endY)));
+    const progress = Math.min(1, Math.max(0, (startY - cardCenter) / (startY - endY)));
     const clipPercent = (1 - progress) * 100;
 
     imageLayer.style.clipPath = `inset(${clipPercent}% 0 0 0)`;
@@ -69,37 +70,27 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
 
   return (
     <div
-      className="group rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-accent-blue/50 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.01]"
+      className="group rounded-xl overflow-hidden bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm hover:shadow-md transition-shadow duration-300"
       onClick={() => setActive(!active)}
     >
-      <div ref={thumbRef} className="relative h-48 sm:h-64 md:h-72 w-full overflow-hidden">
-        {/* ── Layer 0: Branded BMTech placeholder (sits behind image) ── */}
-        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center">
-          {/* Shimmer base */}
+      <div ref={thumbRef} className="relative h-40 sm:h-44 md:h-48 w-full overflow-hidden">
+        {/* ── Placeholder (sits behind image) ── */}
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800">
           <div className="animate-shimmer absolute inset-0" />
-          {/* Subtle diagonal texture */}
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(135deg, currentColor 0px, currentColor 1px, transparent 1px, transparent 12px)',
-            }}
-          />
-          {/* Monogram mark */}
-          <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-2xl bg-accent-blue/10 border border-accent-blue/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-accent-blue/5">
-              <span className="text-3xl font-extrabold tracking-tighter leading-none">
+          <div className="relative z-10 flex flex-col items-center gap-2">
+            <div className="w-14 h-14 rounded-xl bg-accent-blue/10 border border-accent-blue/20 flex items-center justify-center">
+              <span className="text-xl font-extrabold tracking-tighter leading-none">
                 <span className="text-slate-800 dark:text-white">B</span>
                 <span className="text-accent-blue">M</span>
               </span>
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
               BMTech
             </span>
           </div>
         </div>
 
-        {/* ── Layer 1: Real image — clip-path scrubbed by scroll ── */}
+        {/* ── Real image — clip-path scrubbed by scroll ── */}
         <div
           ref={imageLayerRef}
           className="absolute inset-0 z-10"
@@ -109,20 +100,15 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
             src={safeImageUrl}
             alt={title}
             fill
-            className={`
-              object-cover
-              ${active ? 'grayscale-0' : 'grayscale'}
-              group-hover:grayscale-0
-              transition-[filter] duration-500
-            `}
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </div>
 
-        {/* ── Layer 2: Hover overlay with Live Demo button ── */}
+        {/* ── Hover overlay with Live Demo button ── */}
         <div
           className={`
             absolute inset-0 z-20 flex items-center justify-center
-            bg-black/50 transition-opacity duration-300
+            bg-black/40 transition-opacity duration-200
             ${active ? 'opacity-100' : 'opacity-0'}
             group-hover:opacity-100
           `}
@@ -131,20 +117,20 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
             <Button
               variant="outline"
               size="sm"
-              className="bg-white/10 text-white backdrop-blur-md border-white/20 hover:bg-white/30 rounded-full px-6 py-2 transition-all hover:scale-105"
+              className="bg-white/10 text-white backdrop-blur-sm border-white/20 hover:bg-white/25 rounded-full px-5 py-1.5 text-sm transition-colors"
             >
-              Live Demo <ExternalLink className="ml-2 h-4 w-4" />
+              Live Demo <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </Button>
           </a>
         </div>
       </div>
 
-      {/* ── Card content — always visible ── */}
-      <div className="p-5">
-        <span className="text-xs font-bold text-accent-blue dark:text-rose-500 tracking-wider uppercase mb-1 block">
+      {/* ── Card content ── */}
+      <div className="px-4 py-3">
+        <span className="text-[11px] font-medium text-accent-blue dark:text-rose-400 tracking-wide uppercase mb-0.5 block">
           {category}
         </span>
-        <h4 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h4>
+        <h4 className="text-[15px] font-semibold text-slate-900 dark:text-white leading-snug">{title}</h4>
       </div>
     </div>
   );

@@ -10,10 +10,10 @@ export default function Portfolio() {
   return (
     <section
       id="portfolio"
-      className="py-16 md:py-20 px-6 sm:px-12 md:px-24 bg-background dark:bg-[#0b0f19] transition-colors duration-300"
+      className="py-12 md:py-16 px-6 sm:px-12 md:px-24 bg-background dark:bg-[#0b0f19] transition-colors duration-300"
     >
       <div className="max-w-7xl mx-auto">
-        <div className="mb-16 text-center">
+        <div className="mb-10 text-center">
           <h2 className="text-xl md:text-3xl font-extrabold mb-4 text-slate-900 dark:text-white">Our Masterpieces</h2>
           <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
             A small glimpse into the high-impact projects we've delivered for our partners.
@@ -24,7 +24,7 @@ export default function Portfolio() {
         {error && <p className="text-center text-red-500">Error: {error}</p>}
 
         {!loading && !error && projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {projects.map((project) => (
               <ProjectCard
                 key={project.id}
