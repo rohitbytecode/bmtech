@@ -79,8 +79,8 @@ export const DEFAULT_SETTINGS: Settings = {
   headline: 'We Handle Your Digital. You Grow Your Business.',
   description:
     'Partner with BMTech for world-class web development, graphics design, video production, IT infrastructure, and social media scaling. Your vision, our expertise.',
-  contact_email: 'contact@bmtech.in',
-  contact_phone: '+91 98765 43210',
+  contact_email: 'brothersmediatech@gmail.com',
+  contact_phone: '+91 63538 32814',
   about_text:
     'Brothers Mediatech (BMTech) is a full-service digital agency dedicated to helping businesses transform their digital presence through innovative technology, design, and marketing strategies.',
   email_alerts_enabled: true,
