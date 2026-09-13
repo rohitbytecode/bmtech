@@ -100,7 +100,11 @@ export default function ProjectCard({ title, category, image, link }: ProjectCar
             src={safeImageUrl}
             alt={title}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className={`
+              object-cover transition-all duration-300 group-hover:scale-[1.03]
+              ${active ? 'grayscale-0' : 'grayscale'}
+              group-hover:grayscale-0
+            `}
           />
         </div>
 
