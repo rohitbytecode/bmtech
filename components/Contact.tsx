@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Phone, Mail, Clock } from 'lucide-react';
+import { Phone, Mail, Clock, Lock } from 'lucide-react';
 import { Button } from './ui/Button';
 import { dataService, Settings } from '@/services/dataService';
 import { useData } from '@/hooks/useData';
@@ -258,8 +258,8 @@ export default function Contact() {
                   )}
                 </Button>
 
-                <p className="text-center text-xs text-text-secondary/70 mt-2">
-                  🔒 Your information is secure and never shared.
+                <p className="text-center text-xs text-text-secondary/70 mt-2 -mb-2 flex items-center justify-center gap-1">
+                  <Lock size={12} /> Your information is secure and never shared.
                 </p>
               </form>
             )}
