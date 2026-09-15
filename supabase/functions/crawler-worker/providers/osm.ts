@@ -4,89 +4,16 @@ import {
   DiscoveryResult,
   StrategyTargeting,
 } from '../discovery.ts';
+import { resolveCategory } from '../categories/resolver.ts';
+import { BoundingBox } from '../geo/resolver.ts';
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
 // Helper for regex escaping
 const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-type ConceptType = 'subject' | 'modifier';
-
-interface Concept {
-  id: string;
-  type: ConceptType;
-  aliases: string[];
-  tags: string[];
-}
-
-const CONCEPT_DICTIONARY: Concept[] = [
-  // Modifiers
-  { id: 'wedding', type: 'modifier', aliases: ['wedding', 'weddings', 'bridal', 'bride', 'marriage', 'matrimonial'], tags: ['["shop"="wedding"]'] },
-  { id: 'personal', type: 'modifier', aliases: ['personal', 'private', 'custom', 'boutique', 'luxury'], tags: [] },
-
-  // Subjects
-  { id: 'photography', type: 'subject', aliases: ['photography', 'photographer', 'photographers', 'photo', 'photos'], tags: ['["shop"="photo"]', '["shop"="photo_studio"]', '["craft"="photographer"]'] },
-  { id: 'makeup', type: 'subject', aliases: ['makeup', 'cosmetics', 'mua', 'aesthetic', 'aesthetics', 'beauty'], tags: ['["shop"="beauty"]', '["shop"="cosmetics"]'] },
-  { id: 'salon', type: 'subject', aliases: ['salon', 'salons', 'hair', 'hairdresser', 'barber'], tags: ['["shop"="hairdresser"]'] },
-  { id: 'spa', type: 'subject', aliases: ['spa', 'spas'], tags: ['["leisure"="spa"]'] },
-  { id: 'venue', type: 'subject', aliases: ['venue', 'venues', 'banquet', 'hall', 'resort', 'hotel'], tags: ['["amenity"="events_venue"]', '["tourism"="hotel"]'] },
-  { id: 'planner', type: 'subject', aliases: ['planner', 'planners', 'planning', 'management', 'coordinator'], tags: ['["office"="event_management"]', '["office"="wedding_planner"]'] },
-  { id: 'training', type: 'subject', aliases: ['training', 'trainer', 'trainers', 'coach', 'fitness', 'gym', 'gyms', 'crossfit', 'workout'], tags: ['["leisure"="fitness_centre"]', '["sport"="fitness"]'] },
-  { id: 'yoga', type: 'subject', aliases: ['yoga'], tags: ['["sport"="yoga"]'] },
-  { id: 'pilates', type: 'subject', aliases: ['pilates'], tags: ['["sport"="pilates"]'] },
-  { id: 'cafe', type: 'subject', aliases: ['cafe', 'cafes', 'coffee', 'coffeehouse', 'coffeehouses', 'espresso'], tags: ['["amenity"="cafe"]'] },
-  { id: 'bakery', type: 'subject', aliases: ['bakery', 'bakeries', 'bake'], tags: ['["shop"="bakery"]'] },
-  { id: 'generic_store', type: 'subject', aliases: ['studio', 'studios', 'shop', 'shops', 'boutique', 'boutiques', 'store', 'stores', 'center', 'centers', 'centre', 'centres'], tags: [] },
-];
-
-function resolveIndustry(industry: string) {
-  const normalized = industry.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
-  const tokens = normalized.split(/\s+/).filter(t => t.length > 2);
-  
-  const matchedSubjects = new Map<string, Concept>();
-  const matchedModifiers = new Map<string, Concept>();
-
-  for (const token of tokens) {
-    for (const concept of CONCEPT_DICTIONARY) {
-      if (concept.aliases.includes(token)) {
-        if (concept.type === 'subject') {
-          matchedSubjects.set(concept.id, concept);
-        } else {
-          matchedModifiers.set(concept.id, concept);
-        }
-      }
-    }
-  }
-
-  let resolvedTags = new Set<string>();
-  const hasGenericSubject = matchedSubjects.has('generic_store');
-
-  if (matchedSubjects.size > 0) {
-    for (const subject of matchedSubjects.values()) {
-      for (const tag of subject.tags) resolvedTags.add(tag);
-    }
-    // If no subject tags, try to inherit modifier tags
-    if (resolvedTags.size === 0 && hasGenericSubject) {
-      for (const modifier of matchedModifiers.values()) {
-        for (const tag of modifier.tags) resolvedTags.add(tag);
-      }
-    }
-  }
-
-  let fallbackNameSearch: string | null = null;
-  if (resolvedTags.size === 0 && tokens.length > 0) {
-    const exactPhrase = escapeRegExp(normalized.replace(/\s+/g, ' ').trim());
-    fallbackNameSearch = `["name"~"${exactPhrase}", i]`;
-  }
-
-  return {
-    original: industry,
-    tokens,
-    subjects: Array.from(matchedSubjects.keys()),
-    modifiers: Array.from(matchedModifiers.keys()),
-    tags: Array.from(resolvedTags),
-    fallbackNameSearch
-  };
+export interface OSMDiscoveryOptions extends DiscoveryOptions {
+  boundingBox?: BoundingBox;
 }
 
 export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
@@ -94,33 +21,31 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
 
   async discover(
     strategy: StrategyTargeting,
-    options?: DiscoveryOptions,
+    options?: OSMDiscoveryOptions,
   ): Promise<DiscoveryResult[]> {
-    const limit = options?.limit || 100;
+    // We don't strictly enforce a limit for grid-based searches anymore, 
+    // but keep a reasonable safeguard.
+    const limit = options?.limit || 500;
 
-    // We expect at least one industry and one city/country to target for OSM.
     if (!strategy.target_industries?.length) {
       throw new Error('OSM Provider requires at least one target industry.');
     }
 
-    if (!strategy.target_cities?.length && !strategy.target_countries?.length) {
-      throw new Error('OSM Provider requires at least one target city or country.');
-    }
-
-    // Use the explicitly provided industry or fallback to the first one
     const rawIndustry = (options?.industry || strategy.target_industries[0]).toLowerCase().trim();
-    
-    const resolution = resolveIndustry(rawIndustry);
+    const category = resolveCategory(rawIndustry);
 
+    const osmTags = category.providers.osm?.osmTags || [];
+    
     console.log(
-      `[OSM Provider] Resolved industry '${rawIndustry}' -> Subjects: [${resolution.subjects.join(', ')}], Modifiers: [${resolution.modifiers.join(', ')}], Tags: ${resolution.tags.length}`
+      `[OSM Provider] Resolved industry '${rawIndustry}' -> Canonical: ${category.canonicalName}, Tags: ${osmTags.length}`
     );
 
-    if (resolution.tags.length === 0 && !resolution.fallbackNameSearch) {
-      console.warn(
-        `[OSM Provider] Unable to confidently resolve industry: '${rawIndustry}'. Returning empty to avoid excessive load.`,
+    const fallbackNameSearch = `["name"~"${escapeRegExp(rawIndustry)}", i]`;
+
+    if (osmTags.length === 0 && category.id === 'generic_business') {
+       console.warn(
+        `[OSM Provider] Unable to confidently resolve industry: '${rawIndustry}'. Will use fallback name search.`
       );
-      return [];
     }
 
     const city = options?.city || strategy.target_cities?.[0] || '';
@@ -129,35 +54,42 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     let areaQuery = '';
     let searchArea = '';
 
-    if (country && city) {
-      // Intersect country area with city area to ensure we only get cities in that country
-      areaQuery = `
-        area["name"="${country}"]->.country;
-        area["name"="${city}"]->.city;
-      `;
-      searchArea = '(area.city)(area.country)';
-    } else if (city) {
-      areaQuery = `area["name"="${city}"]->.searchArea;`;
-      searchArea = '(area.searchArea)';
-    } else if (country) {
-      areaQuery = `area["name"="${country}"]->.searchArea;`;
-      searchArea = '(area.searchArea)';
+    // If bounding box is provided, use bbox filtering instead of area intersection
+    if (options?.boundingBox) {
+      const { south, west, north, east } = options.boundingBox;
+      searchArea = `(${south},${west},${north},${east})`;
+    } else {
+      // Fallback to area strings if no bbox (legacy/fallback mode)
+      if (country && city) {
+        areaQuery = `
+          area["name"="${country}"]->.country;
+          area["name"="${city}"]->.city;
+        `;
+        searchArea = '(area.city)(area.country)';
+      } else if (city) {
+        areaQuery = `area["name"="${city}"]->.searchArea;`;
+        searchArea = '(area.searchArea)';
+      } else if (country) {
+        areaQuery = `area["name"="${country}"]->.searchArea;`;
+        searchArea = '(area.searchArea)';
+      } else {
+        throw new Error('OSM Provider requires at least one target city/country or bounding box.');
+      }
     }
 
     let tagUnion = '';
-    for (const tag of resolution.tags) {
+    for (const tag of osmTags) {
       tagUnion += `
         node${tag}${searchArea};
         way${tag}${searchArea};
         relation${tag}${searchArea};`;
     }
 
-    // Add fallback name search if available
-    if (resolution.fallbackNameSearch) {
+    if (osmTags.length === 0) {
       tagUnion += `
-        node${resolution.fallbackNameSearch}${searchArea};
-        way${resolution.fallbackNameSearch}${searchArea};
-        relation${resolution.fallbackNameSearch}${searchArea};`;
+        node${fallbackNameSearch}${searchArea};
+        way${fallbackNameSearch}${searchArea};
+        relation${fallbackNameSearch}${searchArea};`;
     }
 
     const query = `
@@ -168,7 +100,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       out center ${limit};
     `;
 
-    console.log('Executing Overpass Query:\n', query);
+    console.log(`[OSM Provider] Executing query... (BBox: ${!!options?.boundingBox})`);
 
     const response = await fetch(OVERPASS_URL, {
       method: 'POST',
@@ -190,7 +122,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       return [];
     }
 
-    const results: DiscoveryResult[] = data.elements.map((el: { type: string; id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }) => {
+    const results: DiscoveryResult[] = data.elements.map((el: any) => {
       const tags = el.tags || {};
       const elCity = tags['addr:city'] || '';
       const elCountry = tags['addr:country'] || '';
@@ -198,50 +130,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       let candidateStatus: 'discovered' | 'rejected' = 'discovered';
       let rejectionReason: string | undefined = undefined;
 
-      // Because our Overpass query strictly enforces geographic boundary containment
-      // (e.g. area.city and area.country), if this element was returned, it is physically
-      // inside the requested boundaries.
-      const passedGeographicContainment = !!searchArea; // searchArea means we used boundary filter
-      const validationMethod = searchArea ? 'geographic_boundary_intersection' : 'text_fallback';
-
-      if (passedGeographicContainment) {
-        // If it passed containment, we accept it. The only reason to reject is if
-        // there is an EXPLICIT contradictory tag that proves OSM data is corrupted.
-        if (
-          country &&
-          elCountry &&
-          !elCountry.toLowerCase().includes(country.toLowerCase()) &&
-          !(
-            country.toLowerCase() === 'united kingdom' &&
-            (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK')
-          )
-        ) {
-          candidateStatus = 'rejected';
-          rejectionReason = 'geographic_country_mismatch';
-        }
-      } else {
-        // Fallback logic if we didn't use strict area filtering
-        if (city && city.trim().length > 0) {
-          if (!elCity || !elCity.toLowerCase().includes(city.toLowerCase())) {
-            candidateStatus = 'rejected';
-            rejectionReason = 'geographic_city_mismatch';
-          }
-        }
-        if (country && elCountry) {
-          if (
-            !elCountry.toLowerCase().includes(country.toLowerCase()) &&
-            !(
-              country.toLowerCase() === 'united kingdom' &&
-              (elCountry.toUpperCase() === 'GB' || elCountry.toUpperCase() === 'UK')
-            )
-          ) {
-            candidateStatus = 'rejected';
-            rejectionReason = 'geographic_country_mismatch';
-          }
-        }
-      }
-
-      // If coordinates are completely missing, we cannot verify geographic scope
+      // If coordinates are missing, we cannot use it
       if (!el.lat && !el.center?.lat) {
         candidateStatus = 'rejected';
         rejectionReason = 'geographic_location_unverified';
@@ -253,8 +142,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
           target_country: country,
           target_city: city,
           candidate_coordinates: { lat: el.lat || el.center?.lat, lon: el.lon || el.center?.lon },
-          validation_method: validationMethod,
-          containment_passed: passedGeographicContainment,
+          used_bbox: !!options?.boundingBox,
           explicit_addr_city: elCity,
           explicit_addr_country: elCountry,
         },
