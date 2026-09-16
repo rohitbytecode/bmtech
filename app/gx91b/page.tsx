@@ -55,8 +55,8 @@ export default function AdminRoot() {
             </Link>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md">
-            <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:p-8">
+          <div className="relative mx-auto flex w-full max-w-md flex-col">
+            <div className="relative min-h-[28rem] overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-blue-950/40 backdrop-blur-xl sm:aspect-square sm:p-8">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:32px_32px]" />
               <div className="relative flex h-full flex-col justify-between">
                 <div className="flex items-center justify-between text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
@@ -83,7 +83,7 @@ export default function AdminRoot() {
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-5 -left-5 rounded-2xl border border-white/10 bg-[#122044]/90 px-4 py-3 shadow-xl backdrop-blur-md">
+            <div className="mt-4 self-start rounded-2xl border border-white/10 bg-[#122044]/90 px-4 py-3 shadow-xl backdrop-blur-md">
               <p className="text-[10px] tracking-[0.16em] text-white/35 uppercase">Next check-in</p>
               <p className="mt-1 font-mono text-sm text-sky-200">IN A LITTLE WHILE</p>
             </div>
