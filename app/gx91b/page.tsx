@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { ArrowUpRight, Command, LockKeyhole, Radio, Sparkles } from 'lucide-react';
 
 const diagnostics = [
@@ -8,6 +9,10 @@ const diagnostics = [
 ];
 
 export default function AdminRoot() {
+  if (process.env.NODE_ENV !== 'production') {
+    redirect('/gx91b/dasboard');
+  }
+
   return (
     <main className="relative isolate min-h-screen overflow-hidden bg-[#071225] px-5 py-8 text-white sm:px-10 lg:px-16">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_28%,rgba(37,99,235,0.24),transparent_24%),radial-gradient(circle_at_15%_80%,rgba(14,165,233,0.16),transparent_30%),linear-gradient(135deg,#071225_0%,#0b1530_52%,#101b2c_100%)]" />
