@@ -1,35 +1,44 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Keep the entire admin surface offline in production, including direct subroutes.
+  const isAdminMaintenance = process.env.NODE_ENV === 'production' && pathname.startsWith('/gx91b');
+
+  if (isAdminMaintenance) {
+    if (pathname !== '/gx91b') {
+      return NextResponse.redirect(new URL('/gx91b', request.url));
+    }
+
+    return NextResponse.next();
+  }
+
   // Automatically disable maintenance mode on Vercel Preview deployments
-  const isMaintenanceMode = 
-    process.env.MAINTENANCE_MODE === "true" && 
-    process.env.VERCEL_ENV !== "preview" &&
-    request.nextUrl.searchParams.get("bypass") !== "true";
+  const isMaintenanceMode =
+    process.env.MAINTENANCE_MODE === 'true' &&
+    process.env.VERCEL_ENV !== 'preview' &&
+    request.nextUrl.searchParams.get('bypass') !== 'true';
 
   // Maintenance Mode
-  if (isMaintenanceMode && pathname !== "/maintenance") {
-    if (pathname.includes(".") || pathname.startsWith("/_next")) {
+  if (isMaintenanceMode && pathname !== '/maintenance') {
+    if (pathname.includes('.') || pathname.startsWith('/_next')) {
       return NextResponse.next();
     }
 
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-maintenance-mode", "true");
+    requestHeaders.set('x-maintenance-mode', 'true');
 
-    return NextResponse.rewrite(new URL("/maintenance", request.url), {
+    return NextResponse.rewrite(new URL('/maintenance', request.url), {
       request: { headers: requestHeaders },
     });
   }
 
-  if (
-    pathname.startsWith("/gx91b") &&
-    pathname !== "/gx91b/login"
-  ) {
+  if (pathname.startsWith('/gx91b') && pathname !== '/gx91b/login') {
     // dev bypass
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === 'development') {
       return NextResponse.next();
     }
     // ────────────────────────────────────────────────────────────────────────
@@ -39,12 +48,11 @@ export async function proxy(request: NextRequest) {
     const allCookies = request.cookies.getAll();
 
     const authCookie = allCookies.find(
-      (c) =>
-        c.name.includes("auth-token") || c.name.includes("supabase.auth.token"),
+      (c) => c.name.includes('auth-token') || c.name.includes('supabase.auth.token'),
     );
 
     if (!authCookie) {
-      return NextResponse.redirect(new URL("/gx91b/login", request.url));
+      return NextResponse.redirect(new URL('/gx91b/login', request.url));
     }
 
     try {
@@ -60,10 +68,10 @@ export async function proxy(request: NextRequest) {
       const token =
         sessionData?.access_token ||
         sessionData?.[0]?.access_token ||
-        (typeof sessionData === "string" ? sessionData : null);
+        (typeof sessionData === 'string' ? sessionData : null);
 
       if (!token) {
-        return NextResponse.redirect(new URL("/gx91b/login", request.url));
+        return NextResponse.redirect(new URL('/gx91b/login', request.url));
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -80,7 +88,7 @@ export async function proxy(request: NextRequest) {
       } = await supabase.auth.getUser(token);
 
       if (error || !user) {
-        return NextResponse.redirect(new URL("/gx91b/login", request.url));
+        return NextResponse.redirect(new URL('/gx91b/login', request.url));
       }
 
       const userRole = user.user_metadata?.role;
@@ -89,20 +97,18 @@ export async function proxy(request: NextRequest) {
       const isCaller = userRole === 'caller';
 
       if (!isAdmin && !isCaller) {
-        return NextResponse.redirect(new URL("/gx91b/login", request.url));
+        return NextResponse.redirect(new URL('/gx91b/login', request.url));
       }
 
       // Restrict callers to only their specific dashboard
       if (isCaller && !isAdmin) {
         if (!pathname.startsWith('/gx91b/marketing/caller')) {
-          return NextResponse.redirect(new URL("/gx91b/marketing/caller", request.url));
+          return NextResponse.redirect(new URL('/gx91b/marketing/caller', request.url));
         }
       }
-
-
     } catch (e) {
-      console.error("Proxy Error:", e);
-      return NextResponse.redirect(new URL("/gx91b/login", request.url));
+      console.error('Proxy Error:', e);
+      return NextResponse.redirect(new URL('/gx91b/login', request.url));
     }
   }
 
@@ -110,5 +116,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

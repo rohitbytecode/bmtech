@@ -10,7 +10,7 @@ const diagnostics = [
 
 export default function AdminRoot() {
   if (process.env.NODE_ENV !== 'production') {
-    redirect('/gx91b/dasboard');
+    redirect('/gx91b/dashboard');
   }
 
   return (
