@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ArrowUpRight, Command, LockKeyhole, Radio, Sparkles } from 'lucide-react';
+import MaintenanceCountdown from '@/components/admin/MaintenanceCountdown';
 
 const diagnostics = [
   { label: 'Core systems', value: 'Upgrading', color: 'bg-amber-400' },
@@ -51,9 +52,10 @@ export default function AdminRoot() {
               We are tuning the BMTech admin console behind the scenes. Your workspace and data are
               secure while this upgrade is in progress.
             </p>
+            <MaintenanceCountdown />
             <Link
               href="/"
-              className="mt-10 inline-flex items-center gap-3 rounded-full bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-[0_0_26px_rgba(37,99,235,0.4)] transition hover:bg-blue-500"
+              className="mt-8 inline-flex items-center gap-3 rounded-full bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-[0_0_26px_rgba(37,99,235,0.4)] transition hover:bg-blue-500"
             >
               Return to BMTech
               <ArrowUpRight size={17} />
