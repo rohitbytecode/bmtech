@@ -7,7 +7,7 @@ import {
 import { resolveCategory } from '../categories/resolver.ts';
 import { BoundingBox } from '../geo/resolver.ts';
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+const OVERPASS_URL = 'https://overpass.kumi.systems/api/interpreter';
 
 // Helper for regex escaping
 const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
