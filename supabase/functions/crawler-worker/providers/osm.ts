@@ -105,11 +105,9 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     const response = await fetch(OVERPASS_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
         'User-Agent': 'BMTech Marketing App (admin@bmtech.in)',
       },
-      body: `data=${encodeURIComponent(query)}`,
+      body: query,
     });
 
     if (!response.ok) {

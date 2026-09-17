@@ -133,6 +133,7 @@ async function processDiscoverTask(
   } catch (err: any) {
     console.error('OSM provider error:', err);
     await logEvent(supabase, task, 'discovery_error', `OSM error: ${err.message}`, {}, 'error');
+    throw err; // Fail task to trigger retry mechanism
   }
 
   // 2. Run Google
@@ -184,6 +185,7 @@ async function processDiscoverTask(
     if (saveError) {
       if (!saveError.message.includes('duplicate key value')) {
         console.error(`Failed to save candidate: ${saveError.message}`);
+        throw new Error(`Candidate insertion failed: ${saveError.message}`); // Fail task on true db error
       }
       continue;
     }
