@@ -111,7 +111,13 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`Overpass API error: ${response.status} ${response.statusText}`);
+      const contentType = response.headers.get('content-type') || 'unknown';
+      const errorBody = await response.text();
+      throw new Error(
+        `Overpass API error: ${response.status} ${response.statusText} | ` +
+        `Content-Type: ${contentType} | ` +
+        `Body: ${errorBody.slice(0, 2000)}`
+      );
     }
 
     const data = await response.json();
