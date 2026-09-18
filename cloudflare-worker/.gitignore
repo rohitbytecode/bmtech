@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.dev.vars
+.wrangler/
+# scratch/dev-only scripts — never commit these
+verify.js
+query-vault.js
+get-vault.js
+fix-imports.js
+*.dev.js
+
