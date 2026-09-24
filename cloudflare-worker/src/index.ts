@@ -149,59 +149,73 @@ async function processDiscoverTask(
   }
 
   // Save Candidates
-  let savedCount = 0;
+  const rowsToInsert = [];
   for (const candidate of candidates) {
     const phoneNorm = candidate.phone ? validateIndianPhone(candidate.phone) : { valid: false };
     const pNormStr = phoneNorm.valid ? (phoneNorm as any).normalized : null;
     const nameNormStr = normalizeBusinessName(candidate.businessName);
 
-    const { data: savedCandidate, error: saveError } = await supabase
+    rowsToInsert.push({
+      job_id: task.job_id,
+      strategy_id: strategyId,
+      provider: candidate.provider,
+      external_id: candidate.externalId,
+      business_name: candidate.businessName,
+      business_name_normalized: nameNormStr,
+      website: normalizeWebsite(candidate.website),
+      phone: candidate.phone,
+      phone_normalized: pNormStr,
+      email: candidate.email,
+      address: candidate.address,
+      city: candidate.city,
+      state_region: candidate.stateRegion,
+      postal_code: candidate.postalCode,
+      country: candidate.country,
+      latitude: candidate.latitude,
+      longitude: candidate.longitude,
+      industry: candidate.industry,
+      raw_data: candidate.rawData,
+      status: candidate.status || 'discovered',
+      rejection_reason: candidate.rejectionReason,
+    });
+  }
+
+  let savedCount = 0;
+  if (rowsToInsert.length > 0) {
+    const { data: savedCandidates, error: saveError } = await supabase
       .from('discovery_candidates')
-      .insert({
-        job_id: task.job_id,
-        strategy_id: strategyId,
-        provider: candidate.provider,
-        external_id: candidate.externalId,
-        business_name: candidate.businessName,
-        business_name_normalized: nameNormStr,
-        website: normalizeWebsite(candidate.website),
-        phone: candidate.phone,
-        phone_normalized: pNormStr,
-        email: candidate.email,
-        address: candidate.address,
-        city: candidate.city,
-        state_region: candidate.stateRegion,
-        postal_code: candidate.postalCode,
-        country: candidate.country,
-        latitude: candidate.latitude,
-        longitude: candidate.longitude,
-        industry: candidate.industry,
-        raw_data: candidate.rawData,
-        status: candidate.status || 'discovered',
-        rejection_reason: candidate.rejectionReason,
-      })
-      .select()
-      .single();
+      .upsert(rowsToInsert, { onConflict: 'provider,external_id', ignoreDuplicates: true })
+      .select('id, status');
 
     if (saveError) {
-      if (!saveError.message.includes('duplicate key value')) {
-        console.error(`Failed to save candidate: ${saveError.message}`);
-        throw new Error(`Candidate insertion failed: ${saveError.message}`); // Fail task on true db error
-      }
-      continue;
+      console.error(`Bulk candidate insertion failed: ${saveError.message}`);
+      throw new Error(`Bulk candidate insertion failed: ${saveError.message}`);
     }
 
-    savedCount++;
-    
-    if (candidate.status !== 'rejected') {
-      await createNextTask(supabase, { ...task, candidate_id: savedCandidate.id }, 'validate');
+    if (savedCandidates && savedCandidates.length > 0) {
+      savedCount = savedCandidates.length;
+      
+      const tasksToInsert = savedCandidates
+        .filter(c => c.status !== 'rejected')
+        .map(c => ({
+          job_id: task.job_id,
+          candidate_id: c.id,
+          task_type: 'validate',
+          status: 'pending',
+          priority: task.priority,
+          payload: {}
+        }));
+
+      if (tasksToInsert.length > 0) {
+        const { error: tasksError } = await supabase.from('crawler_tasks').insert(tasksToInsert);
+        if (tasksError) {
+          throw new Error(`Bulk task creation failed: ${tasksError.message}`);
+        }
+      }
     }
   }
 
   await logEvent(supabase, task, 'discovery_completed', `Saved ${savedCount} new candidates.`);
-  
-  // Stats update
-  await supabase.rpc('update_crawler_job_status', { p_job_id: task.job_id });
 }
 
 async function processValidateTask(
@@ -642,7 +656,14 @@ async function claimTasks(supabase: ReturnType<typeof createServiceClient>) {
   }
 
   const { data, error } = await supabase.rpc('claim_crawler_tasks', {
-    p_batch_size: BATCH_SIZE,
+    p_limits: {
+      discover: 1,        // 14 subrequests (if claimed)
+      fetch_website: 1,   // 6 subrequests, capped at 1 for CPU safety
+      validate: 2,        // 4 subrequests
+      deduplicate: 1,     // 5 subrequests
+      finalize: 1,        // 7 subrequests
+      score: 1            // 7 subrequests
+    },
     p_worker_id: worker,
   });
 
