@@ -52,7 +52,7 @@ export default function AdminRoot() {
               We are tuning the BMTech admin console behind the scenes. Your workspace and data are
               secure while this upgrade is in progress.
             </p>
-            <MaintenanceCountdown />
+            <MaintenanceCountdown targetDate={process.env.MAINTENANCE_END} />
             <Link
               href="/"
               className="mt-8 inline-flex items-center gap-3 rounded-full bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-[0_0_26px_rgba(37,99,235,0.4)] transition hover:bg-blue-500"
