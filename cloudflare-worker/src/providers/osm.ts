@@ -3,9 +3,9 @@ import {
   DiscoveryOptions,
   DiscoveryResult,
   StrategyTargeting,
-} from '../discovery.ts';
-import { resolveCategory } from '../categories/resolver.ts';
-import { BoundingBox } from '../geo/resolver.ts';
+} from '../discovery';
+import { resolveCategory } from '../categories/resolver';
+import { BoundingBox } from '../geo/resolver';
 
 const OVERPASS_URL = 'https://overpass.kumi.systems/api/interpreter';
 
@@ -120,7 +120,7 @@ export class OpenStreetMapDiscoveryProvider implements DiscoveryProvider {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
 
     if (!data || !data.elements) {
       return [];

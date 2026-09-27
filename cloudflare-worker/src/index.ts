@@ -1,26 +1,26 @@
-import { createServiceClient } from '../_shared/supabase.ts';
-import { corsHeaders } from '../_shared/cors.ts';
+import { createServiceClient } from './_shared/supabase';
+import { corsHeaders } from './_shared/cors';
 
 // Providers
-import { OpenStreetMapDiscoveryProvider } from './providers/osm.ts';
-import { GooglePlacesDiscoveryProvider } from './providers/google.ts';
+import { OpenStreetMapDiscoveryProvider } from './providers/osm';
+import { GooglePlacesDiscoveryProvider } from './providers/google';
 
 // Pipeline Modules
-import { validateIndianPhone } from './pipeline/phoneValidator.ts';
-import { normalizeBusinessName, isIdentifiableBusinessName, normalizeWebsite } from './pipeline/normalize.ts';
-import { checkDuplicate } from './pipeline/deduplicate.ts';
-import { resolveEntityMatch } from './pipeline/entityResolver.ts';
-import { scoreBusinessQuality } from './pipeline/qualityScorer.ts';
+import { validateIndianPhone } from './pipeline/phoneValidator';
+import { normalizeBusinessName, isIdentifiableBusinessName, normalizeWebsite } from './pipeline/normalize';
+import { checkDuplicate } from './pipeline/deduplicate';
+import { resolveEntityMatch } from './pipeline/entityResolver';
+import { scoreBusinessQuality } from './pipeline/qualityScorer';
 
 // Geo
-import { resolveCityToGeo, generateGridCells } from './geo/resolver.ts';
-import { generateGridCells as genGridCells } from './geo/grid.ts';
+import { resolveCityToGeo } from './geo/resolver';
+import { generateGridCells as genGridCells } from './geo/grid';
 
 // Fetcher & Scoring
-import { fetchAndExtractWebsite, WebsiteEvidence } from './fetcher.ts';
-import { calculateOpportunityScores } from './scoring/scoringEngine.ts';
+import { fetchAndExtractWebsite, WebsiteEvidence } from './fetcher';
+import { calculateOpportunityScores } from './scoring/scoringEngine';
 
-const BATCH_SIZE = 5; // Reduced from 10 to prevent Edge Function timeout
+const BATCH_SIZE = 2; // Reduced from 5 to prevent CF Free Plan CPU timeout
 const LOCK_TIMEOUT_MINUTES = 10;
 const DISCOVER_COOLDOWN_HOURS = 8;
 
@@ -89,6 +89,7 @@ async function createNextTask(
 async function processDiscoverTask(
   supabase: ReturnType<typeof createServiceClient>,
   task: CrawlerTask,
+  env: any,
 ) {
   const strategyId = task.payload.strategy_id as string;
   if (!strategyId) throw new Error('DISCOVER task has no strategy_id');
@@ -120,7 +121,7 @@ async function processDiscoverTask(
   const discoverOptions = { limit: 100, industry, city, country, boundingBox: bbox };
   
   const osmProvider = new OpenStreetMapDiscoveryProvider();
-  const googleProvider = new GooglePlacesDiscoveryProvider(); // Uses env var automatically
+  const googleProvider = new GooglePlacesDiscoveryProvider(env.GOOGLE_MAPS_API_KEY);
 
   let candidates: any[] = [];
   
@@ -606,10 +607,10 @@ async function processScoreTask(
   if (updateProspectError) throw new Error(`Failed to update prospect opportunity fields`);
 }
 
-async function processTask(supabase: ReturnType<typeof createServiceClient>, task: CrawlerTask) {
+async function processTask(supabase: ReturnType<typeof createServiceClient>, task: CrawlerTask, env: any) {
   switch (task.task_type) {
     case 'discover':
-      return processDiscoverTask(supabase, task);
+      return processDiscoverTask(supabase, task, env);
     case 'validate':
       return processValidateTask(supabase, task);
     case 'deduplicate':
@@ -768,7 +769,15 @@ async function scheduleActiveStrategies(supabase: ReturnType<typeof createServic
   return queued;
 }
 
-Deno.serve(async (req) => {
+export interface Env {
+  SUPABASE_URL: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
+  SUPABASE_SECRET_KEYS: string;
+  GOOGLE_MAPS_API_KEY?: string;
+}
+
+export default {
+  async fetch(req: Request, env: Env): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
@@ -779,7 +788,7 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.slice(7).trim();
-    const rawSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS') ?? '';
+    const rawSecretKeys = env.SUPABASE_SECRET_KEYS ?? '';
     const secretKeys = rawSecretKeys.split(',').map((k) => k.trim()).filter(Boolean);
 
     let isAuthorized = false;
@@ -798,7 +807,7 @@ Deno.serve(async (req) => {
 
     if (!isAuthorized) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-    const supabase = createServiceClient();
+    const supabase = createServiceClient(env);
     const tasks = await claimTasks(supabase);
 
     if (!tasks.length) {
@@ -811,7 +820,7 @@ Deno.serve(async (req) => {
 
     for (const task of tasks) {
       try {
-        await processTask(supabase, task);
+        await processTask(supabase, task, env);
         await completeTask(supabase, task);
         await supabase.rpc('update_crawler_job_status', { p_job_id: task.job_id });
         successful++;
@@ -825,4 +834,5 @@ Deno.serve(async (req) => {
   } catch (error) {
     return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
-});
+  }
+};

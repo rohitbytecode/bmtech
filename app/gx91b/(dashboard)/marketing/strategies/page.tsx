@@ -90,7 +90,11 @@ export default function StrategiesPage() {
 
     // Retrieve current user ID to set 'created_by'
     const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id;
+    let userId = user?.id;
+
+    if (!userId && process.env.NODE_ENV === 'development') {
+      userId = '00000000-0000-0000-0000-000000000000';
+    }
 
     if (!userId) {
       alert("You must be logged in to create a strategy. Please refresh the page.");
