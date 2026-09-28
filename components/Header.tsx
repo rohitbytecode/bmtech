@@ -15,12 +15,13 @@ export default function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
 
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/gx91b')) {
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/gx91b') || pathname?.startsWith('/uk')) {
     return null;
   }
 
   const navLinks = [
     { label: 'Services', href: '#services' },
+    { label: 'Packages', href: '#packages' },
     { label: 'Portfolio', href: '#portfolio' },
     { label: 'Process', href: '#process' },
     { label: 'About Us', href: '#about' },
