@@ -36,7 +36,12 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
       <div className="mb-6">
         <h3 className="text-xl font-bold text-foreground mb-3 line-clamp-1">{name}</h3>
         <div className="flex items-baseline gap-1">
-          <p className="text-4xl font-bold text-foreground">{price}</p>
+          <p className="text-4xl font-bold text-foreground">
+            {price.includes('/') ? price.split('/')[0] : price}
+          </p>
+          {price.includes('/') && (
+            <span className="text-text-secondary text-sm font-medium">/{price.split('/')[1]}</span>
+          )}
         </div>
         <p className="text-sm text-text-secondary mt-2">Comprehensive setup &amp; support</p>
       </div>
@@ -47,7 +52,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
         highlighted ? 'bg-gradient-to-r from-transparent via-accent-blue/30 to-transparent' : 'bg-border/60',
       )} />
 
-      <ul className="space-y-4 mb-8">
+      <ul className="space-y-4 mb-8 flex-1">
         {features.map((feature, i) => (
           <li key={i} className="flex items-start text-sm text-text-secondary">
             <span className={cn(

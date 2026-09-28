@@ -49,11 +49,13 @@ export default function Packages() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center">
           <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-accent-blue bg-accent-blue/8 px-4 py-1.5 rounded-full mb-4">
-            💎 Bundles
+            💎 Monthly Packages
           </span>
-          <h2 className="text-xl md:text-3xl font-extrabold mb-4 text-foreground">Combo Packages</h2>
+          <h2 className="text-2xl md:text-4xl font-extrabold mb-4 text-foreground">
+            Monthly Production <span className="text-accent-blue">Packages</span>
+          </h2>
           <p className="text-text-secondary max-w-2xl mx-auto">
-            Optimized bundles to give you more value and complete digital transformations.
+            Fixed-price monthly packages designed for scaling teams. Predictable costs, consistent quality.
           </p>
         </div>
 
@@ -77,7 +79,7 @@ export default function Packages() {
                 try {
                   const parsed = JSON.parse(pkg.features);
                   parsedFeatures = Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
+                } catch {
                   parsedFeatures = [];
                 }
               }
