@@ -9,7 +9,6 @@ import Contact from '@/components/Contact';
 import DiscountBanner from '@/components/DiscountBanner';
 import TechSlider from '@/components/TechSlider';
 import GrowthStage from '@/components/GrowthStage';
-import Packages from '@/components/Packages';
 import { useData } from '@/hooks/useData';
 import { Settings } from '@/services/dataService';
 
@@ -60,7 +59,6 @@ export default function Home() {
       <Hero />
       <TechSlider />
       <GrowthStage />
-      <Packages />
       <Portfolio />
       <Process />
       <About />
@@ -132,7 +130,6 @@ export default function Home() {
                 {[
                   { label: 'Services', href: '#services' },
                   { label: 'Portfolio', href: '#portfolio' },
-                  { label: 'Packages', href: '#packages' },
                   { label: 'About', href: '#about' },
                   { label: 'Contact', href: '#contact' },
                 ].map((link) => (

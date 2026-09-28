@@ -13,11 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default function UKLayout({ children }: { children: React.ReactNode }) {
-  const isComingSoon =
-    process.env.NODE_ENV === 'production' ||
-    process.env.NEXT_PUBLIC_UK_COMING_SOON === 'true';
-
-  if (isComingSoon) {
+  if (process.env.NODE_ENV === 'production') {
     return <ComingSoon />;
   }
 
