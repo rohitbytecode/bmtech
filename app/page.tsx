@@ -173,9 +173,11 @@ export default function Home() {
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Contact Info</h3>
               <ul className="space-y-3">
-                <li className="text-sm text-text-secondary">
-                  {s?.contact_email || 'brothersmediatech@gmail.com'}
-                </li>
+                {s?.contact_email && !s.contact_email.includes('brothersmediatech@gmail.com') && (
+                  <li className="text-sm text-text-secondary">
+                    {s.contact_email}
+                  </li>
+                )}
                 <li className="text-sm text-text-secondary">
                   {'+91 63538-32814'}
                 </li>

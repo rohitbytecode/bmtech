@@ -123,21 +123,23 @@ export default function Contact() {
               </div>
 
               {/* EMAIL */}
-              <div className="flex items-start gap-5">
-                <div className="w-12 h-12 shrink-0 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
-                  <Mail size={20} className="text-accent-blue" />
-                </div>
+              {s?.contact_email && !s.contact_email.includes('brothersmediatech@gmail.com') && (
+                <div className="flex items-start gap-5">
+                  <div className="w-12 h-12 shrink-0 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
+                    <Mail size={20} className="text-accent-blue" />
+                  </div>
 
-                <div className="space-y-2">
-                  <p className="text-xs uppercase font-semibold text-text-secondary tracking-wider">
-                    Email Us
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase font-semibold text-text-secondary tracking-wider">
+                      Email Us
+                    </p>
 
-                  <p className="text-lg font-semibold text-foreground break-all">
-                    {s?.contact_email || 'brothersmediatech@gmail.com'}
-                  </p>
+                    <p className="text-lg font-semibold text-foreground break-all">
+                      {s.contact_email}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* HOURS */}
               <div className="flex items-start gap-5">
