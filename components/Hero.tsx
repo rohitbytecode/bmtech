@@ -114,16 +114,9 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center pt-24 sm:pt-28 md:pt-32 pb-16 px-6 sm:px-12 md:px-20 overflow-hidden bg-[#faf9f5] dark:bg-[#0b0f19] text-slate-900 dark:text-white transition-colors duration-300">
-      {/* 1. Dark Mode Background Image (hero-bg.png) */}
-      <div className="absolute inset-0 z-0 hidden dark:block">
-        <Image
-          src="/hero-bg.png"
-          alt="Engineering Digital Excellence Background"
-          fill
-          className="object-cover object-center opacity-85 transition-opacity duration-500"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f19]/90 via-[#0b0f19]/50 to-transparent" />
+      {/* 1. Dark Mode Clean Background */}
+      <div className="absolute inset-0 z-0 hidden dark:block bg-[#0b0f19]">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:28px_28px]" />
       </div>
 
       {/* 2. Light Mode Smooth Cream + Sky Blue Gradient Background */}
