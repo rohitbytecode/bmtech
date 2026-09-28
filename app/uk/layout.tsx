@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import ComingSoon from '@/components/ComingSoon';
 
 export const metadata: Metadata = {
   title: 'BMTech — White-Label Video Production for UK Agencies',
@@ -12,5 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default function UKLayout({ children }: { children: React.ReactNode }) {
+  const isComingSoon =
+    process.env.NODE_ENV === 'production' ||
+    process.env.NEXT_PUBLIC_UK_COMING_SOON === 'true';
+
+  if (isComingSoon) {
+    return <ComingSoon />;
+  }
+
   return <>{children}</>;
 }
