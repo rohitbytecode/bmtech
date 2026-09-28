@@ -12,12 +12,14 @@ const sora = Sora({
   subsets: ['latin'],
   variable: '--font-sora',
   weight: ['600', '700', '800'],
+  preload: false, // skip build-time Google Fonts fetch (Vercel network restriction)
 });
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   weight: ['400', '500', '600', '700'],
+  preload: false, // skip build-time Google Fonts fetch (Vercel network restriction)
 });
 
 export const metadata: Metadata = {
