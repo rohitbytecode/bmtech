@@ -8,7 +8,6 @@ import {
   ArrowRight,
   Clapperboard,
   Send,
-  FileText,
   Eye,
   PackageCheck,
   Lock,
@@ -189,13 +188,12 @@ const PROCESS_STEPS = [
 ];
 
 const WHY_POINTS = [
-  { title: 'Flexible production capacity', desc: 'Scale up or down based on your pipeline — no fixed overhead or long-term commitments.' },
-  { title: 'White-label delivery', desc: 'Every asset delivered under your brand. Your clients never see us.' },
-  { title: 'Direct communication', desc: 'No account managers in the way. Speak directly with the team producing your content.' },
-  { title: 'Defined turnaround times', desc: 'Clear SLAs on every project so you can plan your client timelines with confidence.' },
-  { title: 'Defined revision limits', desc: 'Structured revision rounds keep projects moving and budgets predictable.' },
-  { title: 'Scalable production', desc: 'From one-off projects to ongoing retainers — we grow with your agency.' },
-  { title: 'Remote collaboration', desc: 'Async-first workflow designed for cross-timezone teams. London mornings, deliveries by EOD.' },
+  { title: 'Flexible capacity', desc: 'Scale output up or down instantly — from pilot briefs to full monthly retainers.' },
+  { title: 'White-label delivery', desc: 'Delivered 100% under your brand. Completely invisible to your clients.' },
+  { title: 'Direct communication', desc: 'Talk straight to your editors. No account manager delays.' },
+  { title: 'Defined turnarounds', desc: 'Strict 2–4 day SLAs to protect client posting calendars.' },
+  { title: 'Defined revision limits', desc: '2 structured review rounds for predictable scopes and budgets.' },
+  { title: 'Remote collaboration', desc: 'UK hours aligned: brief in the morning, delivery by EOD.' },
 ];
 
 const PORTFOLIO_PLACEHOLDERS = Array.from({ length: 8 }, (_, i) => ({
@@ -434,13 +432,13 @@ export default function UKLandingPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="inline-flex items-center gap-2.5 mb-8 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-50 dark:bg-blue-950/40 backdrop-blur-xl shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+            className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-50 dark:bg-blue-950/40 backdrop-blur-xl shadow-[0_0_20px_rgba(59,130,246,0.15)]"
           >
-            <span className="text-[11px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-400/30">
+            <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-400/30">
               UK Agency Partner
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide text-slate-800 dark:text-blue-100">
+            <span className="text-xs sm:text-[13px] font-medium tracking-normal text-slate-700 dark:text-blue-100">
               White-Label Creative Production Desk
             </span>
           </motion.div>
@@ -450,7 +448,7 @@ export default function UKLandingPage() {
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6 font-heading"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-extrabold tracking-tight leading-[1.12] mb-4 font-heading"
           >
             Scale your content velocity
             <br />
@@ -464,10 +462,9 @@ export default function UKLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.45 }}
-            className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto font-body leading-relaxed font-normal"
+            className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mb-8 max-w-xl mx-auto font-body leading-relaxed font-normal"
           >
-            BMTech operates as your agency&apos;s invisible, back-office production engine — delivering
-            high-retention short-form edits, cinematic motion graphics, and video repurposing under your brand.
+            White-label short-form video editing, motion graphics, and repurposing &mdash; built for UK agencies.
           </motion.p>
 
           {/* Action CTAs */}
@@ -625,9 +622,8 @@ export default function UKLandingPage() {
                 Your team shouldn&apos;t absorb the overhead.
               </span>
             </h2>
-            <p className="text-base sm:text-lg text-text-secondary leading-relaxed">
-              Hiring in-house UK editors is costly and rigid. Freelancers are erratic. Client margins are under pressure.
-              Here is how BMTech re-engineers your production pipeline:
+            <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
+              Stop overpaying for in-house overhead or managing unreliable freelancers.
             </p>
           </motion.div>
 
@@ -640,33 +636,33 @@ export default function UKLandingPage() {
               whileInView="visible"
               viewport={{ once: true }}
               custom={1}
-              className="group relative p-8 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+              className="group relative p-6 sm:p-7 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors pointer-events-none" />
               <div>
-                <div className="flex items-center justify-between gap-3 mb-6">
-                  <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                    <TrendingDown size={22} />
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                    <TrendingDown size={20} />
                   </div>
-                  <span className="font-mono text-[11px] text-blue-600 dark:text-blue-400 font-bold px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                  <span className="font-mono text-[10px] sm:text-[11px] text-blue-600 dark:text-blue-400 font-bold px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
                     SAVE ~65% OVERHEAD
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 font-heading">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 font-heading">
                   In-House Payroll Trap vs. Flat On-Demand Retainer
                 </h3>
-                <div className="space-y-3 my-4 text-sm">
-                  <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary">
-                    <span className="font-semibold text-rose-500 mr-2">&times; UK In-House:</span>
-                    £42,000+ salary + employer NI, pension, holiday cover, software licenses, and paid downtime between client briefs.
+                <div className="space-y-2.5 my-4">
+                  <div className="p-2.5 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-rose-500 mr-1.5">In-House:</span>
+                    £42k+ salary, employer NI, pension, and paid idle downtime.
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary">
-                    <span className="font-semibold text-emerald-500 mr-2">&check; BMTech Model:</span>
-                    Fixed monthly retainers starting at £299/mo. Zero payroll liability, zero HR headaches, scale capacity up or down instantly.
+                  <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-emerald-500 mr-1.5">BMTech:</span>
+                    Fixed retainers from £299/mo. Zero payroll liability or HR headaches.
                   </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border/80 flex items-center gap-2 font-mono text-[11px] text-text-secondary">
+              <div className="pt-3.5 border-t border-border/80 flex items-center gap-2 font-mono text-[10px] text-text-secondary">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                 <span>BENCHMARK // PREDICTABLE AGENCY PROFIT MARGINS</span>
               </div>
@@ -679,33 +675,33 @@ export default function UKLandingPage() {
               whileInView="visible"
               viewport={{ once: true }}
               custom={2}
-              className="group relative p-8 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+              className="group relative p-6 sm:p-7 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors pointer-events-none" />
               <div>
-                <div className="flex items-center justify-between gap-3 mb-6">
-                  <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
-                    <Clock size={22} />
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
+                    <Clock size={20} />
                   </div>
-                  <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-bold px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+                  <span className="font-mono text-[10px] sm:text-[11px] text-indigo-600 dark:text-indigo-400 font-bold px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20">
                     2–4 WORKING DAYS SLA
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 font-heading">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 font-heading">
                   Freelancer Drift vs. Ironclad Production SLA
                 </h3>
-                <div className="space-y-3 my-4 text-sm">
-                  <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary">
-                    <span className="font-semibold text-rose-500 mr-2">&times; Freelancers:</span>
-                    Ghosting right before client deadlines, juggling competing projects, variable video quality, and nickel-and-diming for revisions.
+                <div className="space-y-2.5 my-4">
+                  <div className="p-2.5 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-rose-500 mr-1.5">Freelancers:</span>
+                    Missed client deadlines, erratic quality, and nickel-and-diming.
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary">
-                    <span className="font-semibold text-emerald-500 mr-2">&check; BMTech Model:</span>
-                    Defined 2–4 working day turnarounds. 2 structured revision rounds per asset. Dedicated Slack/WhatsApp or portal communication.
+                  <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-emerald-500 mr-1.5">BMTech:</span>
+                    Defined 2–4 working day turnarounds with 2 structured revision rounds.
                   </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border/80 flex items-center gap-2 font-mono text-[11px] text-text-secondary">
+              <div className="pt-3.5 border-t border-border/80 flex items-center gap-2 font-mono text-[10px] text-text-secondary">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                 <span>TIMELINES // NO MISSED CLIENT POSTING DATES</span>
               </div>
@@ -718,33 +714,33 @@ export default function UKLandingPage() {
               whileInView="visible"
               viewport={{ once: true }}
               custom={3}
-              className="group relative p-8 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+              className="group relative p-6 sm:p-7 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors pointer-events-none" />
               <div>
-                <div className="flex items-center justify-between gap-3 mb-6">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-                    <ShieldCheck size={22} />
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                    <ShieldCheck size={20} />
                   </div>
-                  <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="font-mono text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                     100% INVISIBLE TO CLIENTS
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 font-heading">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 font-heading">
                   Client Poaching Risk vs. 100% White-Label Shield
                 </h3>
-                <div className="space-y-3 my-4 text-sm">
-                  <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary">
-                    <span className="font-semibold text-rose-500 mr-2">&times; Third Parties:</span>
-                    Freelancers tagging client videos on their public portfolio or bypassing your agency to pitch your client directly.
+                <div className="space-y-2.5 my-4">
+                  <div className="p-2.5 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-rose-500 mr-1.5">Third Parties:</span>
+                    Freelancers tagging client clips publicly or pitching clients directly.
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary">
-                    <span className="font-semibold text-emerald-500 mr-2">&check; BMTech Model:</span>
-                    100% anonymized white-label files. Strict mutual NDAs. Delivered ready to pass directly to your client under your own brand banner.
+                  <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-emerald-500 mr-1.5">BMTech:</span>
+                    100% anonymized exports under strict NDA. Ready to deliver as your own.
                   </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border/80 flex items-center gap-2 font-mono text-[11px] text-text-secondary">
+              <div className="pt-3.5 border-t border-border/80 flex items-center gap-2 font-mono text-[10px] text-text-secondary">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span>CONFIDENTIALITY // YOUR CLIENTS NEVER SEE US</span>
               </div>
@@ -757,33 +753,33 @@ export default function UKLandingPage() {
               whileInView="visible"
               viewport={{ once: true }}
               custom={4}
-              className="group relative p-8 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+              className="group relative p-6 sm:p-7 rounded-2xl bg-surface/90 dark:bg-slate-950/70 border border-border dark:border-slate-800/90 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors pointer-events-none" />
               <div>
-                <div className="flex items-center justify-between gap-3 mb-6">
-                  <div className="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
-                    <Layers size={22} />
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
+                    <Layers size={20} />
                   </div>
-                  <span className="font-mono text-[11px] text-sky-600 dark:text-sky-400 font-bold px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20">
+                  <span className="font-mono text-[10px] sm:text-[11px] text-sky-600 dark:text-sky-400 font-bold px-2.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20">
                     10&times; CONTENT MULTIPLIER
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 font-heading">
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 font-heading">
                   Wasted Long-Form Footage vs. Viral Short-Form Engine
                 </h3>
-                <div className="space-y-3 my-4 text-sm">
-                  <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary">
-                    <span className="font-semibold text-rose-500 mr-2">&times; Untapped Media:</span>
-                    Hours of client podcasts, webinars, and event recordings gather digital dust because nobody has time to extract short clips.
+                <div className="space-y-2.5 my-4">
+                  <div className="p-2.5 rounded-xl bg-rose-500/5 border border-rose-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-rose-500 mr-1.5">Untapped Media:</span>
+                    Hours of client recordings left unused with no time to edit.
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary">
-                    <span className="font-semibold text-emerald-500 mr-2">&check; BMTech Model:</span>
-                    Send 1 raw long-form recording &rarr; receive 10&ndash;20 viral vertical clips with punchy hooks, dynamic captions, and motion graphics.
+                  <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-text-secondary text-xs sm:text-[13px] leading-relaxed">
+                    <span className="font-semibold text-emerald-500 mr-1.5">BMTech:</span>
+                    1 raw recording extracted into 10–20 viral short-form clips.
                   </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-border/80 flex items-center gap-2 font-mono text-[11px] text-text-secondary">
+              <div className="pt-3.5 border-t border-border/80 flex items-center gap-2 font-mono text-[10px] text-text-secondary">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
                 <span>SCALE // MAXIMIZE CLIENT LIFETIME VALUE</span>
               </div>
@@ -1089,15 +1085,19 @@ export default function UKLandingPage() {
             viewport={{ once: true }}
             variants={fadeUp}
             custom={0}
-            className="mb-12"
+            className="mb-12 text-center max-w-2xl mx-auto"
           >
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-8 h-[2px] bg-blue-500" />
               <span className="text-blue-500 font-bold tracking-[0.2em] uppercase text-xs">Why BMTech</span>
+              <div className="w-8 h-[2px] bg-blue-500" />
             </div>
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-3 font-heading">
               Built for <span className="text-blue-500">Agencies.</span>
             </h2>
+            <p className="text-sm text-text-secondary leading-relaxed">
+              Designed specifically for agency workflows &mdash; seamless, white-label, and predictable.
+            </p>
           </motion.div>
 
           <motion.div
@@ -1105,22 +1105,26 @@ export default function UKLandingPage() {
             whileInView="visible"
             viewport={{ once: true, margin: '0px 0px -10% 0px' }}
             variants={staggerContainer}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto"
           >
             {WHY_POINTS.map((point, i) => (
               <motion.div
                 key={point.title}
                 variants={fadeUp}
                 custom={i}
-                className="group relative bg-surface/80 backdrop-blur-xl p-6 rounded-2xl border border-border hover:border-accent-blue/40 shadow-sm hover:shadow-xl hover:shadow-accent-blue/5 transition-all duration-300"
+                className="group relative bg-surface/80 dark:bg-slate-950/70 backdrop-blur-xl p-5 rounded-2xl border border-border dark:border-slate-800/80 hover:border-blue-500/40 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-accent-blue/10 border border-accent-blue/20 flex items-center justify-center flex-shrink-0">
-                    <Check size={14} className="text-accent-blue" />
+                <div>
+                  <div className="flex items-center gap-2.5 mb-2.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    <h3 className="text-sm font-bold text-foreground tracking-tight font-heading">
+                      {point.title}
+                    </h3>
                   </div>
-                  <h3 className="text-sm font-bold text-foreground tracking-tight">{point.title}</h3>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {point.desc}
+                  </p>
                 </div>
-                <p className="text-sm text-text-secondary leading-relaxed">{point.desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -1150,16 +1154,15 @@ export default function UKLandingPage() {
                 We&apos;ll respond within 24 hours.
               </p>
               <div className="space-y-8">
-                {/* Email */}
+                {/* Turnaround / Response SLA */}
                 <div className="flex items-start gap-5">
                   <div className="w-12 h-12 shrink-0 bg-accent-blue/10 border border-accent-blue/20 rounded-full flex items-center justify-center">
-                    <FileText size={20} className="text-accent-blue" />
+                    <Clock size={20} className="text-accent-blue" />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs uppercase font-semibold text-text-secondary tracking-wider">Email Us</p>
-                    <p className="text-lg font-semibold text-foreground break-all">
-                      brothersmediatech@gmail.com
-                    </p>
+                    <p className="text-xs uppercase font-semibold text-text-secondary tracking-wider">Response SLA</p>
+                    <p className="text-lg font-semibold text-foreground">Within 24 Hours</p>
+                    <p className="text-sm text-text-secondary">Dedicated project manager communication</p>
                   </div>
                 </div>
                 {/* Location */}
@@ -1382,7 +1385,6 @@ export default function UKLandingPage() {
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Contact Info</h3>
               <ul className="space-y-3">
-                <li className="text-sm text-text-secondary">brothersmediatech@gmail.com</li>
                 <li className="text-sm text-text-secondary">India-based, serving UK agencies</li>
                 <li className="text-sm text-text-secondary">Mon – Fri, 10 AM – 7 PM IST</li>
               </ul>
