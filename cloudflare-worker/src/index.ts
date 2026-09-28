@@ -655,15 +655,11 @@ async function claimTasks(supabase: ReturnType<typeof createServiceClient>) {
     }
   }
 
+  // Claim exactly ONE task globally, ordered by priority DESC, available_at ASC.
+  // Using the single-arg overload introduced in 20260928_claim_one_crawler_task.sql.
+  // This prevents a slow "discover" task from holding a lock on unrelated "validate"
+  // or other tasks that were claimed in the same batch.
   const { data, error } = await supabase.rpc('claim_crawler_tasks', {
-    p_limits: {
-      discover: 1,        // 14 subrequests (if claimed)
-      fetch_website: 1,   // 6 subrequests, capped at 1 for CPU safety
-      validate: 2,        // 4 subrequests
-      deduplicate: 1,     // 5 subrequests
-      finalize: 1,        // 7 subrequests
-      score: 1            // 7 subrequests
-    },
     p_worker_id: worker,
   });
 
