@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import EasterEgg from '@/components/EasterEgg';
 
 function MagneticWord({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = React.useRef<HTMLSpanElement>(null);
@@ -174,14 +175,17 @@ export default function Hero() {
           </h1>
 
           {/* Subtitle */}
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.75 }}
-            className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-xl font-body leading-relaxed font-medium"
+            className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-xl font-body leading-relaxed font-medium flex items-end gap-0"
           >
-            We partner with forward-thinking enterprises to design, build, and scale world-class digital products and infrastructure.
-          </motion.p>
+            <p>
+              We partner with forward-thinking enterprises to design, build, and scale world-class digital products and infrastructure.
+            </p>
+            <EasterEgg />
+          </motion.div>
 
           {/* Action Buttons */}
           <motion.div
