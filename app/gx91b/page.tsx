@@ -1,7 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { ArrowUpRight, Command, LockKeyhole, Radio, Sparkles } from 'lucide-react';
 import MaintenanceCountdown from '@/components/admin/MaintenanceCountdown';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const diagnostics = [
   { label: 'Core systems', value: 'Upgrading', color: 'bg-amber-400' },
