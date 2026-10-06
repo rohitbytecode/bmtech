@@ -367,7 +367,7 @@ export const marketingService = {
         { count: totalCalls }
       ] = await Promise.all([
         supabase.from('prospects').select('*', { count: 'exact', head: true }),
-        supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'discovered'),
+        supabase.from('prospects').select('*', { count: 'exact', head: true }).in('status', ['discovered', 'ready_for_call']),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'assigned'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'callback_required'),
         supabase.from('prospects').select('*', { count: 'exact', head: true }).eq('status', 'qualified'),

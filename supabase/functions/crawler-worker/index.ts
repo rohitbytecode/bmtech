@@ -720,7 +720,7 @@ async function scheduleActiveStrategies(supabase: ReturnType<typeof createServic
       .from('crawler_jobs')
       .select('id')
       .eq('strategy_id', strategy.id)
-      .in('status', ['pending', 'processing'])
+      .in('status', ['pending', 'processing', 'running'])
       .limit(1);
 
     if (activeJobs && activeJobs.length > 0) continue;
